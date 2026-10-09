@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "root",
+      "description": "Корень",
+      "checks": [{"type": "cmd", "run": "true"}],
+      "needs": {},
+      "budget": {"attempts": 3, "max_rework": 2},
+      "depends_on": []
+    },
+    {
+      "id": "t2",
+      "kind": "task",
+      "description": "Шаг 1",
+      "checks": [{"type": "cmd", "run": "true"}],
+      "needs": {},
+      "budget": {"attempts": 3},
+      "depends_on": ["t1"]
+    },
+    {
+      "id": "t3",
+      "kind": "task",
+      "description": "Шаг 2 (дубль зависимости — SQL PK violation)",
+      "checks": [{"type": "cmd", "run": "true"}],
+      "needs": {},
+      "budget": {"attempts": 3},
+      "depends_on": ["t2", "t2"]
+    }
+  ]
+}

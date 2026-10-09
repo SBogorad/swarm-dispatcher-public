@@ -1,0 +1,21 @@
+# Rust
+target/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Секреты и локальное
+.env
+.env.*
+!.env.example
+*.log
+build.log
+*.tmp.*
+docker-compose.yml.orig
+
+# Локальные данные и переписка
+.pytest_cache/
+docs/history/inbound/
+

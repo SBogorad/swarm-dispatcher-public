@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "root",
+      "description": "Корень: рефакторинг модуля auth",
+      "checks": [{"type": "cmd", "run": "true"}],
+      "needs": {},
+      "budget": {"attempts": 3, "max_rework": 2},
+      "depends_on": []
+    },
+    {
+      "id": "t2",
+      "kind": "code.refactor",
+      "description": "Выделить валидацию токенов",
+      "checks": [{"type": "cmd", "run": "cargo test auth::tokens"}],
+      "needs": {"min_ram_gb": 8, "coder_class": 2},
+      "budget": {"attempts": 3, "max_rework": 2},
+      "depends_on": ["t1"]
+    },
+    {
+      "id": "t3",
+      "kind": "code.refactor",
+      "description": "Покрыть тестами",
+      "checks": [{"type": "cmd", "run": "cargo test auth"}],
+      "needs": {"min_ram_gb": 8, "coder_class": 2},
+      "budget": {"attempts": 3, "max_rework": 2},
+      "depends_on": ["t2"]
+    }
+  ]
+}

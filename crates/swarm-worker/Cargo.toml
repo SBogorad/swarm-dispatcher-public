@@ -1,0 +1,27 @@
+[package]
+name = "swarm-worker"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+swarm-core = { path = "../swarm-core" }
+swarm-llm = { path = "../swarm-llm" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = "0.10"
+ctrlc = "3.4"
+thiserror = { workspace = true }
+# v0.4: аудит tool calls пишется отдельным соединением (§7).
+postgres = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+postgres = { workspace = true }
+uuid = { workspace = true }
+swarm-planner = { path = "../swarm-planner" }
+
+[[test]]
+name = "worker_integration"
+path = "tests/worker_integration.rs"

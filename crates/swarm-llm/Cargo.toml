@@ -1,0 +1,11 @@
+[package]
+name = "swarm-llm"
+version.workspace = true
+edition.workspace = true
+description = "Общий LLM-клиент (sync): openai / anthropic / openai-compatible / mock"
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "blocking", "rustls-tls"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

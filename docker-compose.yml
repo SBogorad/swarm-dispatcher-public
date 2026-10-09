@@ -1,0 +1,141 @@
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_DB: swarm
+      POSTGRES_USER: swarm
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      SWARM_PW_WORKER: ${SWARM_PW_WORKER:?set SWARM_PW_WORKER}
+      SWARM_PW_WATCHDOG: ${SWARM_PW_WATCHDOG:?set SWARM_PW_WATCHDOG}
+      SWARM_PW_PLANNER: ${SWARM_PW_PLANNER:?set SWARM_PW_PLANNER}
+      SWARM_PW_REVIEWER: ${SWARM_PW_REVIEWER:?set SWARM_PW_REVIEWER}
+      SWARM_PW_OPERATOR: ${SWARM_PW_OPERATOR:?set SWARM_PW_OPERATOR}
+      SWARM_PW_CLI: ${SWARM_PW_CLI:?set SWARM_PW_CLI}
+      SWARM_PW_W1: ${SWARM_PW_W1:?set SWARM_PW_W1}
+      SWARM_PW_W2: ${SWARM_PW_W2:?set SWARM_PW_W2}
+      SWARM_PW_W_1: ${SWARM_PW_W_1:?set SWARM_PW_W_1}
+      SWARM_PW_GPU_1: ${SWARM_PW_GPU_1:?set SWARM_PW_GPU_1}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema/schema_v0.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./step2/roles.sql:/sql/roles.sql:ro
+      - ./scripts/02-roles.sh:/docker-entrypoint-initdb.d/02-roles.sh:ro
+      - ./step2b/roles_2b.sql:/sql/roles_2b.sql:ro
+      - ./scripts/03-roles-2b.sh:/docker-entrypoint-initdb.d/03-roles-2b.sh:ro
+      - ./step2/roles_patch_planner_status.sql:/sql/roles_patch_planner_status.sql:ro
+      - ./step2/roles_patch_tool_call_audit.sql:/sql/roles_patch_tool_call_audit.sql:ro
+      - ./scripts/03-role-patches.sh:/docker-entrypoint-initdb.d/04-role-patches.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  watchdog:
+    build: .
+    command: ["swarm-watchdog"]
+    environment:
+      # Раздельный DSN по сервисам (step 1/2): роль swarm_watchdog.
+      DATABASE_URL: postgres://swarm_watchdog:${SWARM_PW_WATCHDOG}@postgres:5432/swarm
+      WATCHDOG_INTERVAL: "10"
+      RUST_LOG: swarm_watchdog=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker-1:
+    build: .
+    command: ["swarm-worker"]
+    environment:
+      # Роль swarm_worker_w1 (step 2b). WORKER_ID обязан совпадать с ролью:
+      # normalize(w1) -> swarm_worker_w1.
+      DATABASE_URL: postgres://swarm_worker_w1:${SWARM_PW_W1}@postgres:5432/swarm
+      WORKER_ID: w1
+      WORK_SECONDS: "5"
+      LEASE_SEC: "10"
+      CRASH_AFTER_CLAIM: "0"
+      ARTIFACTS_DIR: /var/swarm/artifacts
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      # v0.4: shell tools + Docker sandbox.
+      # ВНИМАНИЕ: 1 требует доступа к Docker-сокету (docs/KNOWN_LIMITATIONS.md §6).
+      WORKER_SHELL_TOOLS: ${WORKER_SHELL_TOOLS:-0}
+      SANDBOX_IMAGE: ${SANDBOX_IMAGE:-agent-sandbox:1.85}
+      WORKER_ALLOWED_COMMANDS: ${WORKER_ALLOWED_COMMANDS:-bash,cargo,git,cat,ls,echo,mkdir,touch}
+      WORKER_CMD_TIMEOUT_SEC: ${WORKER_CMD_TIMEOUT_SEC:-60}
+      WORKER_MAX_ITERATIONS: ${WORKER_MAX_ITERATIONS:-20}
+      RUST_LOG: swarm_worker=info
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker-2:
+    build: .
+    command: ["swarm-worker"]
+    environment:
+      DATABASE_URL: postgres://swarm_worker_w2:${SWARM_PW_W2}@postgres:5432/swarm
+      WORKER_ID: w2
+      WORK_SECONDS: "5"
+      LEASE_SEC: "10"
+      CRASH_AFTER_CLAIM: "1"
+      ARTIFACTS_DIR: /var/swarm/artifacts
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      RUST_LOG: swarm_worker=info
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cli:
+    build: .
+    # command НЕ указывать — иначе compose подменяет entrypoint образа.
+    environment:
+      DATABASE_URL: postgres://swarm_cli:${SWARM_PW_CLI}@postgres:5432/swarm
+    profiles: ["tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  planner:
+    build: .
+    # Одноразовый инструмент (как cli): запускать через
+    #   docker compose run --rm --no-deps planner swarm-planner "<текст задачи>"
+    # Не сервис: без аргумента-текста выходит с "пустой текст задачи".
+    environment:
+      # Роль swarm_planner; грант на task_status — roles_patch_planner_status.sql.
+      DATABASE_URL: postgres://swarm_planner:${SWARM_PW_PLANNER}@postgres:5432/swarm
+      PLANNER_LLM_PROVIDER: ${PLANNER_LLM_PROVIDER:-mock}
+      PLANNER_LLM_BASE_URL: ${PLANNER_LLM_BASE_URL:-}
+      PLANNER_LLM_API_KEY: ${PLANNER_LLM_API_KEY:-}
+      PLANNER_LLM_MODEL: ${PLANNER_LLM_MODEL:-mock}
+      PLANNER_MAX_TASKS: "10"
+      PLANNER_MAX_DEPTH: "4"
+      PLANNER_MAX_CHILDREN: "5"
+      RUST_LOG: swarm_planner=info
+    profiles: ["tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "id": "t1",
+      "kind": "root",
+      "description": "root",
+      "checks": [{"type": "cmd", "run": "true"}],
+      "depends_on": []
+    },
+    {
+      "id": "t2",
+      "kind": "code",
+      "description": "many tasks",
+      "checks": [{"type": "cmd", "run": "true"}],
+      "depends_on": ["t1"]
+    }
+  ]
+}

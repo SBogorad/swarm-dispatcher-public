@@ -1,0 +1,17 @@
+[package]
+name = "swarm-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+postgres = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+
+[[test]]
+name = "integration_alt"
+path = "tests/alt/integration_alt.rs"
