@@ -8,8 +8,12 @@
 
 ## [Unreleased]
 
-Планируется в v0.5: git worktree, отдельный runner-хост для shell tools.
-См. `docs/ROADMAP.md`.
+Планируется v0.6: Distributed Worker MVP для batch-задач на разных машинах
+или виртуальных машинах. Критерии и ограничения описаны в
+`docs/DISTRIBUTED_WORKER_MVP.md`.
+
+Release-tag требует acceptance harness с `--full-workspace-test`, строгим
+`release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
 ---
 
