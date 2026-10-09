@@ -296,6 +296,8 @@ provision_database() {
   [[ "$TEST_DB_PORT" =~ ^[0-9]+$ ]]
   TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=${DB_PASSWORD} dbname=${TEST_DB_NAME}"
   SANITIZED_TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=[REDACTED] dbname=${TEST_DB_NAME}"
+  [[ "$TEST_DATABASE_URL" == *"password=${DB_PASSWORD}"* ]]
+  [[ "$SANITIZED_TEST_DATABASE_URL" != *"${DB_PASSWORD}"* ]]
   local ready=0
   for _ in {1..60}; do
     if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
