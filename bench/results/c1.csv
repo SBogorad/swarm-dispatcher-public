@@ -1,0 +1,2 @@
+run_id,tasks_requested,workers,tasks_completed,duration_seconds,throughput_tasks_per_second,cycle_time_seconds,claim_latency_seconds,db_connections_peak,errors
+8837b7477dc1,1000,50,1000,4.993574154999806,200.2573645569581,4.993574154999806,"{""p50"": 0.076987858999928, ""p95"": 0.34759411300183274, ""p99"": 1.0400563520015567, ""samples"": 1050}",51,[]

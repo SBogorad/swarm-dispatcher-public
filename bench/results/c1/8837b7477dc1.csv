@@ -1,0 +1,2 @@
+scenario,run_id,database,started_utc,tasks_requested,workers,tasks_completed,review_state_count,duration_seconds,throughput_tasks_per_second,claim_latency_seconds,cycle_time_seconds,db_connections_peak,db_connections_after_run,errors
+C1,8837b7477dc1,c1_loadtest,2026-10-09T03:46:07.781035+00:00,1000,50,1000,1000,4.993574154999806,200.2573645569581,"{""p50"": 0.076987858999928, ""p95"": 0.34759411300183274, ""p99"": 1.0400563520015567, ""samples"": 1050}",4.993574154999806,51,1,[]

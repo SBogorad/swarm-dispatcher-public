@@ -1,6 +1,9 @@
 # Rust
 target/
 
+# Load-test output
+bench/results/
+
 # Python
 .venv/
 __pycache__/
