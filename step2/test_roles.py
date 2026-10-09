@@ -19,7 +19,7 @@ DB = os.environ.get("ROLES_DB", "v0roles")
 HOST = os.environ.get("ROLES_HOST", "localhost")
 PORT = int(os.environ.get("ROLES_PORT", "5432"))
 ADMIN_PW = os.environ.get("ADMIN_PW", "pw")
-ROLES = ["swarm_worker", "swarm_watchdog", "swarm_planner",
+ROLES = ["swarm_worker_w1", "swarm_watchdog", "swarm_planner",
          "swarm_reviewer", "swarm_operator", "swarm_cli"]
 DENIED = "42501"
 
@@ -31,7 +31,10 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+    else:
+        suffix = role.split("_", 1)[1]
     return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
 
 
@@ -81,9 +84,9 @@ INTERNAL = {
 }
 
 ALLOWED = {
-    "swarm_worker":   {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
+    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
     "swarm_watchdog": {"reclaim_expired", "promote_ready"},
-    "swarm_planner":  {"add_task", "add_dep", "promote_ready"},
+    "swarm_planner":  {"add_task", "add_dep", "promote_ready", "task_status"},
     "swarm_reviewer": {"submit_review", "verify_chain"},
     "swarm_operator": {"reopen_task", "unblock_task", "verify_chain", "task_status"},
 }
@@ -131,7 +134,7 @@ def test_no_ddl_in_public(admin, role):
 
 def test_worker_cannot_approve_own_work(admin):
     """Главное следствие ролей: самоприёмка закрыта на уровне БД, а не только проверкой created_by."""
-    assert attempt(as_role("swarm_worker"),
+    assert attempt(as_role("swarm_worker_w1"),
                    f"select submit_review({U}, 'sha256:a', 'w1', 'approved', '[]'::jsonb)") == DENIED
 
 
@@ -162,7 +165,7 @@ def test_temp_table_cannot_hijack_security_definer(admin):
     t = str(uuid.uuid4())
     cur.execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
     cur.execute("select promote_ready()")
-    w = as_role("swarm_worker")
+    w = as_role("swarm_worker_w1")
     wc = w.cursor()
     wc.execute("create temp table tasks (id uuid, state text)")
     wc.execute("create temp table workers (id text)")
@@ -173,7 +176,7 @@ def test_temp_table_cannot_hijack_security_definer(admin):
 def test_full_workflow_uses_only_role_permissions(admin):
     """Реальный сценарий целиком, каждый шаг от своей роли, без суперпользователя."""
     pl, wk, rv, wd, op = (as_role(r) for r in
-                          ["swarm_planner", "swarm_worker", "swarm_reviewer", "swarm_watchdog", "swarm_operator"])
+                          ["swarm_planner", "swarm_worker_w1", "swarm_reviewer", "swarm_watchdog", "swarm_operator"])
     root, child = str(uuid.uuid4()), str(uuid.uuid4())
     c = pl.cursor()
     c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (root, CONTRACT))

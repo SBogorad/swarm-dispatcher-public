@@ -17,6 +17,9 @@ select format('create role %I login nosuperuser nocreatedb nocreaterole', r)
                     'swarm_reviewer','swarm_operator','swarm_cli']) r
  where not exists (select 1 from pg_roles where rolname = r) \gexec
 
+-- Общая worker-роль содержит права-членство, но не является login identity.
+alter role swarm_worker nologin;
+
 alter role swarm_worker   password :'worker_pw';
 alter role swarm_watchdog password :'watchdog_pw';
 alter role swarm_planner  password :'planner_pw';

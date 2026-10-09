@@ -42,7 +42,6 @@ alter function assert_worker_identity(text) security definer set search_path = p
 
 revoke all on function normalize_worker_id(text) from public;
 revoke all on function assert_worker_identity(text) from public;
-grant execute on function normalize_worker_id(text) to public;  -- безвредная, для отладки
 -- assert_worker_identity — не выдаём никому; вызывается только из обёрток.
 
 -- ============================================================
