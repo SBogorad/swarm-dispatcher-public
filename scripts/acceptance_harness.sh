@@ -9,6 +9,7 @@ BRANCH="HEAD"
 WORKTREE="$(pwd)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FULL_WORKSPACE_TEST=0
+ALLOW_BLOCKED=0
 LOG_DIR="${TMPDIR:-/tmp}/swarm-dispatcher-acceptance"
 CONTAINER=""
 DB_PASSWORD=""
@@ -18,6 +19,7 @@ ATTESTATION_FILE=""
 EVENT_FILE=""
 ALLOWLIST_FILE=""
 FAILURES=0
+BLOCKED_COUNT=0
 
 usage() {
   cat <<'USAGE'
@@ -29,7 +31,8 @@ Options:
   --worktree PATH           Checkout to inspect (default: current directory).
   --allowlist-file PATH     Exact paths/prefixes (path or path/*, one per line).
   --log-dir PATH            Temporary log directory.
-  --full-workspace-test     Also run cargo test --workspace (optional, explicit).
+  --full-workspace-test     Require and run cargo test --workspace.
+  --allow-blocked            Diagnostic mode: allow BLOCKED checks and mark gate CONDITIONAL.
   -h, --help                Show this help.
 USAGE
 }
@@ -42,6 +45,7 @@ while (($#)); do
     --allowlist-file) ALLOWLIST_FILE="${2:?--allowlist-file requires a path}"; shift 2 ;;
     --log-dir) LOG_DIR="${2:?--log-dir requires a path}"; shift 2 ;;
     --full-workspace-test) FULL_WORKSPACE_TEST=1; shift ;;
+    --allow-blocked) ALLOW_BLOCKED=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "FAIL unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -68,6 +72,11 @@ status() {
   printf '%s\t%s\t%s\t%s\n' "$state" "$exit_code" "$label" "$command" >>"$EVENT_FILE"
   if [[ "$state" == FAIL ]]; then
     FAILURES=$((FAILURES + 1))
+  elif [[ "$state" == BLOCKED ]]; then
+    BLOCKED_COUNT=$((BLOCKED_COUNT + 1))
+    if ((ALLOW_BLOCKED == 0)); then
+      FAILURES=$((FAILURES + 1))
+    fi
   fi
   return 0
 }
@@ -91,7 +100,7 @@ run_step() {
 }
 
 write_attestation() {
-  local base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha
+  local base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate
   base_sha="$(git -C "$WORKTREE" rev-parse "$BASE" 2>/dev/null || printf 'UNRESOLVED')"
   head_sha="$(git -C "$WORKTREE" rev-parse "$BRANCH" 2>/dev/null || printf 'UNRESOLVED')"
   branch_name="$(git -C "$WORKTREE" symbolic-ref --short -q HEAD 2>/dev/null || printf '%s' "$BRANCH")"
@@ -102,7 +111,8 @@ write_attestation() {
   image_ref="postgres:16-alpine"
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha EVENT_FILE SEALED_LOG_FILE
+  release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -115,6 +125,8 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "format": "swarm-dispatcher-acceptance-attestation/v1",
         "base_sha": os.environ["base_sha"], "branch": os.environ["branch_name"],
         "head_sha": os.environ["head_sha"], "timestamp_utc": os.environ["timestamp"],
+        "release_gate": os.environ["release_gate"],
+        "blocked_count": int(os.environ["BLOCKED_COUNT"]),
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
         "statuses": events,
@@ -235,7 +247,7 @@ database_acceptance() {
     -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
-  PG_VERSION="$(docker exec "$CONTAINER" postgres --version | sed 's/^postgres (PostgreSQL /postgresql-/' | sed 's/).*$//')"
+  PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
   local ready=0
   for _ in {1..60}; do
     if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
@@ -295,7 +307,7 @@ fi
 if ((FULL_WORKSPACE_TEST)); then
   run_step "optional full workspace test" cargo test --workspace --locked
 else
-  status BLOCKED "full workspace test skipped (use --full-workspace-test to opt in)"
+  status BLOCKED "full workspace test not requested (use --full-workspace-test for release gate)"
 fi
 if command -v docker >/dev/null 2>&1; then
   run_step "disposable PostgreSQL 16 schema/RBAC acceptance" database_acceptance
