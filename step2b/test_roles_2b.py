@@ -33,8 +33,13 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
-    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+        env_name = "SWARM_PW_" + suffix.upper()
+    else:
+        suffix = role.split("_", 1)[1]
+        env_name = "SWARM_PW_" + suffix.upper()
+    return connect(role, os.environ.get(env_name, "pw_" + suffix))
 
 
 def attempt(conn, sql):
@@ -184,10 +189,16 @@ def test_15_watchdog_role_unaffected(admin):
     assert attempt(wd, "select reclaim_expired()") is None
 
 
-def test_16_common_worker_role_unchanged(admin):
-    """Общая роль swarm_worker не начинается с swarm_worker_ → проверка не срабатывает."""
-    w = as_role("swarm_worker")
-    assert attempt(w, "select register_worker('any-id', '{\"ram_gb\":16}'::jsonb)") is None
+def test_16_common_worker_role_cannot_login_or_call(admin):
+    """Общая роль -- NOLOGIN и не может быть worker identity."""
+    cur = admin.cursor()
+    cur.execute("select rolcanlogin from pg_roles where rolname = 'swarm_worker'")
+    assert cur.fetchone()[0] is False
+    cur.execute("select has_function_privilege('swarm_worker', 'claim_task(text, integer)', 'execute')")
+    assert cur.fetchone()[0] is True
+    with pytest.raises(psycopg2.Error) as exc:
+        connect("swarm_worker", os.environ.get("SWARM_PW_WORKER", "pw_worker"))
+    assert "is not permitted to log in" in str(exc.value)
 
 
 # ---------- Каталог ----------
@@ -221,4 +232,7 @@ def test_18_assert_worker_identity_not_granted_to_public(admin):
     cur.execute("""
         select has_function_privilege('swarm_worker', 'assert_worker_identity(text)', 'execute')
     """)
+    assert cur.fetchone()[0] is False
+
+    cur.execute("select has_function_privilege('public', 'normalize_worker_id(text)', 'execute')")
     assert cur.fetchone()[0] is False
