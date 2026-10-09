@@ -140,7 +140,7 @@ write_attestation() {
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
   release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER EVENT_FILE SEALED_LOG_FILE
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER SANITIZED_TEST_DATABASE_URL EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -158,7 +158,7 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "full_workspace_test_requested": bool(int(os.environ["FULL_WORKSPACE_TEST"])),
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
-        "test_database": {"host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
+        "test_database": {"dsn": os.environ.get("SANITIZED_TEST_DATABASE_URL", "UNAVAILABLE"), "host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
         "statuses": events,
         "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
         "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
@@ -286,6 +286,7 @@ provision_database() {
   TEST_DB_PORT="$(docker port "$CONTAINER" 5432/tcp | awk -F: 'NR == 1 {print $NF}')"
   [[ "$TEST_DB_PORT" =~ ^[0-9]+$ ]]
   TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=${DB_PASSWORD} dbname=${TEST_DB_NAME}"
+  SANITIZED_TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=[REDACTED] dbname=${TEST_DB_NAME}"
   local ready=0
   for _ in {1..60}; do
     if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
