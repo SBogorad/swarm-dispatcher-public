@@ -20,6 +20,13 @@ EVENT_FILE=""
 ALLOWLIST_FILE=""
 FAILURES=0
 BLOCKED_COUNT=0
+DB_READY=0
+TEST_DATABASE_URL=""
+SANITIZED_TEST_DATABASE_URL=""
+TEST_DB_HOST="127.0.0.1"
+TEST_DB_PORT=""
+TEST_DB_NAME="c2_swarm"
+TEST_DB_USER="postgres"
 
 usage() {
   cat <<'USAGE'
@@ -31,8 +38,11 @@ Options:
   --worktree PATH           Checkout to inspect (default: current directory).
   --allowlist-file PATH     Exact paths/prefixes (path or path/*, one per line).
   --log-dir PATH            Temporary log directory.
-  --full-workspace-test     Require and run cargo test --workspace.
+  --full-workspace-test     Require and run cargo test --workspace (release requirement).
   --allow-blocked            Diagnostic mode: allow BLOCKED checks and mark gate CONDITIONAL.
+
+Default is a STRICT release gate: omitting --full-workspace-test records that check
+as BLOCKED and exits nonzero. Use --allow-blocked only for diagnostics.
   -h, --help                Show this help.
 USAGE
 }
@@ -99,6 +109,24 @@ run_step() {
   return 0
 }
 
+run_worktree_step() {
+  local label="$1"; shift
+  printf 'RUN %s\n' "$label"
+  local command_text
+  command_text="(cd $(printf '%q' "$WORKTREE") && $(printf '%q ' "$@"))"
+  printf 'COMMAND %s\n' "$command_text"
+  set +e
+  (cd "$WORKTREE" && "$@")
+  local rc=$?
+  set -e
+  if ((rc == 0)); then
+    status PASS "$label" "$rc" "$command_text"
+  else
+    status FAIL "$label (see log)" "$rc" "$command_text"
+  fi
+  return 0
+}
+
 write_attestation() {
   local base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate
   base_sha="$(git -C "$WORKTREE" rev-parse "$BASE" 2>/dev/null || printf 'UNRESOLVED')"
@@ -112,7 +140,7 @@ write_attestation() {
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
   release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT EVENT_FILE SEALED_LOG_FILE
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -127,8 +155,10 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "head_sha": os.environ["head_sha"], "timestamp_utc": os.environ["timestamp"],
         "release_gate": os.environ["release_gate"],
         "blocked_count": int(os.environ["BLOCKED_COUNT"]),
+        "full_workspace_test_requested": bool(int(os.environ["FULL_WORKSPACE_TEST"])),
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
+        "test_database": {"host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
         "statuses": events,
         "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
         "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
@@ -149,7 +179,11 @@ cleanup() {
   else
     printf 'PASS acceptance harness complete; log: %s; attestation: %s\n' "$LOG_FILE" "$ATTESTATION_FILE"
   fi
-  # Seal the complete log before generating JSON; attestation generation emits no log output.
+  # Remove the ephemeral credential before sealing generated artifacts.
+  if [[ -n "$DB_PASSWORD" && -f "$LOG_FILE" ]]; then
+    sed -i "s|$DB_PASSWORD|[REDACTED]|g" "$LOG_FILE"
+  fi
+  # Seal the complete sanitized log before generating JSON; attestation generation emits no log output.
   cp -- "$LOG_FILE" "$SEALED_LOG_FILE"
   write_attestation
   exit "$((rc != 0 ? rc : (FAILURES > 0 ? 1 : 0)))"
@@ -231,7 +265,7 @@ expect_failure() {
   status PASS "$label"
 }
 
-database_acceptance() {
+provision_database() {
   local failures_before=$FAILURES
   command -v docker >/dev/null 2>&1
   DB_PASSWORD="c2_$(openssl rand -hex 20)"
@@ -240,6 +274,7 @@ database_acceptance() {
   local common_args=(
     --name "$CONTAINER" -e POSTGRES_DB=c2_swarm -e POSTGRES_USER=postgres
     -e "POSTGRES_PASSWORD=$DB_PASSWORD"
+    -p 127.0.0.1::5432
     -v "$WORKTREE/schema/schema_v0.sql:/c2/schema.sql:ro"
     -v "$WORKTREE/step2/roles.sql:/c2/roles.sql:ro"
     -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
@@ -248,6 +283,9 @@ database_acceptance() {
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
+  TEST_DB_PORT="$(docker port "$CONTAINER" 5432/tcp | awk -F: 'NR == 1 {print $NF}')"
+  [[ "$TEST_DB_PORT" =~ ^[0-9]+$ ]]
+  TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=${DB_PASSWORD} dbname=${TEST_DB_NAME}"
   local ready=0
   for _ in {1..60}; do
     if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
@@ -268,6 +306,13 @@ database_acceptance() {
     -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
+  DB_READY=1
+  status PASS "disposable PostgreSQL 16 provisioned and initialized"
+}
+
+database_acceptance() {
+  local failures_before=$FAILURES
+  [[ "$DB_READY" == 1 ]]
 
   local common_worker_login worker_login
   common_worker_login="$(pg postgres "$DB_PASSWORD" -Atc "select rolcanlogin from pg_roles where rolname='swarm_worker'")"
@@ -296,19 +341,26 @@ run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
 if command -v docker >/dev/null 2>&1; then
   run_step "compose config with dummy environment" compose_check
+  run_step "provision disposable PostgreSQL 16 before Rust tests" provision_database
 else
   status BLOCKED "docker unavailable: compose config and database acceptance not run"
 fi
 if command -v cargo >/dev/null 2>&1; then
-  run_step "Rust library/unit tests" cargo test --workspace --lib --locked
+  run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked
 else
   status BLOCKED "cargo unavailable: Rust unit tests not run"
 fi
 if ((FULL_WORKSPACE_TEST)); then
-  run_step "optional full workspace test" cargo test --workspace --locked
+  if ((DB_READY == 1)); then
+    export TEST_DATABASE_URL
+    export DATABASE_URL="$TEST_DATABASE_URL"
+    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked
+  else
+    status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
+  fi
 else
   status BLOCKED "full workspace test not requested (use --full-workspace-test for release gate)"
 fi
 if command -v docker >/dev/null 2>&1; then
-  run_step "disposable PostgreSQL 16 schema/RBAC acceptance" database_acceptance
+  run_step "RBAC smoke on disposable c2_ database" database_acceptance
 fi
