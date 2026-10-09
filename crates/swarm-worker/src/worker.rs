@@ -6,10 +6,10 @@
 use crate::artifacts;
 use crate::error::{Result, WorkerError};
 use crate::prompt;
-use crate::retry::{RetryPolicy, jitter_unit};
+use crate::retry::{jitter_unit, RetryPolicy};
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use swarm_core::{Lease, SwarmDispatcher};
@@ -58,6 +58,20 @@ pub enum Outcome {
 ///
 /// `heartbeat_conn` — отдельное соединение для фонового heartbeat (может быть
 /// `None` в тестах, где heartbeat не нужен).
+struct HeartbeatGuard {
+    stop: Arc<AtomicBool>,
+    handle: Option<thread::JoinHandle<()>>,
+}
+
+impl Drop for HeartbeatGuard {
+    fn drop(&mut self) {
+        self.stop.store(true, Ordering::SeqCst);
+        if let Some(handle) = self.handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
 pub fn process_lease(
     d: &mut SwarmDispatcher,
     lease: &Lease,
@@ -132,6 +146,11 @@ pub fn process_lease(
     // Вызов LLM с ретраями.
     let result = call_llm_with_retries(llm, &contract, cfg);
 
+    let heartbeat = HeartbeatGuard {
+        stop: stop.clone(),
+        handle: hb,
+    };
+
     let outcome = match result {
         Ok(resp) => {
             let (ref_, path, size) =
@@ -172,10 +191,7 @@ pub fn process_lease(
         }
     };
 
-    stop.store(true, Ordering::SeqCst);
-    if let Some(h) = hb {
-        let _ = h.join();
-    }
+    drop(heartbeat);
     Ok(outcome)
 }
 

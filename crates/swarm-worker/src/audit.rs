@@ -26,7 +26,7 @@ impl PgAuditSink {
     /// Отдельное соединение к той же БД, что и воркер.
     pub fn connect(dsn: &str, task_id: Uuid, worker_id: &str, epoch: i64) -> Result<Self> {
         let client = Client::connect(dsn, NoTls)
-            .map_err(|e| WorkerError::Sandbox(format!("audit connect: {e}")))?;
+            .map_err(|e| WorkerError::Database(swarm_core::DispatcherError::from_pg(e)))?;
         Ok(Self {
             client,
             task_id,
@@ -64,7 +64,7 @@ impl ToolAuditSink for PgAuditSink {
                     &payload,
                 ],
             )
-            .map_err(|e| WorkerError::Sandbox(format!("audit record_tool_call: {e}")))?;
+            .map_err(|e| WorkerError::Database(swarm_core::DispatcherError::from_pg(e)))?;
         Ok(())
     }
 }
@@ -78,6 +78,6 @@ pub fn count_tool_calls(dsn: &str, task_id: Uuid) -> Result<i64> {
             "select count(*) from events where task_id = $1 and kind = 'tool_call'",
             &[&task_id],
         )
-        .map_err(|e| WorkerError::Sandbox(format!("audit count: {e}")))?;
+        .map_err(|e| WorkerError::Database(swarm_core::DispatcherError::from_pg(e)))?;
     Ok(row.get(0))
 }

@@ -135,6 +135,12 @@ impl Allowlist {
 
         // 3. Явный deny (в т.ч. абсолютный путь: /bin/rm → rm).
         let base = first.rsplit('/').next().unwrap_or(&first);
+        if first.contains('/') && !trusted_executable(&first) {
+            return Err(WorkerError::AllowlistRejected {
+                command: command.to_string(),
+                reason: "не доверенный путь executable".into(),
+            });
+        }
         if EXPLICIT_DENY.contains(&base) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
@@ -152,13 +158,31 @@ impl Allowlist {
 
         // 5. Рекурсия для `bash -c "<внутренняя>"`.
         if SHELLS.contains(&base) {
-            if let Some(inner) = extract_dash_c(&tokens) {
-                return self.check_depth(&inner, depth + 1);
-            }
+            let Some(inner) = extract_dash_c(&tokens) else {
+                return Err(WorkerError::AllowlistRejected {
+                    command: command.to_string(),
+                    reason: "shell разрешён только с однозначным -c".into(),
+                });
+            };
+            return self.check_depth(&inner, depth + 1);
+        }
+
+        if tokens.iter().any(|t| t.contains('"') || t.contains('\'')) {
+            return Err(WorkerError::AllowlistRejected {
+                command: command.to_string(),
+                reason: "неоднозначное quoting запрещено".into(),
+            });
         }
 
         Ok(())
     }
+}
+
+fn trusted_executable(path: &str) -> bool {
+    matches!(
+        path,
+        "/bin/bash" | "/usr/bin/bash" | "/bin/sh" | "/usr/bin/sh"
+    )
 }
 
 /// Извлечь аргумент `-c` из токенов (`["bash","-c","rm -rf /"]` → `rm -rf /`).
@@ -166,8 +190,11 @@ impl Allowlist {
 /// Поддерживает `-c "cmd"` (уже разбито по пробелам — склеиваем хвост) и
 /// `-c cmd`.
 fn extract_dash_c(tokens: &[&str]) -> Option<String> {
-    let pos = tokens.iter().position(|t| *t == "-c")?;
-    let rest = &tokens[pos + 1..];
+    // Reject combined flags (-lc/-xc), script operands and options before -c.
+    if tokens.len() < 3 || tokens[1] != "-c" || tokens.iter().filter(|t| **t == "-c").count() != 1 {
+        return None;
+    }
+    let rest = &tokens[2..];
     if rest.is_empty() {
         return None;
     }
@@ -278,8 +305,8 @@ mod tests {
         assert!(a.check("cargo x").is_ok());
         assert!(a.check("git y").is_ok());
         assert!(a.check("bash z").is_err(), "bash не в кастомном списке");
-        // пусто → default
-        assert!(Allowlist::from_env_str("").check("bash x").is_ok());
+        // пусто → default; shell без явного -c запрещён.
+        assert!(Allowlist::from_env_str("").check("bash x").is_err());
     }
 
     #[test]

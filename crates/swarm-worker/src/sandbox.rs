@@ -239,6 +239,37 @@ impl Sandbox {
         })
     }
 
+    /// Прочитать файл отдельным argv без shell-интерпретации пути.
+    pub fn read_file(&self, path: &str) -> Result<ExecOutput> {
+        let args = vec![
+            "exec".to_string(),
+            self.name.clone(),
+            "cat".to_string(),
+            "--".to_string(),
+            path.to_string(),
+        ];
+        let started = Instant::now();
+        let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
+        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer)?;
+        if out.timed_out {
+            return Err(WorkerError::CommandTimeout {
+                command: format!("read_file {path}"),
+                timeout_sec: self.cfg.cmd_timeout_sec,
+            });
+        }
+        let (stdout, trunc_out) = truncate_output(&out.stdout, self.cfg.max_output_bytes);
+        let (stderr, trunc_err) = truncate_output(&out.stderr, self.cfg.max_output_bytes);
+        Ok(ExecOutput {
+            stdout,
+            stderr,
+            exit_code: out.exit_code,
+            duration_ms: started.elapsed().as_millis(),
+            truncated: trunc_out || trunc_err,
+            output_bytes: out.stdout.len() + out.stderr.len(),
+            output_sha256: sha256_hex(format!("{}{}", out.stdout, out.stderr).as_bytes()),
+        })
+    }
+
     /// Остановить и удалить контейнер.
     pub fn stop(&mut self) -> Result<()> {
         let out = run_cmd(

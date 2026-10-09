@@ -65,7 +65,7 @@ impl ToolCall {
                 .args
                 .get("path")
                 .and_then(|p| p.as_str())
-                .map(|p| format!("cat {p}")),
+                .map(str::to_string),
             _ => None,
         }
     }
@@ -206,21 +206,33 @@ fn execute_tool(
     };
 
     match tc.tool.as_str() {
-        "run_shell" | "read_file" => {
-            let cmd = tc.shell_command().ok_or_else(|| {
-                WorkerError::InvalidToolCall(format!("{}: нет команды/пути", tc.tool))
-            })?;
+        "run_shell" => {
+            let cmd = tc
+                .shell_command()
+                .ok_or_else(|| WorkerError::InvalidToolCall("run_shell: нет command".into()))?;
             audit.command = Some(cmd.clone());
 
             if let Err(e) = allowlist.check(&cmd) {
                 audit.rejected = true;
                 audit.reason = Some(e.to_string());
-                // Отказ возвращаем LLM как результат (он может исправиться),
-                // но событие уже зафиксировано.
                 return Ok((format!("REJECTED: {e}"), audit));
             }
 
             let out = sandbox.exec(&cmd)?;
+            fill_audit(&mut audit, &out);
+            Ok((render_output(&out), audit))
+        }
+        "read_file" => {
+            let path = tc
+                .shell_command()
+                .ok_or_else(|| WorkerError::InvalidToolCall("read_file: нет path".into()))?;
+            audit.command = Some(format!("read_file {path}"));
+            if let Err(e) = validate_workspace_path(&path) {
+                audit.rejected = true;
+                audit.reason = Some(e.to_string());
+                return Ok((format!("REJECTED: {e}"), audit));
+            }
+            let out = sandbox.read_file(&path)?;
             fill_audit(&mut audit, &out);
             Ok((render_output(&out), audit))
         }
@@ -249,6 +261,23 @@ fn execute_tool(
             "неизвестный инструмент: {other}"
         ))),
     }
+}
+
+fn validate_workspace_path(path: &str) -> Result<()> {
+    let p = std::path::Path::new(path);
+    if path.is_empty()
+        || path.contains('\0')
+        || path.contains('\n')
+        || path.contains('\r')
+        || p.is_absolute()
+        || p.components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err(WorkerError::InvalidToolCall(
+            "read_file: path must stay inside the workspace".into(),
+        ));
+    }
+    Ok(())
 }
 
 fn fill_audit(audit: &mut ToolAudit, out: &ExecOutput) {
@@ -312,7 +341,7 @@ mod tests {
         let text =
             "Вот вызов:\n```json\n{\"tool\":\"read_file\",\"args\":{\"path\":\"Cargo.toml\"}}\n```";
         match parse_step(text).unwrap() {
-            Step::Tool(tc) => assert_eq!(tc.shell_command().unwrap(), "cat Cargo.toml"),
+            Step::Tool(tc) => assert_eq!(tc.shell_command().unwrap(), "Cargo.toml"),
             _ => panic!("ожидался Tool"),
         }
     }

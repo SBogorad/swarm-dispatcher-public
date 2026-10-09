@@ -3,6 +3,7 @@
 use crate::error::{Result, WorkerError};
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Путь к файлу артефакта по его ref (`sha256:<hex>` → `<dir>/<hex>.txt`).
 pub fn artifact_path(dir: &Path, artifact_ref: &str) -> PathBuf {
@@ -55,15 +56,35 @@ pub fn write_artifact(dir: &Path, content: &[u8]) -> Result<(String, PathBuf, u6
         return Ok((reference, final_path, size));
     }
 
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or_default();
     let tmp = dir.join(format!(
-        "{}.tmp.{}",
+        "{}.tmp.{}.{}",
         final_path.file_name().unwrap().to_string_lossy(),
-        std::process::id()
+        std::process::id(),
+        nonce
     ));
-    std::fs::write(&tmp, content)
-        .map_err(|e| WorkerError::Artifact(format!("write {tmp:?}: {e}")))?;
-    std::fs::rename(&tmp, &final_path)
-        .map_err(|e| WorkerError::Artifact(format!("rename {tmp:?} -> {final_path:?}: {e}")))?;
+    let result: std::result::Result<(), WorkerError> = (|| {
+        use std::io::Write;
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&tmp)
+            .map_err(|e| WorkerError::Artifact(format!("create {tmp:?}: {e}")))?;
+        file.write_all(content)
+            .map_err(|e| WorkerError::Artifact(format!("write {tmp:?}: {e}")))?;
+        file.sync_all()
+            .map_err(|e| WorkerError::Artifact(format!("sync {tmp:?}: {e}")))?;
+        std::fs::rename(&tmp, &final_path)
+            .map_err(|e| WorkerError::Artifact(format!("rename {tmp:?} -> {final_path:?}: {e}")))?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(&tmp);
+    }
+    result?;
 
     // Проверка sha256 после записи.
     verify_artifact(&final_path, &reference)?;

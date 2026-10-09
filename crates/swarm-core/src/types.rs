@@ -60,7 +60,12 @@ impl TaskContract {
     /// Локальная валидация формы. Совпадает по строгости с SQL-валидацией:
     /// что отклоняем здесь — отклонил бы и SQL. SQL остаётся источником истины.
     pub fn validate(&self) -> Result<(), DispatcherError> {
-        if self.checks.is_empty() {
+        if self.kind.trim().is_empty()
+            || self.checks.is_empty()
+            || self.budget.attempts == 0
+            || self.needs.min_ram_gb.is_some_and(|v| !v.is_finite() || v < 0.0)
+            || self.needs.coder_class.is_some_and(|v| !v.is_finite() || v < 0.0)
+        {
             return Err(DispatcherError::ContractInvalid);
         }
         Ok(())
@@ -89,7 +94,10 @@ impl Lease {
     /// Типизированный разбор контракта. **Не влияет на аренду** — вызывается
     /// только тем, кому нужен типизированный доступ к полям контракта.
     pub fn typed_contract(&self) -> Result<TaskContract, DispatcherError> {
-        serde_json::from_value(self.contract.clone()).map_err(Into::into)
+        let contract: TaskContract = serde_json::from_value(self.contract.clone())
+            .map_err(DispatcherError::Serialization)?;
+        contract.validate()?;
+        Ok(contract)
     }
 }
 
