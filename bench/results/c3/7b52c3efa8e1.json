@@ -1,0 +1,46 @@
+{
+  "scenario": "C3",
+  "run_id": "7b52c3efa8e1",
+  "database": "c3_loadtest",
+  "started_utc": "2026-10-09T04:13:50.011731+00:00",
+  "tasks_requested": 1000,
+  "workers": 10,
+  "configured_crashing_workers": 1,
+  "crashes_after_claim": [
+    {
+      "worker": "c3-7b52c3efa8e1-0",
+      "task": "4f5e1b54-5123-401c-9cca-e5f4abb30e51",
+      "epoch": 1,
+      "after_claim_seconds": 0.36633063599583693
+    }
+  ],
+  "lease_seconds": 5,
+  "watchdog_interval_seconds": 5.0,
+  "duration_seconds": 10.74107597299735,
+  "throughput_tasks_per_second": 93.10054248884947,
+  "tasks_in_review": 1000,
+  "unfinished_tasks": 0,
+  "all_verify_chains_true": true,
+  "reclaim_runs": [
+    {
+      "at_seconds": 0.05328577099862741,
+      "reclaimed": 0,
+      "promoted": 0
+    },
+    {
+      "at_seconds": 5.059187746999669,
+      "reclaimed": 0,
+      "promoted": 0
+    },
+    {
+      "at_seconds": 10.08957765699597,
+      "reclaimed": 1,
+      "promoted": 0
+    }
+  ],
+  "successful_reclaims": 1,
+  "recovered_crash_tasks": [
+    "4f5e1b54-5123-401c-9cca-e5f4abb30e51"
+  ],
+  "errors": []
+}
