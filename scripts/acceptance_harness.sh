@@ -27,6 +27,7 @@ TEST_DB_HOST="127.0.0.1"
 TEST_DB_PORT=""
 TEST_DB_NAME="c2_swarm"
 TEST_DB_USER="postgres"
+CREDENTIALS_REDACTED=0
 
 usage() {
   cat <<'USAGE'
@@ -140,7 +141,7 @@ write_attestation() {
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
   release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER SANITIZED_TEST_DATABASE_URL EVENT_FILE SEALED_LOG_FILE
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER SANITIZED_TEST_DATABASE_URL CREDENTIALS_REDACTED EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -159,6 +160,7 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
         "test_database": {"dsn": os.environ.get("SANITIZED_TEST_DATABASE_URL", "UNAVAILABLE"), "host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
+        "credentials_redacted": bool(int(os.environ["CREDENTIALS_REDACTED"])),
         "statuses": events,
         "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
         "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
@@ -182,6 +184,13 @@ cleanup() {
   # Remove the ephemeral credential before sealing generated artifacts.
   if [[ -n "$DB_PASSWORD" && -f "$LOG_FILE" ]]; then
     sed -i "s|$DB_PASSWORD|[REDACTED]|g" "$LOG_FILE"
+    if grep -Fq "$DB_PASSWORD" "$LOG_FILE"; then
+      printf 'FAIL temporary database password remains in log\n'
+      FAILURES=$((FAILURES + 1))
+    else
+      CREDENTIALS_REDACTED=1
+      printf 'PASS temporary database password absent from log\n'
+    fi
   fi
   # Seal the complete sanitized log before generating JSON; attestation generation emits no log output.
   cp -- "$LOG_FILE" "$SEALED_LOG_FILE"
@@ -347,7 +356,7 @@ else
   status BLOCKED "docker unavailable: compose config and database acceptance not run"
 fi
 if command -v cargo >/dev/null 2>&1; then
-  run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked
+  run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked -- --test-threads=1
 else
   status BLOCKED "cargo unavailable: Rust unit tests not run"
 fi
@@ -355,7 +364,7 @@ if ((FULL_WORKSPACE_TEST)); then
   if ((DB_READY == 1)); then
     export TEST_DATABASE_URL
     export DATABASE_URL="$TEST_DATABASE_URL"
-    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked
+    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked -- --test-threads=1
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi
