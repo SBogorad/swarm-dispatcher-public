@@ -31,8 +31,11 @@ Options:
   --worktree PATH           Checkout to inspect (default: current directory).
   --allowlist-file PATH     Exact paths/prefixes (path or path/*, one per line).
   --log-dir PATH            Temporary log directory.
-  --full-workspace-test     Require and run cargo test --workspace.
+  --full-workspace-test     Require and run cargo test --workspace (release requirement).
   --allow-blocked            Diagnostic mode: allow BLOCKED checks and mark gate CONDITIONAL.
+
+Default is a STRICT release gate: omitting --full-workspace-test records that check
+as BLOCKED and exits nonzero. Use --allow-blocked only for diagnostics.
   -h, --help                Show this help.
 USAGE
 }
@@ -112,7 +115,7 @@ write_attestation() {
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
   release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT EVENT_FILE SEALED_LOG_FILE
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -127,6 +130,7 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "head_sha": os.environ["head_sha"], "timestamp_utc": os.environ["timestamp"],
         "release_gate": os.environ["release_gate"],
         "blocked_count": int(os.environ["BLOCKED_COUNT"]),
+        "full_workspace_test_requested": bool(int(os.environ["FULL_WORKSPACE_TEST"])),
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
         "statuses": events,
