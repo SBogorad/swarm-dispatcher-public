@@ -13,8 +13,10 @@ LOG_DIR="${TMPDIR:-/tmp}/swarm-dispatcher-acceptance"
 CONTAINER=""
 DB_PASSWORD=""
 LOG_FILE=""
+SEALED_LOG_FILE=""
 ATTESTATION_FILE=""
 EVENT_FILE=""
+ALLOWLIST_FILE=""
 FAILURES=0
 
 usage() {
@@ -25,6 +27,7 @@ Options:
   --base COMMIT             Required diff comparison base.
   --branch REF              Ref to check (default: HEAD).
   --worktree PATH           Checkout to inspect (default: current directory).
+  --allowlist-file PATH     Exact paths/prefixes (path or path/*, one per line).
   --log-dir PATH            Temporary log directory.
   --full-workspace-test     Also run cargo test --workspace (optional, explicit).
   -h, --help                Show this help.
@@ -36,6 +39,7 @@ while (($#)); do
     --base) BASE="${2:?--base requires a commit}"; shift 2 ;;
     --branch) BRANCH="${2:?--branch requires a ref}"; shift 2 ;;
     --worktree) WORKTREE="${2:?--worktree requires a path}"; shift 2 ;;
+    --allowlist-file) ALLOWLIST_FILE="${2:?--allowlist-file requires a path}"; shift 2 ;;
     --log-dir) LOG_DIR="${2:?--log-dir requires a path}"; shift 2 ;;
     --full-workspace-test) FULL_WORKSPACE_TEST=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -52,6 +56,7 @@ fi
 WORKTREE="$(cd "$WORKTREE" && pwd)"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/harness-$(date -u +%Y%m%dT%H%M%SZ)-$$.log"
+SEALED_LOG_FILE="${LOG_FILE%.log}.sealed.log"
 ATTESTATION_FILE="${LOG_FILE%.log}.attestation.json"
 EVENT_FILE="${LOG_FILE%.log}.events.tsv"
 touch "$EVENT_FILE"
@@ -96,8 +101,8 @@ write_attestation() {
   pg_version="${PG_VERSION:-UNAVAILABLE}"
   image_ref="postgres:16-alpine"
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
-  log_sha="$(sha256sum "$LOG_FILE" | awk '{print $1}')"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha EVENT_FILE LOG_FILE
+  log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -113,8 +118,8 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
         "statuses": events,
-        "log": {"path": os.environ["LOG_FILE"], "sha256": os.environ["log_sha"]},
-        "artifacts": [{"path": os.environ["LOG_FILE"], "sha256": os.environ["log_sha"]}],
+        "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
+        "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
     }, f, indent=2, sort_keys=True)
     f.write("\n")
 PY
@@ -132,20 +137,38 @@ cleanup() {
   else
     printf 'PASS acceptance harness complete; log: %s; attestation: %s\n' "$LOG_FILE" "$ATTESTATION_FILE"
   fi
-  # No output follows this call, so the recorded log hash covers the complete log.
+  # Seal the complete log before generating JSON; attestation generation emits no log output.
+  cp -- "$LOG_FILE" "$SEALED_LOG_FILE"
   write_attestation
   exit "$((rc != 0 ? rc : (FAILURES > 0 ? 1 : 0)))"
 }
 trap cleanup EXIT
 
 check_diff_scope() {
-  local path
+  local path rule prefix matched
+  if [[ -n "$ALLOWLIST_FILE" ]]; then
+    [[ -f "$ALLOWLIST_FILE" ]] || { printf 'allowlist file not found: %s\n' "$ALLOWLIST_FILE"; return 1; }
+  fi
   while IFS= read -r path; do
     [[ -z "$path" ]] && continue
-    case "$path" in
-      scripts/acceptance_harness.sh|docs/audit/*) ;;
-      *) printf 'out-of-scope path: %s\n' "$path"; return 1 ;;
-    esac
+    matched=0
+    if [[ -n "$ALLOWLIST_FILE" ]]; then
+      while IFS= read -r rule || [[ -n "$rule" ]]; do
+        rule="${rule%%#*}"
+        rule="$(printf '%s' "$rule" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+        [[ -z "$rule" ]] && continue
+        if [[ "$rule" == */\* ]]; then
+          prefix="${rule%/*}/"
+          [[ "$path" == "$prefix"* ]] && matched=1
+        else
+          [[ "$path" == "$rule" ]] && matched=1
+        fi
+        ((matched)) && break
+      done < "$ALLOWLIST_FILE"
+    else
+      [[ "$path" == scripts/acceptance_harness.sh || "$path" == docs/audit/* ]] && matched=1
+    fi
+    ((matched)) || { printf 'out-of-scope path: %s\n' "$path"; return 1; }
   done < <(git -C "$WORKTREE" diff --name-only "$BASE..$BRANCH")
 }
 
