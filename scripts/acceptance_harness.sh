@@ -20,6 +20,12 @@ EVENT_FILE=""
 ALLOWLIST_FILE=""
 FAILURES=0
 BLOCKED_COUNT=0
+DB_READY=0
+TEST_DATABASE_URL=""
+TEST_DB_HOST="127.0.0.1"
+TEST_DB_PORT=""
+TEST_DB_NAME="c2_swarm"
+TEST_DB_USER="postgres"
 
 usage() {
   cat <<'USAGE'
@@ -133,6 +139,7 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "full_workspace_test_requested": bool(int(os.environ["FULL_WORKSPACE_TEST"])),
         "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
         "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
+        "test_database": {"host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
         "statuses": events,
         "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
         "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
@@ -235,7 +242,7 @@ expect_failure() {
   status PASS "$label"
 }
 
-database_acceptance() {
+provision_database() {
   local failures_before=$FAILURES
   command -v docker >/dev/null 2>&1
   DB_PASSWORD="c2_$(openssl rand -hex 20)"
@@ -244,6 +251,7 @@ database_acceptance() {
   local common_args=(
     --name "$CONTAINER" -e POSTGRES_DB=c2_swarm -e POSTGRES_USER=postgres
     -e "POSTGRES_PASSWORD=$DB_PASSWORD"
+    -p 127.0.0.1::5432
     -v "$WORKTREE/schema/schema_v0.sql:/c2/schema.sql:ro"
     -v "$WORKTREE/step2/roles.sql:/c2/roles.sql:ro"
     -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
@@ -252,6 +260,9 @@ database_acceptance() {
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
+  TEST_DB_PORT="$(docker port "$CONTAINER" 5432/tcp | awk -F: 'NR == 1 {print $NF}')"
+  [[ "$TEST_DB_PORT" =~ ^[0-9]+$ ]]
+  TEST_DATABASE_URL="postgres://postgres:${DB_PASSWORD}@${TEST_DB_HOST}:${TEST_DB_PORT}/${TEST_DB_NAME}"
   local ready=0
   for _ in {1..60}; do
     if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
@@ -272,6 +283,13 @@ database_acceptance() {
     -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
+  DB_READY=1
+  status PASS "disposable PostgreSQL 16 provisioned and initialized"
+}
+
+database_acceptance() {
+  local failures_before=$FAILURES
+  [[ "$DB_READY" == 1 ]]
 
   local common_worker_login worker_login
   common_worker_login="$(pg postgres "$DB_PASSWORD" -Atc "select rolcanlogin from pg_roles where rolname='swarm_worker'")"
@@ -300,6 +318,7 @@ run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
 if command -v docker >/dev/null 2>&1; then
   run_step "compose config with dummy environment" compose_check
+  run_step "provision disposable PostgreSQL 16 before Rust tests" provision_database
 else
   status BLOCKED "docker unavailable: compose config and database acceptance not run"
 fi
@@ -309,10 +328,16 @@ else
   status BLOCKED "cargo unavailable: Rust unit tests not run"
 fi
 if ((FULL_WORKSPACE_TEST)); then
-  run_step "optional full workspace test" cargo test --workspace --locked
+  if ((DB_READY == 1)); then
+    export TEST_DATABASE_URL
+    export DATABASE_URL="$TEST_DATABASE_URL"
+    run_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked
+  else
+    status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
+  fi
 else
   status BLOCKED "full workspace test not requested (use --full-workspace-test for release gate)"
 fi
 if command -v docker >/dev/null 2>&1; then
-  run_step "disposable PostgreSQL 16 schema/RBAC acceptance" database_acceptance
+  run_step "RBAC smoke on disposable c2_ database" database_acceptance
 fi
