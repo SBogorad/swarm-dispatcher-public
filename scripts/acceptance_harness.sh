@@ -22,6 +22,7 @@ FAILURES=0
 BLOCKED_COUNT=0
 DB_READY=0
 TEST_DATABASE_URL=""
+SANITIZED_TEST_DATABASE_URL=""
 TEST_DB_HOST="127.0.0.1"
 TEST_DB_PORT=""
 TEST_DB_NAME="c2_swarm"
@@ -108,6 +109,24 @@ run_step() {
   return 0
 }
 
+run_worktree_step() {
+  local label="$1"; shift
+  printf 'RUN %s\n' "$label"
+  local command_text
+  command_text="(cd $(printf '%q' "$WORKTREE") && $(printf '%q ' "$@"))"
+  printf 'COMMAND %s\n' "$command_text"
+  set +e
+  (cd "$WORKTREE" && "$@")
+  local rc=$?
+  set -e
+  if ((rc == 0)); then
+    status PASS "$label" "$rc" "$command_text"
+  else
+    status FAIL "$label (see log)" "$rc" "$command_text"
+  fi
+  return 0
+}
+
 write_attestation() {
   local base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate
   base_sha="$(git -C "$WORKTREE" rev-parse "$BASE" 2>/dev/null || printf 'UNRESOLVED')"
@@ -121,7 +140,7 @@ write_attestation() {
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
   release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST EVENT_FILE SEALED_LOG_FILE
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER EVENT_FILE SEALED_LOG_FILE
   python3 - <<'PY'
 import json, os
 events = []
@@ -160,7 +179,11 @@ cleanup() {
   else
     printf 'PASS acceptance harness complete; log: %s; attestation: %s\n' "$LOG_FILE" "$ATTESTATION_FILE"
   fi
-  # Seal the complete log before generating JSON; attestation generation emits no log output.
+  # Remove the ephemeral credential before sealing generated artifacts.
+  if [[ -n "$DB_PASSWORD" && -f "$LOG_FILE" ]]; then
+    sed -i "s|$DB_PASSWORD|[REDACTED]|g" "$LOG_FILE"
+  fi
+  # Seal the complete sanitized log before generating JSON; attestation generation emits no log output.
   cp -- "$LOG_FILE" "$SEALED_LOG_FILE"
   write_attestation
   exit "$((rc != 0 ? rc : (FAILURES > 0 ? 1 : 0)))"
@@ -262,7 +285,7 @@ provision_database() {
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
   TEST_DB_PORT="$(docker port "$CONTAINER" 5432/tcp | awk -F: 'NR == 1 {print $NF}')"
   [[ "$TEST_DB_PORT" =~ ^[0-9]+$ ]]
-  TEST_DATABASE_URL="postgres://postgres:${DB_PASSWORD}@${TEST_DB_HOST}:${TEST_DB_PORT}/${TEST_DB_NAME}"
+  TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=${DB_PASSWORD} dbname=${TEST_DB_NAME}"
   local ready=0
   for _ in {1..60}; do
     if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
@@ -323,7 +346,7 @@ else
   status BLOCKED "docker unavailable: compose config and database acceptance not run"
 fi
 if command -v cargo >/dev/null 2>&1; then
-  run_step "Rust library/unit tests" cargo test --workspace --lib --locked
+  run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked
 else
   status BLOCKED "cargo unavailable: Rust unit tests not run"
 fi
@@ -331,7 +354,7 @@ if ((FULL_WORKSPACE_TEST)); then
   if ((DB_READY == 1)); then
     export TEST_DATABASE_URL
     export DATABASE_URL="$TEST_DATABASE_URL"
-    run_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked
+    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi
