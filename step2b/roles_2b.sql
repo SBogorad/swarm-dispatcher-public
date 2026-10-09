@@ -72,6 +72,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
@@ -109,6 +112,9 @@ create or replace function heartbeat(p_task uuid, p_worker text, p_epoch bigint,
                                      p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec),
                    updated_at = now()

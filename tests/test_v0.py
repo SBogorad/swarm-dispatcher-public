@@ -199,6 +199,21 @@ def test_concurrent_claims_never_double_assign(db):
 
 
 # ---------------- аренды и fencing ----------------
+def test_lease_durations_must_be_positive(db):
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select claim_task('w1', 0)")
+    assert code(e) == "CT001"
+    db.rollback()
+    r = claim(db)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select heartbeat(%s,'w1',%s,0)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+
+
 def test_heartbeat_extends_and_cannot_revive(db):
     worker(db)
     t = new_task(db)
