@@ -154,20 +154,18 @@ impl Sandbox {
     ///
     /// `command` должен быть уже проверен allowlist'ом (см. `allowlist.rs`).
     pub fn exec(&self, command: &str) -> Result<ExecOutput> {
+        let argv = parse_command_argv(command)?;
         let sec = self.cfg.cmd_timeout_sec.to_string();
-        // `timeout -s TERM` внутри контейнера: корректно убивает процесс,
-        // exit code 124 = сработал таймаут.
-        let args = vec![
+        // Execute argv directly. The allowlist is policy, not a shell parser.
+        let mut args = vec![
             "exec".to_string(),
             self.name.clone(),
             "timeout".to_string(),
             "-s".to_string(),
             "TERM".to_string(),
             sec.clone(),
-            "bash".to_string(),
-            "-c".to_string(),
-            command.to_string(),
         ];
+        args.extend(argv);
         let started = Instant::now();
         // Внешний wall-clock: страховка на случай, если подвиснет сам docker.
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
@@ -408,9 +406,11 @@ fn run_cmd_owned_inner(
 
     if let Some(data) = stdin_data {
         if let Some(mut si) = child.stdin.take() {
-            si.write_all(data.as_bytes())
-                .map_err(|e| WorkerError::Sandbox(format!("stdin {bin}: {e}")))?;
-            // drop закрывает поток
+            // Do not synchronously fill a pipe: a child that stops reading
+            // stdin must still be reachable by the watchdog below.
+            std::thread::spawn(move || {
+                let _ = si.write_all(data.as_bytes());
+            });
         }
     }
 
@@ -441,6 +441,57 @@ fn run_cmd_owned_inner(
         exit_code: out.status.code().unwrap_or(-1),
         timed_out,
     })
+}
+
+/// Parse the small argv language used by exec. No shell expansion or
+/// operators are interpreted, even if a direct caller bypasses Allowlist.
+fn parse_command_argv(command: &str) -> Result<Vec<String>> {
+    let mut argv = Vec::new();
+    let mut token = String::new();
+    let mut quote = None;
+    let mut started = false;
+    for ch in command.chars() {
+        match quote {
+            Some(q) if ch == q => quote = None,
+            Some(_) => token.push(ch),
+            None if ch == '\'' || ch == '"' => {
+                quote = Some(ch);
+                started = true;
+            }
+            None if ch.is_whitespace() => {
+                if started {
+                    argv.push(std::mem::take(&mut token));
+                    started = false;
+                }
+            }
+            None if matches!(ch, ';' | '|' | '&' | '<' | '>' | '`' | '$' | '\\') => {
+                return Err(WorkerError::AllowlistRejected {
+                    command: command.to_string(),
+                    reason: format!("запрещённый shell-символ: {ch:?}"),
+                });
+            }
+            None => {
+                token.push(ch);
+                started = true;
+            }
+        }
+    }
+    if quote.is_some() {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: "незакрытая кавычка".into(),
+        });
+    }
+    if started {
+        argv.push(token);
+    }
+    if argv.is_empty() {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: "пустая команда".into(),
+        });
+    }
+    Ok(argv)
 }
 
 #[cfg(test)]
@@ -521,5 +572,20 @@ mod tests {
             sha256_hex(b"abc"),
             "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         );
+    }
+
+    #[test]
+    fn command_argv_does_not_interpret_shell() {
+        assert!(parse_command_argv("echo ok; touch /tmp/pwned").is_err());
+        assert_eq!(
+            parse_command_argv("echo 'hello world'").unwrap(),
+            ["echo", "hello world"]
+        );
+    }
+
+    #[test]
+    fn command_argv_rejects_expansion_and_unclosed_quotes() {
+        assert!(parse_command_argv("echo $(id)").is_err());
+        assert!(parse_command_argv("echo 'unterminated").is_err());
     }
 }

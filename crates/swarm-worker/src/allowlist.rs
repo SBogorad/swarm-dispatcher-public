@@ -28,7 +28,9 @@ pub const EXPLICIT_DENY: &[&str] = &[
 ];
 
 /// Shell-операторы, запрещённые в v0.4 (до analysis pipelines, ТЗ §4).
-const FORBIDDEN_OPERATORS: &[&str] = &["|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r"];
+const FORBIDDEN_OPERATORS: &[&str] = &[
+    "|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r", "\\",
+];
 
 /// Оболочки, для которых делается рекурсивная проверка `-c`.
 const SHELLS: &[&str] = &["bash", "sh", "dash", "zsh"];
@@ -313,5 +315,12 @@ mod tests {
     fn allowlist_empty_command_rejected() {
         assert!(al().check("").is_err());
         assert!(al().check("   ").is_err());
+    }
+
+    #[test]
+    fn allowlist_rejects_shell_options_and_escaped_operators() {
+        assert!(al().check("bash -lc 'rm -rf /'").is_err());
+        assert!(al().check("echo foo\\; rm -rf /").is_err());
+        assert!(al().check("echo ${HOME}").is_err());
     }
 }
