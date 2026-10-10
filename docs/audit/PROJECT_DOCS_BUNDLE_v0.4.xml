@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS" generated="2026-10-10T18:09:14+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS" generated="2026-10-10T19:38:22+07:00" generator="scripts/build_project_bundle.py">
   <title>Документация и отчёты (без писем history/inbound)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="e26056dd3983ffa60b8e1b3f6419b9ddee093a5f"/>
+  <git is_git="true" head="a7ea4ca2a7506cc4ea64394596a80341ec0b2175"/>
   <manifest>
     <files count="47" total_bytes="614671"/>
     <excluded>
@@ -2007,8 +2007,8 @@ step2b/test_roles_2b.py   19 passed
       <content><![CDATA[
 # Отчёт v0.4.1: строгий Agent Loop и безопасный batch
 
-**Дата:** 2026-10-09  
-**Проект:** `swarm-dispatcher`  
+**Дата:** 2026-10-09
+**Проект:** `swarm-dispatcher`
 **Основание:** два замечания внутреннего ревью после закрытия v0.4.
 
 ## Итог
@@ -4549,7 +4549,7 @@ ready to execute: 1
 5. pytest step2/test_roles.py — 30 passed.
 6. pytest step2b/test_roles_2b.py — 19 passed.
 7. Мутации M1–M4 — 4 из 4 ловятся, с указанием упавших тестов.
-8. Демонстрация на реальном Postgres с mock: 
+8. Демонстрация на реальном Postgres с mock:
    swarm-planner "test task" создаёт граф, swarm-cli status его
    показывает.
 9. Docker/compose — если доступен sudo; иначе отметить как отложенный

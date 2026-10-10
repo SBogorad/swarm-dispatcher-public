@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T18:09:14+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T19:38:22+07:00" generator="scripts/build_project_bundle.py">
   <title>Код проекта (Rust + тесты + манифесты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="e26056dd3983ffa60b8e1b3f6419b9ddee093a5f"/>
+  <git is_git="true" head="a7ea4ca2a7506cc4ea64394596a80341ec0b2175"/>
   <manifest>
-    <files count="45" total_bytes="373064"/>
+    <files count="45" total_bytes="375134"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -18,43 +18,43 @@
       <entry path="crates/swarm-cli/Cargo.toml" lang="toml" bytes="225" lines="10" sha256="43cacce0e3960bb63925656b3ac96ccece391d295e041a7242844b134eb13f46" md5="6de905d3d78ab75211ce0a387d32d121"/>
       <entry path="crates/swarm-cli/src/main.rs" lang="rust" bytes="6676" lines="205" sha256="7202eb0ae1412fa3686c1067e7281b1d1c3a06de5504b35e17825e2b3c608e2b" md5="ee12e71bef16784b0b874057f60f30e5"/>
       <entry path="crates/swarm-core/Cargo.toml" lang="toml" bytes="345" lines="17" sha256="aa491b9d7ab721880f0f86efaa5c02875e9d3ab1a1dba37e474f2c70d81c1f40" md5="afa18665cc4ff26a353e3305a5636880"/>
-      <entry path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="11985" lines="346" sha256="be2649c6e4d578ea61888c77fff90569dd615dc47442c86fe5cd0b96eddcebee" md5="86c6b95f9c624bb08cadb0b0793711c5"/>
-      <entry path="crates/swarm-core/src/errors.rs" lang="rust" bytes="6902" lines="186" sha256="8694d6033e58b37a73a483ae5d78db110197ec5303e4b7de69572a653c917172" md5="5e084e9615c7b872d47e6fdc6c747861"/>
-      <entry path="crates/swarm-core/src/lib.rs" lang="rust" bytes="242" lines="9" sha256="164742edff97d3d190d7fe86e29a19ca2f764e152749114e52ebe53bf952eb1e" md5="c9afe6fc91d7a39e445cb3d050530f24"/>
-      <entry path="crates/swarm-core/src/types.rs" lang="rust" bytes="8978" lines="264" sha256="d357e3bedd5418a9dc63cc315ca9ce099f7b22850561e55dfdc29ac46cebe148" md5="98d39eab6bc825a4663918fd92731006"/>
+      <entry path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="12262" lines="361" sha256="634723de103c29672bd411f9a8e6f975b60e5c1e4aab7156f7357fad59f40640" md5="efe4e3fba246774ea74464328dea1ac9"/>
+      <entry path="crates/swarm-core/src/errors.rs" lang="rust" bytes="6948" lines="189" sha256="b8d8415d10ceb9010a171303247c749c8eaa3d8521611509d084830bb082b6ba" md5="b3f5f394a961240a5f0212ff4bb9096e"/>
+      <entry path="crates/swarm-core/src/lib.rs" lang="rust" bytes="235" lines="7" sha256="b9210371c22830287ec2681249d835ddc7e793d67a8078ddc5c228586ec277b0" md5="bdc9b565620ebf78af3341fcc504461f"/>
+      <entry path="crates/swarm-core/src/types.rs" lang="rust" bytes="9084" lines="272" sha256="d87f95640ed83607efed6ec875a75b30c407ef81a4b2e0782e3f49783e7ce4f2" md5="61184cf2fcfc9b8e5d4dcd7eb2b9f629"/>
       <entry path="crates/swarm-core/tests/alt/integration_alt.rs" lang="rust" bytes="6247" lines="190" sha256="f7be51e6a0b02cf633cee01de39606e252572800e8ff01013e1021c51fff9ee8" md5="293ce793252e82f7130485e5722efc0b"/>
       <entry path="crates/swarm-core/tests/integration.rs" lang="rust" bytes="12002" lines="349" sha256="1330be7a320c614c59946060fff44fe8e70f8c531b27c8a70daa3205d84e2746" md5="5f30d896e55202f1c01cd7dbe7178c0a"/>
       <entry path="crates/swarm-core/tests/integration_verified.rs" lang="rust" bytes="9759" lines="315" sha256="ce5ee3b8e69e8fdcdeadbd817277f5a00fbf3d2d813f0731b03a5a65ae384fb7" md5="0218bb4592165b5303fccd151bc92f1c"/>
       <entry path="crates/swarm-llm/Cargo.toml" lang="toml" bytes="367" lines="11" sha256="f3da8011038d37fc95332a7158f11c0ba44141d51e85842acd62d682276ab86b" md5="1ab92f61bd2f9873eff6638dd6a72b64"/>
       <entry path="crates/swarm-llm/src/error.rs" lang="rust" bytes="1147" lines="43" sha256="83ed168ea6bab9202c19d61f06106e2878fecd62b007a0b179cbdbfa8010445e" md5="98500d1bc89e4dcb757b7632ee67603d"/>
-      <entry path="crates/swarm-llm/src/lib.rs" lang="rust" bytes="13118" lines="396" sha256="384ae976022bdd2f06a3197cfdd285a2d16001eb646337e9684204308db34e3f" md5="8e17e963cf38a2dda30848614d17a07e"/>
+      <entry path="crates/swarm-llm/src/lib.rs" lang="rust" bytes="13638" lines="433" sha256="4da23c279bef521e3eacb8a0a88768e669bb8b4c84e9c28255b50b345ffd86d3" md5="2a07019b6bd60b57a4ec4cc9a1653e3c"/>
       <entry path="crates/swarm-planner/Cargo.toml" lang="toml" bytes="557" lines="24" sha256="abe2418a29d3ea9ec317ad9f5f82cbe947d6cc1ad708a25a04f1220f65171bdc" md5="4395b843ea4c77d170774e075b43b22b"/>
       <entry path="crates/swarm-planner/src/error.rs" lang="rust" bytes="516" lines="23" sha256="cec97ee8df913e6a866ea76742a0fb127aace1f46b2e3f16c0e5470b8e5f37f8" md5="659687601cc51837e45edf675bd3b67f"/>
-      <entry path="crates/swarm-planner/src/lib.rs" lang="rust" bytes="14005" lines="348" sha256="7d51ec96ec9eb778dd904b4c12515f30034929303259d25c1af7dc8c04222e47" md5="a5d8073c00891e82e5c7961d61038502"/>
-      <entry path="crates/swarm-planner/src/llm.rs" lang="rust" bytes="4168" lines="117" sha256="7a43f04d3358fbfbb8c770a567beca8e486ef8b2fd9fc3efee02ef001f2c7424" md5="4504aed0930a9716090987892ac9ef57"/>
-      <entry path="crates/swarm-planner/src/main.rs" lang="rust" bytes="2474" lines="80" sha256="69d0a96d4ffb930817413f803a806e27cfbe7eceefb990e8f283a255cb193de4" md5="57b7d04f523d576a0d71e33682bc0cdb"/>
-      <entry path="crates/swarm-planner/src/parse.rs" lang="rust" bytes="11215" lines="341" sha256="2a5e186e8a9702d0a6bac7f4cf59710565aca94fee923872f13446bace491c28" md5="0ed1c9d8f76ce460c9a71d574423e84e"/>
-      <entry path="crates/swarm-planner/src/prompt.rs" lang="rust" bytes="2615" lines="74" sha256="ddeeeb231391bba0730609200a326b54e169faa36ff713d1045648926289f8e7" md5="7636e9c2d697dbed45ab55730205057f"/>
+      <entry path="crates/swarm-planner/src/lib.rs" lang="rust" bytes="14199" lines="367" sha256="a2f1c473181d11125493e6e75118cf38efe5f21ca6e68ed39b32f3ed7354608d" md5="b6ebfd058a6c7555b59da709b9f8d9c3"/>
+      <entry path="crates/swarm-planner/src/llm.rs" lang="rust" bytes="4128" lines="114" sha256="9f5998ff3d569b1122f1fc748f013976e26d91623a2774f35f97e895c61b7c67" md5="b7ba5dac848cca307c8b062b0d01eb5f"/>
+      <entry path="crates/swarm-planner/src/main.rs" lang="rust" bytes="2440" lines="78" sha256="4ce3896b0f96c48037e560f7b05172e51be10a6e6a5e3bdd9d4d07d9c06802cf" md5="453090a2b512624fb2a63365cd9f028b"/>
+      <entry path="crates/swarm-planner/src/parse.rs" lang="rust" bytes="11546" lines="369" sha256="71738083b4146e3c76d5e7fd71a3ede5cd597c074bbc6e5461b49bb2a76f3b8c" md5="737688dba7037624c92d3ae88cc0b1d5"/>
+      <entry path="crates/swarm-planner/src/prompt.rs" lang="rust" bytes="2660" lines="78" sha256="592075089361aa794fd86e9dc32377ebd0cb2bec1e15930d7bddcb155797a709" md5="eabcffd5471921a8300c49e07963270f"/>
       <entry path="crates/swarm-planner/tests/fixtures/planner_dup_dep.json" lang="json" bytes="745" lines="31" sha256="a2853ef4c1f243da155cba4436f9e7b6fc733094331903ec3df7252497cc2eb1" md5="5711b2b984c111a0905695e0afd18da9"/>
       <entry path="crates/swarm-planner/tests/fixtures/planner_ok.json" lang="json" bytes="935" lines="31" sha256="2044fcfa6c1dc51ffb12bc6b959f4609e88b22f62964eae8a94351d52ca88d09" md5="f5225b93c47e041e9a87293969e5afaf"/>
       <entry path="crates/swarm-planner/tests/fixtures/planner_too_many.json" lang="json" bytes="340" lines="18" sha256="6660c81d7e32c0b292251d83d8c673218a4c5ceae865b285574b615d33b0f22c" md5="bc0554d4703275a611003450005fdf95"/>
       <entry path="crates/swarm-planner/tests/planner_integration.rs" lang="rust" bytes="10664" lines="282" sha256="5f5504700d08f50c1c51f8f1d8ee44798099e477ba6acf65acefae97fe6fa520" md5="59a8f0b941e59a9a787bed3258539af6"/>
       <entry path="crates/swarm-watchdog/Cargo.toml" lang="toml" bytes="227" lines="10" sha256="214a53d97e923842faf74e5a0f30ae8ea4277b65b75d74554f22fc20a45e6fab" md5="140aceb52b260384e9fba419b9a0fa1b"/>
-      <entry path="crates/swarm-watchdog/src/main.rs" lang="rust" bytes="3101" lines="83" sha256="bf5c0ec2ce0306af83a874ce768a409e796ad3471f926090fdce35c2074c500b" md5="f680028c76a0f5c921812792e57c0d85"/>
+      <entry path="crates/swarm-watchdog/src/main.rs" lang="rust" bytes="3107" lines="84" sha256="e439de2468b655e310a0b0d03f218883f986a7607722593f8176cb93e59dfb3f" md5="93b3d74c73be8787ee5ec1a3cd2abc73"/>
       <entry path="crates/swarm-worker/Cargo.toml" lang="toml" bytes="902" lines="32" sha256="7eac49b458f5f22091ace3f9c04b4e747e3a1ab3e9079f04fe6b89986b6659ef" md5="20b4de18e3f09f72ac2ebf4c6be148e0"/>
-      <entry path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4648" lines="110" sha256="8cc242eab20b4cd11941203074b9b9500102c3a68c5e6cf652cf8407ae4dcb72" md5="862ac489cdfb2ce436406039740610f9"/>
+      <entry path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4840" lines="123" sha256="1380b6ba0651b30a89116828b27fcd1256d9cbeada1623ee6674f404a4ec937f" md5="9df11ec440423aa051a7484b6499c050"/>
       <entry path="crates/swarm-worker/src/agent_loop.rs" lang="rust" bytes="15103" lines="453" sha256="d2d4b89cfcedbab6f54cb699335c20928a41c20f51afa64eab3b03a8d061cc03" md5="95afa64156c184133c195da893ad01f1"/>
-      <entry path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="13534" lines="363" sha256="d341ea64605d9f08c73dd2d48c2174f6405113a750c5f4ac2bc59d7e3ba4728b" md5="3cc826ae1b906947a0c24803f8f0e6ef"/>
+      <entry path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="13527" lines="361" sha256="ff4e9631782a1bb4671e3d05e105ea7f51712d1e4071977c93bdc0cbf1b09c50" md5="49aa79443e73d581f9a1caa13bc9aa3e"/>
       <entry path="crates/swarm-worker/src/artifacts.rs" lang="rust" bytes="8019" lines="197" sha256="840be123cb3d9e61f75c2d8c06540161c2cba489e1bfc82c5b51aa8167d8e0f3" md5="f532f05aab4a20434e3d4063957db9a9"/>
       <entry path="crates/swarm-worker/src/audit.rs" lang="rust" bytes="3178" lines="83" sha256="7638c4d31e447c63d470342995658f23b345a10e2f8304fa82e54209e25dc844" md5="fa7a5e04ac9eb99d31c3a2d52c513dc7"/>
       <entry path="crates/swarm-worker/src/error.rs" lang="rust" bytes="1458" lines="47" sha256="db458aea5bef333dab5b3dc00eebabc30cbac22c3c613745759f517369e1cf10" md5="c20742c92ac3c2c5c17e1e020f51fa27"/>
-      <entry path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="853" lines="26" sha256="4978c57c7f945d352a7310842745998b6372af5548cdcc259752666c7bffe3de" md5="218e6b896f7d71cba1c790fa1700a418"/>
-      <entry path="crates/swarm-worker/src/main.rs" lang="rust" bytes="4954" lines="126" sha256="c9b6c2d3438609701fe757e802843c98371b7e82fac187e18367fb5a52ed3163" md5="fa5f1b3177e029f10eb786d976a3ec9b"/>
+      <entry path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="853" lines="26" sha256="988dfa0549b14748192649ea40cbbcffb2f9e0dc17a47471535720b6c2b903ba" md5="4da61fa7ccd91a605db80074edfe28f5"/>
+      <entry path="crates/swarm-worker/src/main.rs" lang="rust" bytes="5074" lines="136" sha256="9d66ae5e85d6ea071810734d5c9fcfae14c07663f2013ace2a414e195ba16d8b" md5="77dbd9060196205d1820d546c04c6368"/>
       <entry path="crates/swarm-worker/src/parse_step.rs" lang="rust" bytes="16165" lines="369" sha256="74f8e69be76842679fdc4f61caedda7471f1c32fb1087f784e4f9d0592315246" md5="30c3f75bb69c0af263c9d3c33e634a03"/>
       <entry path="crates/swarm-worker/src/prompt.rs" lang="rust" bytes="9035" lines="201" sha256="59d9dd3c8a227d15948f5023e0c269929405a37f23476e32079900c14ecb86d1" md5="a2aeb6d28f4a2b7ff82013cacf43db85"/>
       <entry path="crates/swarm-worker/src/retry.rs" lang="rust" bytes="3238" lines="103" sha256="f44b5d1792135f71da38191f257ecf54d4bf2facfa32f7ffb9d67a3d8bea35b9" md5="a55ccea01123462543b8aba991e4d492"/>
       <entry path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="22481" lines="642" sha256="1541f01960f4438ef5575af97ca6ebaccbb4bc6b0914445caa0f85294ee589c4" md5="043203d0267d7634392af43a267f9f0c"/>
-      <entry path="crates/swarm-worker/src/storage.rs" lang="rust" bytes="5336" lines="143" sha256="3e72bd873acfb20420b8a989ca03246755c643130d09ec44c79a69b63b3e2b0c" md5="8eb37ee627fdbba647796240a12e55a0"/>
+      <entry path="crates/swarm-worker/src/storage.rs" lang="rust" bytes="5657" lines="165" sha256="73e82baa6fea1d489c9778a4578f251dc902f351683012d2e391b864e60be4c3" md5="55d20d72a6e238db61d97ac46ac6cf6e"/>
       <entry path="crates/swarm-worker/src/worker.rs" lang="rust" bytes="10016" lines="293" sha256="bf456e6b45963c86a19288415f4a45e92498c66e434b2f03cb065b2bef67303d" md5="289966d26870e14fe23fea4e281c35b7"/>
       <entry path="crates/swarm-worker/tests/worker_integration.rs" lang="rust" bytes="18954" lines="528" sha256="4f96891baa72a63fd7bbf6741bb4f629032ee171a5be429489912ddbdefca20e" md5="5d82325c067782c57941aa87d1ba5f17"/>
       <entry path="crates/swarm-worker/tests/worker_sandbox.rs" lang="rust" bytes="16153" lines="476" sha256="f0f20c05d21c0cb4fb723ef18b30e9800ef1ae57e6d73bfa17617794f6a52a95" md5="f74585e4f99d931c8fa131de71d55f51"/>
@@ -3966,7 +3966,7 @@ name = "integration_alt"
 path = "tests/alt/integration_alt.rs"
 ]]></content>
     </file>
-    <file path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="11985" lines="346" sha256="be2649c6e4d578ea61888c77fff90569dd615dc47442c86fe5cd0b96eddcebee" md5="86c6b95f9c624bb08cadb0b0793711c5">
+    <file path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="12262" lines="361" sha256="634723de103c29672bd411f9a8e6f975b60e5c1e4aab7156f7357fad59f40640" md5="efe4e3fba246774ea74464328dea1ac9">
       <content><![CDATA[
 use crate::errors::DispatcherError;
 use crate::types::{Lease, TaskContract, TaskRow, TaskStatusRow, Verdict};
@@ -4192,7 +4192,13 @@ impl SwarmDispatcher {
             .client
             .query_one(
                 "SELECT complete_task($1, $2, $3, $4, $5)",
-                &[&lease.task_id, &lease.worker_id, &lease.epoch, &result_ref, &tokens],
+                &[
+                    &lease.task_id,
+                    &lease.worker_id,
+                    &lease.epoch,
+                    &result_ref,
+                    &tokens,
+                ],
             )
             .map_err(DispatcherError::from_pg)?;
         Ok(row.get(0))
@@ -4213,7 +4219,13 @@ impl SwarmDispatcher {
             .client
             .query_one(
                 "SELECT submit_review($1, $2, $3, $4, $5::jsonb)",
-                &[&task_id, &artifact_ref, &reviewer, &verdict.as_str(), checks],
+                &[
+                    &task_id,
+                    &artifact_ref,
+                    &reviewer,
+                    &verdict.as_str(),
+                    checks,
+                ],
             )
             .map_err(DispatcherError::from_pg)?;
         Ok(row.get(0))
@@ -4269,7 +4281,10 @@ impl SwarmDispatcher {
     where
         F: FnOnce(&mut DispatcherTx<'_, '_>) -> Result<T, DispatcherError>,
     {
-        let mut tx = self.client.transaction().map_err(DispatcherError::from_pg)?;
+        let mut tx = self
+            .client
+            .transaction()
+            .map_err(DispatcherError::from_pg)?;
         let out = {
             let mut w = DispatcherTx { tx: &mut tx };
             f(&mut w)? // при Err tx дропается без commit -> rollback
@@ -4316,7 +4331,7 @@ impl DispatcherTx<'_, '_> {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-core/src/errors.rs" lang="rust" bytes="6902" lines="186" sha256="8694d6033e58b37a73a483ae5d78db110197ec5303e4b7de69572a653c917172" md5="5e084e9615c7b872d47e6fdc6c747861">
+    <file path="crates/swarm-core/src/errors.rs" lang="rust" bytes="6948" lines="189" sha256="b8d8415d10ceb9010a171303247c749c8eaa3d8521611509d084830bb082b6ba" md5="b3f5f394a961240a5f0212ff4bb9096e">
       <content><![CDATA[
 //! ПРАВИЛО: `postgres::Error` НЕ конвертируется через `?`/`#[from]`.
 //!
@@ -4493,7 +4508,10 @@ mod tests {
         for (code, is_expected) in cases {
             let e = DispatcherError::from_sqlstate(code)
                 .unwrap_or_else(|| panic!("sqlstate {code} not mapped"));
-            assert!(is_expected(&e), "sqlstate {code} mapped to wrong variant: {e:?}");
+            assert!(
+                is_expected(&e),
+                "sqlstate {code} mapped to wrong variant: {e:?}"
+            );
         }
     }
 
@@ -4506,7 +4524,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-core/src/lib.rs" lang="rust" bytes="242" lines="9" sha256="164742edff97d3d190d7fe86e29a19ca2f764e152749114e52ebe53bf952eb1e" md5="c9afe6fc91d7a39e445cb3d050530f24">
+    <file path="crates/swarm-core/src/lib.rs" lang="rust" bytes="235" lines="7" sha256="b9210371c22830287ec2681249d835ddc7e793d67a8078ddc5c228586ec277b0" md5="bdc9b565620ebf78af3341fcc504461f">
       <content><![CDATA[
 pub mod dispatcher;
 pub mod errors;
@@ -4514,12 +4532,10 @@ pub mod types;
 
 pub use dispatcher::{DispatcherTx, SwarmDispatcher};
 pub use errors::DispatcherError;
-pub use types::{
-    Budget, Lease, Needs, TaskContract, TaskRow, TaskState, TaskStatusRow, Verdict,
-};
+pub use types::{Budget, Lease, Needs, TaskContract, TaskRow, TaskState, TaskStatusRow, Verdict};
 ]]></content>
     </file>
-    <file path="crates/swarm-core/src/types.rs" lang="rust" bytes="8978" lines="264" sha256="d357e3bedd5418a9dc63cc315ca9ce099f7b22850561e55dfdc29ac46cebe148" md5="98d39eab6bc825a4663918fd92731006">
+    <file path="crates/swarm-core/src/types.rs" lang="rust" bytes="9084" lines="272" sha256="d87f95640ed83607efed6ec875a75b30c407ef81a4b2e0782e3f49783e7ce4f2" md5="61184cf2fcfc9b8e5d4dcd7eb2b9f629">
       <content><![CDATA[
 use crate::errors::DispatcherError;
 use serde::{Deserialize, Serialize};
@@ -4549,7 +4565,9 @@ pub struct Budget {
     pub max_tasks: Option<u32>,
 }
 
-fn default_attempts() -> u32 { 3 }
+fn default_attempts() -> u32 {
+    3
+}
 
 impl Default for Budget {
     fn default() -> Self {
@@ -4586,8 +4604,14 @@ impl TaskContract {
         if self.kind.trim().is_empty()
             || self.checks.is_empty()
             || self.budget.attempts == 0
-            || self.needs.min_ram_gb.is_some_and(|v| !v.is_finite() || v < 0.0)
-            || self.needs.coder_class.is_some_and(|v| !v.is_finite() || v < 0.0)
+            || self
+                .needs
+                .min_ram_gb
+                .is_some_and(|v| !v.is_finite() || v < 0.0)
+            || self
+                .needs
+                .coder_class
+                .is_some_and(|v| !v.is_finite() || v < 0.0)
         {
             return Err(DispatcherError::ContractInvalid);
         }
@@ -5715,7 +5739,7 @@ impl LlmError {
 pub type Result<T> = std::result::Result<T, LlmError>;
 ]]></content>
     </file>
-    <file path="crates/swarm-llm/src/lib.rs" lang="rust" bytes="13118" lines="396" sha256="384ae976022bdd2f06a3197cfdd285a2d16001eb646337e9684204308db34e3f" md5="8e17e963cf38a2dda30848614d17a07e">
+    <file path="crates/swarm-llm/src/lib.rs" lang="rust" bytes="13638" lines="433" sha256="4da23c279bef521e3eacb8a0a88768e669bb8b4c84e9c28255b50b345ffd86d3" md5="2a07019b6bd60b57a4ec4cc9a1653e3c">
       <content><![CDATA[
 //! Общий LLM-клиент (sync, `reqwest::blocking`).
 //!
@@ -5763,7 +5787,9 @@ impl LlmConfig {
                 "API key required for this provider".into(),
             ));
         }
-        let model = var("MODEL").or_else(|_| legacy("MODEL")).unwrap_or_else(|_| "mock".into());
+        let model = var("MODEL")
+            .or_else(|_| legacy("MODEL"))
+            .unwrap_or_else(|_| "mock".into());
         let base_url = var("BASE_URL").or_else(|_| legacy("BASE_URL")).ok();
         if provider == "openai-compatible" && base_url.is_none() {
             return Err(LlmError::Config(
@@ -5916,7 +5942,14 @@ impl HttpLlmClient {
         let max_tokens = req.max_tokens.unwrap_or(self.cfg.max_tokens);
         match self.cfg.provider.as_str() {
             "mock" => self.mock_response(),
-            "openai" => self.openai_chat(req, max_tokens, self.cfg.base_url.as_deref().unwrap_or("https://api.openai.com")),
+            "openai" => self.openai_chat(
+                req,
+                max_tokens,
+                self.cfg
+                    .base_url
+                    .as_deref()
+                    .unwrap_or("https://api.openai.com"),
+            ),
             "openai-compatible" | "relayfast" => {
                 let base = self
                     .cfg
@@ -5946,13 +5979,24 @@ impl HttpLlmClient {
         })
     }
 
-    fn openai_chat(&self, req: &LlmRequest, max_tokens: u32, base: &str) -> Result<LlmResponse, LlmError> {
+    fn openai_chat(
+        &self,
+        req: &LlmRequest,
+        max_tokens: u32,
+        base: &str,
+    ) -> Result<LlmResponse, LlmError> {
         let url = format!("{}/v1/chat/completions", base.trim_end_matches('/'));
         let body = OpenAiRequest {
             model: &self.cfg.model,
             messages: vec![
-                ChatMessage { role: "system", content: &req.system },
-                ChatMessage { role: "user", content: &req.user },
+                ChatMessage {
+                    role: "system",
+                    content: &req.system,
+                },
+                ChatMessage {
+                    role: "user",
+                    content: &req.user,
+                },
             ],
             max_tokens,
             temperature: req.temperature.unwrap_or(0.2),
@@ -5963,7 +6007,9 @@ impl HttpLlmClient {
         }
         let resp = r.send().map_err(|e| LlmError::Transport(e.to_string()))?;
         let status = resp.status();
-        let text = resp.text().map_err(|e| LlmError::Transport(e.to_string()))?;
+        let text = resp
+            .text()
+            .map_err(|e| LlmError::Transport(e.to_string()))?;
         if !status.is_success() {
             return Err(LlmError::Http {
                 status: status.as_u16(),
@@ -5972,7 +6018,10 @@ impl HttpLlmClient {
         }
         let parsed: OpenAiResponse = serde_json::from_str(&text)
             .map_err(|e| LlmError::InvalidJson(format!("{e}: {}", truncate(&text, 400))))?;
-        let usage = parsed.usage.unwrap_or(OpenAiUsage { prompt_tokens: 0, completion_tokens: 0 });
+        let usage = parsed.usage.unwrap_or(OpenAiUsage {
+            prompt_tokens: 0,
+            completion_tokens: 0,
+        });
         parsed
             .choices
             .into_iter()
@@ -5987,13 +6036,20 @@ impl HttpLlmClient {
     }
 
     fn anthropic_chat(&self, req: &LlmRequest, max_tokens: u32) -> Result<LlmResponse, LlmError> {
-        let base = self.cfg.base_url.as_deref().unwrap_or("https://api.anthropic.com");
+        let base = self
+            .cfg
+            .base_url
+            .as_deref()
+            .unwrap_or("https://api.anthropic.com");
         let url = format!("{}/v1/messages", base.trim_end_matches('/'));
         let body = AnthropicRequest {
             model: &self.cfg.model,
             max_tokens,
             system: &req.system,
-            messages: vec![ChatMessage { role: "user", content: &req.user }],
+            messages: vec![ChatMessage {
+                role: "user",
+                content: &req.user,
+            }],
         };
         let key = self
             .cfg
@@ -6009,7 +6065,9 @@ impl HttpLlmClient {
             .send()
             .map_err(|e| LlmError::Transport(e.to_string()))?;
         let status = resp.status();
-        let text = resp.text().map_err(|e| LlmError::Transport(e.to_string()))?;
+        let text = resp
+            .text()
+            .map_err(|e| LlmError::Transport(e.to_string()))?;
         if !status.is_success() {
             return Err(LlmError::Http {
                 status: status.as_u16(),
@@ -6018,7 +6076,10 @@ impl HttpLlmClient {
         }
         let parsed: AnthropicResponse = serde_json::from_str(&text)
             .map_err(|e| LlmError::InvalidJson(format!("{e}: {}", truncate(&text, 400))))?;
-        let usage = parsed.usage.unwrap_or(AnthropicUsage { input_tokens: 0, output_tokens: 0 });
+        let usage = parsed.usage.unwrap_or(AnthropicUsage {
+            input_tokens: 0,
+            output_tokens: 0,
+        });
         parsed
             .content
             .into_iter()
@@ -6170,7 +6231,7 @@ pub enum PlannerError {
 pub type Result<T> = std::result::Result<T, PlannerError>;
 ]]></content>
     </file>
-    <file path="crates/swarm-planner/src/lib.rs" lang="rust" bytes="14005" lines="348" sha256="7d51ec96ec9eb778dd904b4c12515f30034929303259d25c1af7dc8c04222e47" md5="a5d8073c00891e82e5c7961d61038502">
+    <file path="crates/swarm-planner/src/lib.rs" lang="rust" bytes="14199" lines="367" sha256="a2f1c473181d11125493e6e75118cf38efe5f21ca6e68ed39b32f3ed7354608d" md5="b6ebfd058a6c7555b59da709b9f8d9c3">
       <content><![CDATA[
 //! Planner: LLM → граф задач в Postgres.
 //!
@@ -6185,7 +6246,9 @@ pub mod prompt;
 
 pub use error::{PlannerError, Result};
 pub use llm::{LlmClient, LlmConfig};
-pub use parse::{deterministic_root_id, parse_response, validate_graph, Limits, PlannedGraph, PlannedTask};
+pub use parse::{
+    deterministic_root_id, parse_response, validate_graph, Limits, PlannedGraph, PlannedTask,
+};
 pub use prompt::{system_prompt, user_prompt};
 
 use serde_json::json;
@@ -6258,7 +6321,11 @@ pub fn subtask_contract(t: &PlannedTask) -> TaskContract {
     }
     let needs: Needs = serde_json::from_value(t.needs.clone()).unwrap_or_default();
     TaskContract {
-        kind: if t.kind.is_empty() { "task".into() } else { t.kind.clone() },
+        kind: if t.kind.is_empty() {
+            "task".into()
+        } else {
+            t.kind.clone()
+        },
         // §2.2: description подзадачи из LLM-ответа.
         description: opt_description(&t.description),
         checks: t.checks.clone(),
@@ -6287,7 +6354,12 @@ pub struct Planner {
 
 impl Planner {
     pub fn new(cfg: PlannerConfig, llm: LlmClient) -> Self {
-        Self { cfg, llm, context: None, expected: None }
+        Self {
+            cfg,
+            llm,
+            context: None,
+            expected: None,
+        }
     }
 
     pub fn with_context(mut self, ctx: Option<String>, expected: Option<String>) -> Self {
@@ -6466,7 +6538,11 @@ mod tests {
 
     #[test]
     fn root_contract_has_limits() {
-        let lim = Limits { max_tasks: 7, max_depth: 3, max_children: 4 };
+        let lim = Limits {
+            max_tasks: 7,
+            max_depth: 3,
+            max_children: 4,
+        };
         let c = root_contract("do it", &lim);
         assert_eq!(c.kind, "root");
         assert_eq!(c.budget.max_tasks, Some(7));
@@ -6478,7 +6554,11 @@ mod tests {
     // §6.1 (v0.3.1): корень получает description = текст задачи.
     #[test]
     fn planner_root_contract_has_description() {
-        let lim = Limits { max_tasks: 50, max_depth: 5, max_children: 10 };
+        let lim = Limits {
+            max_tasks: 50,
+            max_depth: 5,
+            max_children: 10,
+        };
         let c = root_contract("Функция на Rust: сложение двух чисел + тест", &lim);
         assert_eq!(
             c.description.as_deref(),
@@ -6522,7 +6602,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-planner/src/llm.rs" lang="rust" bytes="4168" lines="117" sha256="7a43f04d3358fbfbb8c770a567beca8e486ef8b2fd9fc3efee02ef001f2c7424" md5="4504aed0930a9716090987892ac9ef57">
+    <file path="crates/swarm-planner/src/llm.rs" lang="rust" bytes="4128" lines="114" sha256="9f5998ff3d569b1122f1fc748f013976e26d91623a2774f35f97e895c61b7c67" md5="b7ba5dac848cca307c8b062b0d01eb5f">
       <content><![CDATA[
 //! Шим над `swarm-llm` для обратной совместимости Planner.
 //!
@@ -6610,8 +6690,8 @@ pub struct LlmClient {
 
 impl LlmClient {
     pub fn new(cfg: LlmConfig) -> Result<Self> {
-        let inner = HttpLlmClient::new(cfg.to_swarm_llm())
-            .map_err(|e| PlannerError::Llm(e.to_string()))?;
+        let inner =
+            HttpLlmClient::new(cfg.to_swarm_llm()).map_err(|e| PlannerError::Llm(e.to_string()))?;
         Ok(Self { inner, cfg })
     }
 
@@ -6627,10 +6707,7 @@ impl LlmClient {
             max_tokens: None,
             temperature: None,
         };
-        self.inner
-            .complete(&req)
-            .map(|r| r.text)
-            .map_err(map_err)
+        self.inner.complete(&req).map(|r| r.text).map_err(map_err)
     }
 }
 
@@ -6643,7 +6720,7 @@ fn map_err(e: LlmError) -> PlannerError {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-planner/src/main.rs" lang="rust" bytes="2474" lines="80" sha256="69d0a96d4ffb930817413f803a806e27cfbe7eceefb990e8f283a255cb193de4" md5="57b7d04f523d576a0d71e33682bc0cdb">
+    <file path="crates/swarm-planner/src/main.rs" lang="rust" bytes="2440" lines="78" sha256="4ce3896b0f96c48037e560f7b05172e51be10a6e6a5e3bdd9d4d07d9c06802cf" md5="453090a2b512624fb2a63365cd9f028b">
       <content><![CDATA[
 //! CLI: `swarm-planner "задача"` (или из stdin).
 
@@ -6672,9 +6749,7 @@ fn main() {
         None => {
             use std::io::Read;
             let mut s = String::new();
-            std::io::stdin()
-                .read_to_string(&mut s)
-                .expect("read stdin");
+            std::io::stdin().read_to_string(&mut s).expect("read stdin");
             s.trim().to_string()
         }
     };
@@ -6727,7 +6802,7 @@ fn main() {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-planner/src/parse.rs" lang="rust" bytes="11215" lines="341" sha256="2a5e186e8a9702d0a6bac7f4cf59710565aca94fee923872f13446bace491c28" md5="0ed1c9d8f76ce460c9a71d574423e84e">
+    <file path="crates/swarm-planner/src/parse.rs" lang="rust" bytes="11546" lines="369" sha256="71738083b4146e3c76d5e7fd71a3ede5cd597c074bbc6e5461b49bb2a76f3b8c" md5="737688dba7037624c92d3ae88cc0b1d5">
       <content><![CDATA[
 //! Парсинг ответа LLM → граф задач, детерминированный root_id, локальная валидация.
 
@@ -6803,8 +6878,8 @@ pub fn deterministic_root_id(text: &str) -> Uuid {
 pub fn parse_response(raw: &str) -> Result<PlannedGraph> {
     let candidate = extract_json_object(raw)
         .ok_or_else(|| PlannerError::InvalidJson("no JSON object found".into()))?;
-    let graph: PlannedGraph = serde_json::from_str(&candidate)
-        .map_err(|e| PlannerError::InvalidJson(e.to_string()))?;
+    let graph: PlannedGraph =
+        serde_json::from_str(&candidate).map_err(|e| PlannerError::InvalidJson(e.to_string()))?;
     if graph.tasks.is_empty() {
         return Err(PlannerError::InvalidJson("empty tasks".into()));
     }
@@ -6957,7 +7032,10 @@ fn graph_depth(graph: &PlannedGraph) -> Result<u32> {
             return Ok(*d);
         }
         if !visiting.insert(id.to_string()) {
-            return Err(PlannerError::Validation(format!("cycle detected at {}", id)));
+            return Err(PlannerError::Validation(format!(
+                "cycle detected at {}",
+                id
+            )));
         }
         let dlist = deps
             .get(id)
@@ -7021,37 +7099,62 @@ mod tests {
 
     #[test]
     fn validate_no_cycles() {
-        let gr = g(serde_json::json!([ok_task("t1", vec![]), ok_task("t2", vec!["t3"]), ok_task("t3", vec!["t2"])]));
-        assert!(matches!(validate_graph(&gr, &Limits::default()), Err(PlannerError::Validation(_))));
+        let gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t3"]),
+            ok_task("t3", vec!["t2"])
+        ]));
+        assert!(matches!(
+            validate_graph(&gr, &Limits::default()),
+            Err(PlannerError::Validation(_))
+        ));
     }
 
     #[test]
     fn validate_depends_exist() {
-        let gr = g(serde_json::json!([ok_task("t1", vec![]), ok_task("t2", vec!["nope"])]));
+        let gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["nope"])
+        ]));
         assert!(validate_graph(&gr, &Limits::default()).is_err());
     }
 
     #[test]
     fn validate_limits() {
-        let lim = Limits { max_tasks: 2, max_depth: 5, max_children: 10 };
+        let lim = Limits {
+            max_tasks: 2,
+            max_depth: 5,
+            max_children: 10,
+        };
         let gr = g(serde_json::json!([
-            ok_task("t1", vec![]), ok_task("t2", vec!["t1"]), ok_task("t3", vec!["t1"])
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t1"]),
+            ok_task("t3", vec!["t1"])
         ]));
         assert!(validate_graph(&gr, &lim).is_err());
     }
 
     #[test]
     fn validate_single_root() {
-        let gr = g(serde_json::json!([ok_task("t1", vec![]), ok_task("t2", vec![])]));
+        let gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec![])
+        ]));
         let e = validate_graph(&gr, &Limits::default());
         assert!(matches!(e, Err(PlannerError::Validation(_))));
     }
 
     #[test]
     fn validate_depth() {
-        let lim = Limits { max_tasks: 50, max_depth: 2, max_children: 10 };
+        let lim = Limits {
+            max_tasks: 50,
+            max_depth: 2,
+            max_children: 10,
+        };
         let gr = g(serde_json::json!([
-            ok_task("t1", vec![]), ok_task("t2", vec!["t1"]), ok_task("t3", vec!["t2"])
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t1"]),
+            ok_task("t3", vec!["t2"])
         ]));
         assert!(validate_graph(&gr, &lim).is_err());
     }
@@ -7072,7 +7175,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-planner/src/prompt.rs" lang="rust" bytes="2615" lines="74" sha256="ddeeeb231391bba0730609200a326b54e169faa36ff713d1045648926289f8e7" md5="7636e9c2d697dbed45ab55730205057f">
+    <file path="crates/swarm-planner/src/prompt.rs" lang="rust" bytes="2660" lines="78" sha256="592075089361aa794fd86e9dc32377ebd0cb2bec1e15930d7bddcb155797a709" md5="eabcffd5471921a8300c49e07963270f">
       <content><![CDATA[
 //! Системный промпт. Лимиты подставляются из env (не хардкод).
 
@@ -7133,7 +7236,11 @@ mod tests {
 
     #[test]
     fn prompt_contains_limits() {
-        let lim = Limits { max_tasks: 7, max_depth: 3, max_children: 4 };
+        let lim = Limits {
+            max_tasks: 7,
+            max_depth: 3,
+            max_children: 4,
+        };
         let p = system_prompt(&lim);
         assert!(p.contains("Не более 7 задач"));
         assert!(p.contains("Глубина ≤ 3"));
@@ -7542,7 +7649,7 @@ tracing-subscriber = { workspace = true }
 ctrlc = "3.4"
 ]]></content>
     </file>
-    <file path="crates/swarm-watchdog/src/main.rs" lang="rust" bytes="3101" lines="83" sha256="bf5c0ec2ce0306af83a874ce768a409e796ad3471f926090fdce35c2074c500b" md5="f680028c76a0f5c921812792e57c0d85">
+    <file path="crates/swarm-watchdog/src/main.rs" lang="rust" bytes="3107" lines="84" sha256="e439de2468b655e310a0b0d03f218883f986a7607722593f8176cb93e59dfb3f" md5="93b3d74c73be8787ee5ec1a3cd2abc73">
       <content><![CDATA[
 //! Сторож: раз в N секунд вызывает `reclaim_expired` и `promote_ready`.
 //!
@@ -7563,13 +7670,13 @@ const MAX_BACKOFF_SEC: u64 = 30;
 
 fn main() {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env()
-            .add_directive("swarm_watchdog=info".parse().unwrap()))
+        .with_env_filter(
+            EnvFilter::from_default_env().add_directive("swarm_watchdog=info".parse().unwrap()),
+        )
         .json()
         .init();
 
-    let dsn = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
+    let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let interval = std::env::var("WATCHDOG_INTERVAL")
         .ok()
         .and_then(|s| s.parse().ok())
@@ -7580,7 +7687,8 @@ fn main() {
     ctrlc::set_handler(move || {
         info!("received shutdown signal, finishing current iteration");
         shutdown_handler.store(true, Ordering::SeqCst);
-    }).expect("install signal handler");
+    })
+    .expect("install signal handler");
 
     info!(interval_sec = interval, "watchdog starting");
 
@@ -7665,7 +7773,7 @@ name = "worker_integration"
 path = "tests/worker_integration.rs"
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4648" lines="110" sha256="8cc242eab20b4cd11941203074b9b9500102c3a68c5e6cf652cf8407ae4dcb72" md5="862ac489cdfb2ce436406039740610f9">
+    <file path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4840" lines="123" sha256="1380b6ba0651b30a89116828b27fcd1256d9cbeada1623ee6674f404a4ec937f" md5="9df11ec440423aa051a7484b6499c050">
       <content><![CDATA[
 //! Демонстрация Agent Loop с реальным LLM и реальным Docker (ТЗ v0.4 §8.3, §11.9).
 //!
@@ -7691,13 +7799,15 @@ use swarm_worker::WorkerError;
 
 fn main() {
     let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL");
-    let artifacts_dir =
-        PathBuf::from(std::env::var("ARTIFACTS_DIR").unwrap_or_else(|_| "/tmp/demo_artifacts".into()));
+    let artifacts_dir = PathBuf::from(
+        std::env::var("ARTIFACTS_DIR").unwrap_or_else(|_| "/tmp/demo_artifacts".into()),
+    );
     std::fs::create_dir_all(&artifacts_dir).expect("artifacts dir");
 
     let mut d = SwarmDispatcher::connect(&dsn).expect("connect");
     let worker = "w1";
-    d.register_worker(worker, &serde_json::json!({"ram_gb": 16}), &[]).expect("register");
+    d.register_worker(worker, &serde_json::json!({"ram_gb": 16}), &[])
+        .expect("register");
 
     // 1. Задача: реальная мини-задача, решаемая shell-инструментами.
     let contract: TaskContract = serde_json::from_value(serde_json::json!({
@@ -7750,22 +7860,33 @@ fn main() {
             println!("tool calls: {}", r.tool_calls);
             println!("финальный ответ:\n{}", r.final_text);
 
-            let (reference, path, size) = swarm_worker::artifacts::write_artifact(
-                &artifacts_dir,
-                r.final_text.as_bytes(),
+            let (reference, path, size) =
+                swarm_worker::artifacts::write_artifact(&artifacts_dir, r.final_text.as_bytes())
+                    .expect("write artifact");
+            d.save_artifact(
+                &lease,
+                &reference,
+                &path.to_string_lossy(),
+                Some("text/plain"),
+                Some(size as i64),
             )
-            .expect("write artifact");
-            d.save_artifact(&lease, &reference, &path.to_string_lossy(), Some("text/plain"), Some(size as i64))
-                .expect("save_artifact");
+            .expect("save_artifact");
             let st = d.complete(&lease, &reference, 0).expect("complete");
             println!("\nartifact: {reference} ({size} B) -> {path:?}");
             println!("state after complete: {st}");
 
             let n = count_tool_calls(&dsn, lease.task_id).unwrap_or(-1);
             println!("событий tool_call в журнале: {n}");
-            println!("verify_chain: {}", d.verify_chain(lease.task_id).unwrap_or(false));
+            println!(
+                "verify_chain: {}",
+                d.verify_chain(lease.task_id).unwrap_or(false)
+            );
 
-            assert!(r.tool_calls >= 2, "ожидалось ≥2 tool call, получено {}", r.tool_calls);
+            assert!(
+                r.tool_calls >= 2,
+                "ожидалось ≥2 tool call, получено {}",
+                r.tool_calls
+            );
             println!("\nOK: agent loop выполнил ≥2 tool call с реальным LLM");
         }
         Err(e) => {
@@ -8236,7 +8357,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="13534" lines="363" sha256="d341ea64605d9f08c73dd2d48c2174f6405113a750c5f4ac2bc59d7e3ba4728b" md5="3cc826ae1b906947a0c24803f8f0e6ef">
+    <file path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="13527" lines="361" sha256="ff4e9631782a1bb4671e3d05e105ea7f51712d1e4071977c93bdc0cbf1b09c50" md5="49aa79443e73d581f9a1caa13bc9aa3e">
       <content><![CDATA[
 //! Allowlist команд для sandbox (ТЗ v0.4 §4).
 //!
@@ -8268,9 +8389,7 @@ pub const EXPLICIT_DENY: &[&str] = &[
 ];
 
 /// Shell-операторы, запрещённые в v0.4 (до analysis pipelines, ТЗ §4).
-const FORBIDDEN_OPERATORS: &[&str] = &[
-    "|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r", "\\",
-];
+const FORBIDDEN_OPERATORS: &[&str] = &["|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r", "\\"];
 
 /// Оболочки, для которых делается рекурсивная проверка `-c`.
 const SHELLS: &[&str] = &["bash", "sh", "dash", "zsh"];
@@ -8942,7 +9061,7 @@ pub enum WorkerError {
 pub type Result<T> = std::result::Result<T, WorkerError>;
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="853" lines="26" sha256="4978c57c7f945d352a7310842745998b6372af5548cdcc259752666c7bffe3de" md5="218e6b896f7d71cba1c790fa1700a418">
+    <file path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="853" lines="26" sha256="988dfa0549b14748192649ea40cbbcffb2f9e0dc17a47471535720b6c2b903ba" md5="4da61fa7ccd91a605db80074edfe28f5">
       <content><![CDATA[
 //! LLM-worker: выполняет задачу через LLM, сохраняет артефакт на диск, сдаёт.
 //!
@@ -8962,17 +9081,17 @@ pub mod storage;
 pub mod worker;
 
 pub use agent_loop::{
-    AgentLoopConfig, AgentResult, Step, ToolAudit, ToolAuditSink, ToolCall, parse_step,
+    parse_step, AgentLoopConfig, AgentResult, Step, ToolAudit, ToolAuditSink, ToolCall,
 };
 pub use allowlist::Allowlist;
 pub use audit::PgAuditSink;
 pub use error::{Result, WorkerError};
 pub use retry::RetryPolicy;
 pub use sandbox::{ExecOutput, Sandbox, SandboxConfig};
-pub use worker::{Outcome, WorkerConfig, process_lease};
+pub use worker::{process_lease, Outcome, WorkerConfig};
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/main.rs" lang="rust" bytes="4954" lines="126" sha256="c9b6c2d3438609701fe757e802843c98371b7e82fac187e18367fb5a52ed3163" md5="fa5f1b3177e029f10eb786d976a3ec9b">
+    <file path="crates/swarm-worker/src/main.rs" lang="rust" bytes="5074" lines="136" sha256="9d66ae5e85d6ea071810734d5c9fcfae14c07663f2013ace2a414e195ba16d8b" md5="77dbd9060196205d1820d546c04c6368">
       <content><![CDATA[
 //! LLM-worker: CLI-цикл.
 //!
@@ -9001,7 +9120,10 @@ use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 fn env_u64(name: &str, dflt: u64) -> u64 {
-    std::env::var(name).ok().and_then(|s| s.parse().ok()).unwrap_or(dflt)
+    std::env::var(name)
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(dflt)
 }
 
 fn main() {
@@ -9015,14 +9137,21 @@ fn main() {
     let worker_id = std::env::var("WORKER_ID").expect("WORKER_ID required");
     let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL required");
     let lease_sec: i32 = env_u64("LEASE_SEC", 300) as i32;
-    let crash: bool = std::env::var("CRASH_AFTER_CLAIM").map(|s| s == "1").unwrap_or(false);
+    let crash: bool = std::env::var("CRASH_AFTER_CLAIM")
+        .map(|s| s == "1")
+        .unwrap_or(false);
     let capabilities: serde_json::Value = std::env::var("CAPABILITIES")
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_else(|| serde_json::json!({"ram_gb": 16, "models": {"coder_class": 2}}));
     let tags: Vec<String> = std::env::var("AFFINITY_TAGS")
         .ok()
-        .map(|s| s.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect())
+        .map(|s| {
+            s.split(',')
+                .map(|x| x.trim().to_string())
+                .filter(|x| !x.is_empty())
+                .collect()
+        })
         .unwrap_or_default();
 
     let cfg = WorkerConfig {
@@ -10433,15 +10562,15 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/storage.rs" lang="rust" bytes="5336" lines="143" sha256="3e72bd873acfb20420b8a989ca03246755c643130d09ec44c79a69b63b3e2b0c" md5="8eb37ee627fdbba647796240a12e55a0">
+    <file path="crates/swarm-worker/src/storage.rs" lang="rust" bytes="5657" lines="165" sha256="73e82baa6fea1d489c9778a4578f251dc902f351683012d2e391b864e60be4c3" md5="55d20d72a6e238db61d97ac46ac6cf6e">
       <content><![CDATA[
 //! Optional S3-compatible content-addressed artifact storage for remote workers.
 
 use crate::artifacts::sha256_ref;
 use crate::error::{Result, WorkerError};
-use aws_sdk_s3::primitives::ByteStream;
 use aws_credential_types::Credentials;
 use aws_sdk_s3::config::Builder as S3ConfigBuilder;
+use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::Client;
 use aws_types::region::Region;
 use std::path::Path;
@@ -10460,10 +10589,15 @@ impl ArtifactStore {
         let bucket = std::env::var("SWARM_ARTIFACT_S3_BUCKET").ok();
         let access = std::env::var("SWARM_ARTIFACT_S3_ACCESS_KEY").ok();
         let secret = std::env::var("SWARM_ARTIFACT_S3_SECRET_KEY").ok();
-        let configured = [endpoint.as_ref(), bucket.as_ref(), access.as_ref(), secret.as_ref()]
-            .iter()
-            .filter(|value| value.is_some())
-            .count();
+        let configured = [
+            endpoint.as_ref(),
+            bucket.as_ref(),
+            access.as_ref(),
+            secret.as_ref(),
+        ]
+        .iter()
+        .filter(|value| value.is_some())
+        .count();
         if configured == 0 {
             return Ok(None);
         }
@@ -10473,10 +10607,10 @@ impl ArtifactStore {
             ));
         }
 
-        let region = std::env::var("SWARM_ARTIFACT_S3_REGION")
-            .unwrap_or_else(|_| "us-east-1".into());
-        let prefix = std::env::var("SWARM_ARTIFACT_S3_PREFIX")
-            .unwrap_or_else(|_| "artifacts".into());
+        let region =
+            std::env::var("SWARM_ARTIFACT_S3_REGION").unwrap_or_else(|_| "us-east-1".into());
+        let prefix =
+            std::env::var("SWARM_ARTIFACT_S3_PREFIX").unwrap_or_else(|_| "artifacts".into());
         let runtime = tokio::runtime::Runtime::new()
             .map_err(|error| WorkerError::Artifact(format!("create S3 runtime: {error}")))?;
         let client = runtime.block_on(async {
@@ -10493,7 +10627,9 @@ impl ArtifactStore {
                 .credentials_provider(credentials)
                 .load()
                 .await;
-            S3ConfigBuilder::from(&shared).force_path_style(true).build()
+            S3ConfigBuilder::from(&shared)
+                .force_path_style(true)
+                .build()
         });
 
         Ok(Some(Self {
@@ -10509,9 +10645,14 @@ impl ArtifactStore {
             .strip_prefix("sha256:")
             .ok_or_else(|| WorkerError::Artifact("artifact ref must use sha256: prefix".into()))?;
         if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-            return Err(WorkerError::Artifact("artifact ref has invalid SHA-256".into()));
+            return Err(WorkerError::Artifact(
+                "artifact ref has invalid SHA-256".into(),
+            ));
         }
-        Ok(format!("{}/sha256/{digest}", self.prefix.trim_end_matches('/')))
+        Ok(format!(
+            "{}/sha256/{digest}",
+            self.prefix.trim_end_matches('/')
+        ))
     }
 
     pub fn put_verified(
@@ -10523,7 +10664,9 @@ impl ArtifactStore {
         let bytes = std::fs::read(path)
             .map_err(|error| WorkerError::Artifact(format!("read artifact for upload: {error}")))?;
         if sha256_ref(&bytes) != artifact_ref {
-            return Err(WorkerError::Artifact("local artifact SHA-256 mismatch".into()));
+            return Err(WorkerError::Artifact(
+                "local artifact SHA-256 mismatch".into(),
+            ));
         }
         let key = self.key(artifact_ref)?;
         let client = self.client.clone();
@@ -10547,7 +10690,13 @@ impl ArtifactStore {
         let key = self.key(artifact_ref)?;
         let response = self
             .runtime
-            .block_on(self.client.get_object().bucket(&self.bucket).key(&key).send())
+            .block_on(
+                self.client
+                    .get_object()
+                    .bucket(&self.bucket)
+                    .key(&key)
+                    .send(),
+            )
             .map_err(|error| WorkerError::Artifact(format!("S3 download failed: {error}")))?;
         let bytes = self
             .runtime
@@ -10555,7 +10704,9 @@ impl ArtifactStore {
             .map_err(|error| WorkerError::Artifact(format!("S3 response read failed: {error}")))?
             .into_bytes();
         if sha256_ref(&bytes) != artifact_ref {
-            return Err(WorkerError::Artifact("remote artifact SHA-256 mismatch".into()));
+            return Err(WorkerError::Artifact(
+                "remote artifact SHA-256 mismatch".into(),
+            ));
         }
         Ok(format!("s3://{}/{}", self.bucket, key))
     }

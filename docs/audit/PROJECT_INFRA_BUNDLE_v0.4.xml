@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T18:09:14+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T19:38:22+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="e26056dd3983ffa60b8e1b3f6419b9ddee093a5f"/>
+  <git is_git="true" head="a7ea4ca2a7506cc4ea64394596a80341ec0b2175"/>
   <manifest>
-    <files count="26" total_bytes="156884"/>
+    <files count="26" total_bytes="157998"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -23,12 +23,12 @@
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
-      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="967" lines="30" sha256="b69204a8427b9d91ee71f154fd73a8e91732c3d2f9c7a131398bc986cbb85e52" md5="59bc9ef6f4e92eb19b7919a7d4ff7bc5"/>
+      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1226" lines="39" sha256="e31c8bd5994a2c8748f4e41f46783bb532a2fc400ac78aae0c67fd9c76295624" md5="8fdea34c4cc43c0d14e943de6dac6f4b"/>
       <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7"/>
-      <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6731" lines="180" sha256="fb446d35a47a8c1362feef12c3077dfff7a66f26395d5a04ddf720ccbceb0d6e" md5="0572dea9f9b937e883c3ff1c86e2fb4b"/>
+      <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5567" lines="128" sha256="d528b9dd103f1e2f03ea8ec5ff74090d190d9e198fd710acf7a351031d7ded7a" md5="de716adce3e6ef69a4cd4da50dc44548"/>
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7393" lines="162" sha256="ba87780d987945f3fb45ad036f16bd37f06c0ab02f7cce152d65771823c26c8c" md5="dc4a03a98c9cc34e12a4c3ca2189c5e1"/>
-      <entry path="scripts/build_project_bundle.py" lang="python" bytes="7882" lines="189" sha256="7987d4a053cfd71f7766c1bb95e64d2bd65b5d518fd2b8d74bfda52fbfaff3aa" md5="0e2d079aebcab9ac190b38dc0cd118e3"/>
+      <entry path="scripts/build_project_bundle.py" lang="python" bytes="8478" lines="197" sha256="039bc85c67845940f7b31fe4c378ea57d08481c840cf38f5b5bf5755d5622936" md5="1550f05ea0977470ab219079b609e766"/>
       <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170"/>
       <entry path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720"/>
       <entry path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
@@ -871,7 +871,7 @@ psql -v ON_ERROR_STOP=1 \
      -f /sql/roles_2b.sql
 ]]></content>
     </file>
-    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="967" lines="30" sha256="b69204a8427b9d91ee71f154fd73a8e91732c3d2f9c7a131398bc986cbb85e52" md5="59bc9ef6f4e92eb19b7919a7d4ff7bc5">
+    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="1226" lines="39" sha256="e31c8bd5994a2c8748f4e41f46783bb532a2fc400ac78aae0c67fd9c76295624" md5="8fdea34c4cc43c0d14e943de6dac6f4b">
       <content><![CDATA[
 # Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
 # One rule per line: exact path, or `prefix/*` for a directory subtree.
@@ -900,6 +900,15 @@ crates/swarm-core/tests/*
 crates/swarm-planner/tests/*
 crates/swarm-worker/tests/*
 scripts/run_mutations_v04.sh
+
+# Wave 3 fallout: workspace-wide rustfmt + the audit-bundle XML fix.
+crates/swarm-core/src/*
+crates/swarm-llm/src/*
+crates/swarm-planner/src/*
+crates/swarm-watchdog/src/*
+crates/swarm-worker/examples/*
+crates/swarm-worker/src/*
+scripts/build_audit_bundle.py
 
 # Audit evidence produced for this wave.
 docs/audit/*
@@ -1369,7 +1378,7 @@ if command -v docker >/dev/null 2>&1; then
 fi
 ]]></content>
     </file>
-    <file path="scripts/build_audit_bundle.py" lang="python" bytes="6731" lines="180" sha256="fb446d35a47a8c1362feef12c3077dfff7a66f26395d5a04ddf720ccbceb0d6e" md5="0572dea9f9b937e883c3ff1c86e2fb4b">
+    <file path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92">
       <content encoding="xml-escaped">
 #!/usr/bin/env python3
 """Собирает XML-бандл всех скриптов репозитория для аудита.
@@ -1499,8 +1508,8 @@ def main() -&gt; int:
     out.append(f"    &lt;name&gt;swarm-dispatcher&lt;/name&gt;")
     out.append(f"    &lt;root&gt;{escape(str(REPO))}&lt;/root&gt;")
     out.append(f"    &lt;git is_git={quoteattr(gi['is_git'])}"
-               + (f" head={quoteattr(gi.get('head',''))} branch={quoteattr(gi.get('branch',''))} dirty={quoteattr(gi.get('dirty',''))}" if gi["is_git"] == "true" else "&gt;")
-               + ("&lt;/git&gt;" if gi["is_git"] == "true" else f"&lt;note&gt;{escape(gi.get('note',''))}&lt;/note&gt;&lt;/git&gt;"))
+               + (f" head={quoteattr(gi.get('head',''))} branch={quoteattr(gi.get('branch',''))} dirty={quoteattr(gi.get('dirty',''))}/&gt;" if gi["is_git"] == "true" else "")
+               + ("" if gi["is_git"] == "true" else f"&gt;&lt;note&gt;{escape(gi.get('note',''))}&lt;/note&gt;&lt;/git&gt;"))
     out.append("  &lt;/project&gt;")
     out.append("  &lt;manifest&gt;")
     out.append(f"    &lt;files count=\"{len(entries)}\" total_bytes=\"{total_bytes}\"/&gt;")
@@ -1527,14 +1536,17 @@ def main() -&gt; int:
             f'sha256={quoteattr(e["sha256"])} md5={quoteattr(e["md5"])}&gt;'
         )
         # CDATA, кроме случая когда текст содержит ]]&gt;
-        if "]]&gt;" in e["text"]:
-            body = escape(e["text"])
+        # Trailing blanks are stripped: embedded REPORT_*.md carry markdown
+        # hard-breaks (two trailing spaces) which would otherwise land in the
+        # bundle and trip `git diff --check` on any regenerated artifact.
+        body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+        if "]]&gt;" in body:
             out.append("      &lt;content encoding=\"xml-escaped\"&gt;")
-            out.append(body)
+            out.append(escape(body))
             out.append("      &lt;/content&gt;")
         else:
             out.append("      &lt;content&gt;&lt;![CDATA[")
-            out.append(e["text"].rstrip("\n"))
+            out.append(body)
             out.append("]]&gt;&lt;/content&gt;")
         out.append("    &lt;/file&gt;")
     out.append("  &lt;/files&gt;")
@@ -1551,7 +1563,6 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
       </content>
     </file>
     <file path="scripts/build_audit_index.py" lang="python" bytes="5567" lines="128" sha256="d528b9dd103f1e2f03ea8ec5ff74090d190d9e198fd710acf7a351031d7ded7a" md5="de716adce3e6ef69a4cd4da50dc44548">
@@ -1852,7 +1863,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ]]></content>
     </file>
-    <file path="scripts/build_project_bundle.py" lang="python" bytes="7882" lines="189" sha256="7987d4a053cfd71f7766c1bb95e64d2bd65b5d518fd2b8d74bfda52fbfaff3aa" md5="0e2d079aebcab9ac190b38dc0cd118e3">
+    <file path="scripts/build_project_bundle.py" lang="python" bytes="8478" lines="197" sha256="039bc85c67845940f7b31fe4c378ea57d08481c840cf38f5b5bf5755d5622936" md5="1550f05ea0977470ab219079b609e766">
       <content encoding="xml-escaped">
 #!/usr/bin/env python3
 """Собирает полный аудит-бандл проекта (весь код) в XML, по томам.
@@ -2012,10 +2023,18 @@ def build_volume(name: str, vol: dict) -&gt; tuple[Path, int, int]:
                    f'bytes="{e["bytes"]}" lines="{e["lines"]}" '
                    f'sha256={quoteattr(e["sha256"])} md5={quoteattr(e["md5"])}&gt;')
         if "]]&gt;" in e["text"]:
-            out += ['      &lt;content encoding="xml-escaped"&gt;', escape(e["text"]),
+            # XML-escaped body: strip trailing blanks per line for the same reason.
+            body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+            out += ['      &lt;content encoding="xml-escaped"&gt;', escape(body),
                     '      &lt;/content&gt;']
         else:
-            out += ['      &lt;content&gt;&lt;![CDATA[', e["text"].rstrip("\n"), ']]&gt;&lt;/content&gt;']
+            # Strip trailing blanks: the embedded files (e.g. REPORT_*.md with
+            # markdown hard-breaks) would otherwise put trailing whitespace into
+            # the bundle, which trips `git diff --check` on any regenerated
+            # artifact. The bundle is an audit snapshot of content, not of
+            # insignificant line padding.
+            body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+            out += ['      &lt;content&gt;&lt;![CDATA[', body, ']]&gt;&lt;/content&gt;']
         out.append('    &lt;/file&gt;')
     out += ['  &lt;/files&gt;', '&lt;/audit-volume&gt;']
 
@@ -2043,7 +2062,6 @@ def main() -&gt; int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
       </content>
     </file>
     <file path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170">

@@ -154,14 +154,17 @@ def main() -> int:
             f'sha256={quoteattr(e["sha256"])} md5={quoteattr(e["md5"])}>'
         )
         # CDATA, кроме случая когда текст содержит ]]>
-        if "]]>" in e["text"]:
-            body = escape(e["text"])
+        # Trailing blanks are stripped: embedded REPORT_*.md carry markdown
+        # hard-breaks (two trailing spaces) which would otherwise land in the
+        # bundle and trip `git diff --check` on any regenerated artifact.
+        body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+        if "]]>" in body:
             out.append("      <content encoding=\"xml-escaped\">")
-            out.append(body)
+            out.append(escape(body))
             out.append("      </content>")
         else:
             out.append("      <content><![CDATA[")
-            out.append(e["text"].rstrip("\n"))
+            out.append(body)
             out.append("]]></content>")
         out.append("    </file>")
     out.append("  </files>")

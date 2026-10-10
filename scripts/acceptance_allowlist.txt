@@ -34,6 +34,9 @@ crates/swarm-watchdog/src/*
 crates/swarm-worker/examples/*
 crates/swarm-worker/src/*
 scripts/build_audit_bundle.py
+scripts/build_audit_report.py
+scripts/build_audit_index.py
+scripts/build_project_bundle.py
 
 # Audit evidence produced for this wave.
 docs/audit/*

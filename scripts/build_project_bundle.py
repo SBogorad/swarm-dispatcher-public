@@ -156,10 +156,18 @@ def build_volume(name: str, vol: dict) -> tuple[Path, int, int]:
                    f'bytes="{e["bytes"]}" lines="{e["lines"]}" '
                    f'sha256={quoteattr(e["sha256"])} md5={quoteattr(e["md5"])}>')
         if "]]>" in e["text"]:
-            out += ['      <content encoding="xml-escaped">', escape(e["text"]),
+            # XML-escaped body: strip trailing blanks per line for the same reason.
+            body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+            out += ['      <content encoding="xml-escaped">', escape(body),
                     '      </content>']
         else:
-            out += ['      <content><![CDATA[', e["text"].rstrip("\n"), ']]></content>']
+            # Strip trailing blanks: the embedded files (e.g. REPORT_*.md with
+            # markdown hard-breaks) would otherwise put trailing whitespace into
+            # the bundle, which trips `git diff --check` on any regenerated
+            # artifact. The bundle is an audit snapshot of content, not of
+            # insignificant line padding.
+            body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+            out += ['      <content><![CDATA[', body, ']]></content>']
         out.append('    </file>')
     out += ['  </files>', '</audit-volume>']
 
