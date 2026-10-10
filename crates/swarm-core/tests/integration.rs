@@ -156,7 +156,8 @@ fn complete_and_review_self_rejected() {
     assert_eq!(state, "review");
 
     // Рецензент = автор → SelfReview.
-    let checks = serde_json::json!([{"type": "cmd", "status": "pass"}]);
+    // F2: ключ проверки = coalesce(id, type||'|'||run) — отчёт совпадает по run.
+    let checks = serde_json::json!([{"type": "cmd", "run": "true", "status": "pass"}]);
     let err = d
         .submit_review(id, "sha256:x", "w1", Verdict::Approved, &checks)
         .unwrap_err();

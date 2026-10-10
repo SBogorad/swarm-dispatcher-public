@@ -90,7 +90,8 @@ fn full_cycle_claim_save_complete_review() {
     d.save_artifact(&lease, "sha256:aa", "/p", None, None)
         .unwrap();
     assert_eq!(d.complete(&lease, "sha256:aa", 5).unwrap(), "review");
-    let checks = json!([{"type":"cmd","status":"pass","exit_code":0}]);
+    // F2: ключ проверки = coalesce(id, type||'|'||run); отчёт обязан совпасть по run.
+    let checks = json!([{"type":"cmd","run":"true","status":"pass","exit_code":0}]);
     assert_eq!(
         d.submit_review(t, "sha256:aa", "rev", Verdict::Approved, &checks)
             .unwrap(),
@@ -138,7 +139,7 @@ fn sqlstate_mapping() {
         d.complete(&lease, "sha256:aa", 1),
         Err(DispatcherError::LeaseLost)
     ));
-    let ok = json!([{"type":"cmd","status":"pass"}]);
+    let ok = json!([{"type":"cmd","run":"true","status":"pass"}]);
     assert!(matches!(
         d.submit_review(a, "sha256:aa", "w1", Verdict::Approved, &ok),
         Err(DispatcherError::SelfReview)
@@ -220,6 +221,9 @@ fn concurrent_claims_are_disjoint() {
 
 /// Контракт, который SQL принимает (kind не обязателен, число может быть дробным),
 /// но который Rust не может десериализовать ПОСЛЕ того, как аренда уже выдана.
+///
+/// F15: проверки обязаны иметь непустой строковый type, поэтому «непонятность для
+/// Rust» несёт дробный budget.attempts (2.5), а не малформед-проверка.
 #[test]
 fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
     reset();
@@ -229,7 +233,7 @@ fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
     raw()
         .execute(
             "select add_task($1, null, $2::jsonb, 100, 0)",
-            &[&t, &json!({"checks":[{"a":1}], "budget":{"attempts": 2.5}})],
+            &[&t, &json!({"checks":[{"type":"cmd","run":"true"}], "budget":{"attempts": 2.5}})],
         )
         .unwrap();
     d.promote_ready().unwrap();

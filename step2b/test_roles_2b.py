@@ -209,7 +209,8 @@ def test_16_common_worker_role_cannot_login_or_call(admin):
     # F3: тело assert больше не завёрнуто в LIKE-гейт -> под общей ролью
     # проверка активна (deny-by-default), а не молча пропускается.
     cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
-    body = cur.fetchone()[0].lower()
+    # Снимаем -- комментарии: F3-объяснение может упоминать старый гейт как историю.
+    body = "\n".join(line.split("--", 1)[0] for line in cur.fetchone()[0].splitlines()).lower()
     assert "like 'swarm_worker_%'" not in body, (
         "F3: assert_worker_identity всё ещё под LIKE-гейтом (bypass под общей ролью)"
     )

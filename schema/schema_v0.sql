@@ -367,6 +367,29 @@ begin
   return v_new;
 end $$;
 
+-- F4: честный отказ воркера. Раньше не-транзиентная ошибка LLM выставлялась
+-- через complete_task() с подделанным overspend (worker.rs), чтобы SQL сам
+-- перевёл задачу в blocked. Это ложь в журнале (spent_tokens врёт) и хрупко:
+-- зависит от '>' в complete_task. Теперь отказ — явная операция с reason.
+create function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                          p_result_ref text, p_reason text) returns text
+language plpgsql as $$
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+  return 'blocked';
+end $$;
+
 create function submit_review(p_task uuid, p_ref text, p_reviewer text,
                               p_verdict text, p_checks jsonb)
 returns text language plpgsql security definer set search_path = public, pg_temp as $$
@@ -481,14 +504,30 @@ begin
   return v_n;
 end $$;
 
-create function unblock_task(p_task uuid, p_actor text) returns text language plpgsql as $$
-declare v_epoch bigint;
+-- F4: восстановимый unblock. Раньше задача из blocked возвращалась без учёта
+-- бюджета: если он уже исчерпан, unblock не помогал — задача снова уходила в
+-- blocked на первом же complete. Теперь оператор может явно поднять
+-- budget_cap, а при исчерпанном бюджете без явного cap функция отказывает
+-- (CT001) — вместо тихого нерабочего разблокирования.
+create function unblock_task(p_task uuid, p_actor text, p_new_budget_cap bigint default null)
+returns text language plpgsql as $$
+declare v_epoch bigint; t tasks%rowtype;
 begin
-  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
-         lease_epoch = lease_epoch + 1, updated_at = now()
-   where id = p_task and state = 'blocked' returning lease_epoch into v_epoch;
+  select * into t from tasks where id = p_task and state = 'blocked' for update;
   if not found then raise exception 'not_blocked' using errcode = 'GR009'; end if;
-  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor);
+  if p_new_budget_cap is not null then
+    if p_new_budget_cap <= t.spent_tokens then
+      raise exception 'budget cap must exceed spent_tokens' using errcode = 'CT001';
+    end if;
+  elsif t.spent_tokens >= t.budget_cap then
+    raise exception 'budget_exhausted: pass p_new_budget_cap' using errcode = 'CT001';
+  end if;
+  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
+         lease_epoch = lease_epoch + 1, budget_cap = coalesce(p_new_budget_cap, budget_cap),
+         updated_at = now()
+   where id = p_task returning lease_epoch into v_epoch;
+  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor,
+                       jsonb_build_object('new_budget_cap', p_new_budget_cap));
   perform promote_ready();
   return (select state from tasks where id = p_task);
 end $$;

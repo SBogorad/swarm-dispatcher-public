@@ -75,17 +75,29 @@ def admin():
 
 # ---------- structural anchor: deny-by-default body ----------
 
+def _strip_sql_comments(body: str) -> str:
+    """Убирает строковые комментарии (-- ... до конца строки), чтобы
+    структурный анкер не ловил упоминание паттерна в пояснении."""
+    out = []
+    for line in body.splitlines():
+        out.append(line.split("--", 1)[0])
+    return "\n".join(out)
+
+
 def test_f3_body_is_deny_by_default(admin):
     """The assert body must not be gated on LIKE 'swarm_worker_%'.
 
     Pre-fix the whole check sits inside
     `if session_user LIKE 'swarm_worker_%'`, which is false for the shared
     role swarm_worker — the guard is skipped entirely (bypass).
+
+    Комментарии (-- ...) исключаем: F3-объяснение может упоминать старый
+    LIKE-гейт как историю, и это не должно считаться гейтом в коде.
     """
     cur = admin.cursor()
     cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
     body = cur.fetchone()[0]
-    low = body.lower()
+    low = _strip_sql_comments(body).lower()
     assert "like 'swarm_worker_%'" not in low, (
         "F3: assert_worker_identity is still gated on LIKE 'swarm_worker_%' — "
         "under the shared role the check is a no-op (bypass)"

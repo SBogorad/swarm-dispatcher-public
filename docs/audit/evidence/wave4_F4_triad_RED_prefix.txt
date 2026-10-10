@@ -1,0 +1,16 @@
+### F4 triad — RED pre-fix  |  2026-10-11T05:40:45+07:00
+### container=w4_f4_head_2454926 port=32808  creds REDACTED
+### HEAD: no fail_task; unblock_task(uuid,text) без бюджета
+
+E        +        where UndefinedFunction("function unblock_task(unknown, unknown, integer) does not exist\nLINE 1: select unblock_task('fa47f...        ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n") = <ExceptionInfo UndefinedFunction("function unblock_task(unknown, unknown, integer) does not exist\nLINE 1: select unbl...\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n") tblen=1>.value
+
+tests/test_fail_unblock_f4.py:149: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_fail_unblock_f4.py::test_f4_fail_task_exists_and_blocks - A...
+FAILED tests/test_fail_unblock_f4.py::test_f4_fail_task_requires_holdable_lease
+FAILED tests/test_fail_unblock_f4.py::test_f4_fail_task_artifact_missing - ps...
+FAILED tests/test_fail_unblock_f4.py::test_f4_unblock_exhausted_without_new_cap_rejected
+FAILED tests/test_fail_unblock_f4.py::test_f4_unblock_with_new_cap_raises_budget
+FAILED tests/test_fail_unblock_f4.py::test_f4_unblock_new_cap_not_above_spent_rejected
+FAILED tests/test_fail_unblock_f4.py::test_f4_unblock_non_blocked_rejected - ...
+7 failed, 1 passed in 0.95s

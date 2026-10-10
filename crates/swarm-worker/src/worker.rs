@@ -189,9 +189,9 @@ pub fn process_lease(
                 Some("text/plain"),
                 None,
             )?;
-            // Токены выставляем так, чтобы SQL перевёл задачу в blocked.
-            let overspend = (lease.budget_cap - lease.spent_tokens).max(0) + 1;
-            let st = d.complete(lease, &ref_, overspend)?;
+            // F4: честный отказ — без подделки spent_tokens. Причина попадает
+            // в block_reason и в событие completed{failed:true}.
+            let st = d.fail(lease, Some(&ref_), &reason)?;
             blocked_or_review(st, ref_, &reason)
         }
     };

@@ -233,7 +233,7 @@ fn e2e_planner_to_review() {
             "sha256:root",
             "reviewer",
             swarm_core::Verdict::Approved,
-            &serde_json::json!([{"type": "cmd", "status": "pass", "exit_code": 0}]),
+            &serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]),
         )
         .unwrap();
     assert_eq!(st, "done");

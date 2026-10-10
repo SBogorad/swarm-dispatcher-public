@@ -77,4 +77,8 @@ grant execute on function claim_task, heartbeat, save_artifact, complete_task, r
 grant execute on function reclaim_expired, promote_ready to swarm_watchdog;
 grant execute on function add_task, add_dep, promote_ready to swarm_planner;
 grant execute on function submit_review, verify_chain to swarm_reviewer;
-grant execute on function reopen_task, unblock_task, verify_chain, task_status to swarm_operator;
+grant execute on function reopen_task, verify_chain, task_status to swarm_operator;
+-- F4: unblock_task получил новый параметр (p_new_budget_cap) — перевыдаём по
+-- новой сигнатуре (старый грант висел на прежнем OID и после CREATE OR REPLACE
+-- новой формы стал бы висеть на несуществующей функции).
+grant execute on function unblock_task(uuid, text, bigint) to swarm_operator;

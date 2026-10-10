@@ -234,6 +234,31 @@ impl SwarmDispatcher {
         Ok(row.get(0))
     }
 
+    /// F4: честный отказ воркера. Переводит задачу в `blocked` с `reason`,
+    /// без подделки `spent_tokens` (раньше это делалось через `complete`
+    /// с overspend). Возвращает `"blocked"`.
+    pub fn fail(
+        &mut self,
+        lease: &Lease,
+        result_ref: Option<&str>,
+        reason: &str,
+    ) -> Result<String, DispatcherError> {
+        let row = self
+            .client
+            .query_one(
+                "SELECT fail_task($1, $2, $3, $4, $5)",
+                &[
+                    &lease.task_id,
+                    &lease.worker_id,
+                    &lease.epoch,
+                    &result_ref,
+                    &reason,
+                ],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(row.get(0))
+    }
+
     // ---------- ревью ----------
 
     /// Возвращает новое состояние задачи: `"done"`, `"ready"` или `"blocked"`.

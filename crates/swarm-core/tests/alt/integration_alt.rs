@@ -92,7 +92,7 @@ fn full_cycle_claim_save_complete_review() {
     d.save_artifact(&lease, "sha256:aa", "/p", None, None)
         .unwrap();
     assert_eq!(d.complete(&lease, "sha256:aa", 5).unwrap(), "review");
-    let checks = serde_json::json!([{"type":"cmd","status":"pass","exit_code":0}]);
+    let checks = serde_json::json!([{"type":"cmd","run":"true","status":"pass","exit_code":0}]);
     assert_eq!(
         d.submit_review(t, "sha256:aa", "rev", Verdict::Approved, &checks)
             .unwrap(),
@@ -142,7 +142,7 @@ fn sqlstate_mapping() {
         d.complete(&lease, "sha256:aa", 1),
         Err(DispatcherError::LeaseLost)
     ));
-    let ok = serde_json::json!([{"type":"cmd","status":"pass"}]);
+    let ok = serde_json::json!([{"type":"cmd","run":"true","status":"pass"}]);
     assert!(matches!(
         d.submit_review(a, "sha256:aa", "w1", Verdict::Approved, &ok),
         Err(DispatcherError::SelfReview)
