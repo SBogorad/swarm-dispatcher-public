@@ -61,6 +61,9 @@ jobs:
       - name: Install uv (for pytest venv)
         uses: astral-sh/setup-uv@v5
 
+      - name: Build sandbox image (agent-sandbox:1.85)
+        run: docker build -t agent-sandbox:1.85 sandbox/
+
       # The harness provisions its OWN disposable database via `docker run`
       # (postgres:16-alpine) and removes it in an EXIT trap, so it needs a
       # Docker daemon — GitHub-hosted ubuntu runners provide one.
