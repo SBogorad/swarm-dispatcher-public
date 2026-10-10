@@ -25,7 +25,10 @@ use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 fn env_u64(name: &str, dflt: u64) -> u64 {
-    std::env::var(name).ok().and_then(|s| s.parse().ok()).unwrap_or(dflt)
+    std::env::var(name)
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(dflt)
 }
 
 fn main() {
@@ -39,14 +42,21 @@ fn main() {
     let worker_id = std::env::var("WORKER_ID").expect("WORKER_ID required");
     let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL required");
     let lease_sec: i32 = env_u64("LEASE_SEC", 300) as i32;
-    let crash: bool = std::env::var("CRASH_AFTER_CLAIM").map(|s| s == "1").unwrap_or(false);
+    let crash: bool = std::env::var("CRASH_AFTER_CLAIM")
+        .map(|s| s == "1")
+        .unwrap_or(false);
     let capabilities: serde_json::Value = std::env::var("CAPABILITIES")
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_else(|| serde_json::json!({"ram_gb": 16, "models": {"coder_class": 2}}));
     let tags: Vec<String> = std::env::var("AFFINITY_TAGS")
         .ok()
-        .map(|s| s.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect())
+        .map(|s| {
+            s.split(',')
+                .map(|x| x.trim().to_string())
+                .filter(|x| !x.is_empty())
+                .collect()
+        })
         .unwrap_or_default();
 
     let cfg = WorkerConfig {

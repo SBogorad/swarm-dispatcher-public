@@ -25,9 +25,7 @@ fn main() {
         None => {
             use std::io::Read;
             let mut s = String::new();
-            std::io::stdin()
-                .read_to_string(&mut s)
-                .expect("read stdin");
+            std::io::stdin().read_to_string(&mut s).expect("read stdin");
             s.trim().to_string()
         }
     };

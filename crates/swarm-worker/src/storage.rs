@@ -2,9 +2,9 @@
 
 use crate::artifacts::sha256_ref;
 use crate::error::{Result, WorkerError};
-use aws_sdk_s3::primitives::ByteStream;
 use aws_credential_types::Credentials;
 use aws_sdk_s3::config::Builder as S3ConfigBuilder;
+use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::Client;
 use aws_types::region::Region;
 use std::path::Path;
@@ -23,10 +23,15 @@ impl ArtifactStore {
         let bucket = std::env::var("SWARM_ARTIFACT_S3_BUCKET").ok();
         let access = std::env::var("SWARM_ARTIFACT_S3_ACCESS_KEY").ok();
         let secret = std::env::var("SWARM_ARTIFACT_S3_SECRET_KEY").ok();
-        let configured = [endpoint.as_ref(), bucket.as_ref(), access.as_ref(), secret.as_ref()]
-            .iter()
-            .filter(|value| value.is_some())
-            .count();
+        let configured = [
+            endpoint.as_ref(),
+            bucket.as_ref(),
+            access.as_ref(),
+            secret.as_ref(),
+        ]
+        .iter()
+        .filter(|value| value.is_some())
+        .count();
         if configured == 0 {
             return Ok(None);
         }
@@ -36,10 +41,10 @@ impl ArtifactStore {
             ));
         }
 
-        let region = std::env::var("SWARM_ARTIFACT_S3_REGION")
-            .unwrap_or_else(|_| "us-east-1".into());
-        let prefix = std::env::var("SWARM_ARTIFACT_S3_PREFIX")
-            .unwrap_or_else(|_| "artifacts".into());
+        let region =
+            std::env::var("SWARM_ARTIFACT_S3_REGION").unwrap_or_else(|_| "us-east-1".into());
+        let prefix =
+            std::env::var("SWARM_ARTIFACT_S3_PREFIX").unwrap_or_else(|_| "artifacts".into());
         let runtime = tokio::runtime::Runtime::new()
             .map_err(|error| WorkerError::Artifact(format!("create S3 runtime: {error}")))?;
         let client = runtime.block_on(async {
@@ -56,7 +61,9 @@ impl ArtifactStore {
                 .credentials_provider(credentials)
                 .load()
                 .await;
-            S3ConfigBuilder::from(&shared).force_path_style(true).build()
+            S3ConfigBuilder::from(&shared)
+                .force_path_style(true)
+                .build()
         });
 
         Ok(Some(Self {
@@ -72,9 +79,14 @@ impl ArtifactStore {
             .strip_prefix("sha256:")
             .ok_or_else(|| WorkerError::Artifact("artifact ref must use sha256: prefix".into()))?;
         if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-            return Err(WorkerError::Artifact("artifact ref has invalid SHA-256".into()));
+            return Err(WorkerError::Artifact(
+                "artifact ref has invalid SHA-256".into(),
+            ));
         }
-        Ok(format!("{}/sha256/{digest}", self.prefix.trim_end_matches('/')))
+        Ok(format!(
+            "{}/sha256/{digest}",
+            self.prefix.trim_end_matches('/')
+        ))
     }
 
     pub fn put_verified(
@@ -86,7 +98,9 @@ impl ArtifactStore {
         let bytes = std::fs::read(path)
             .map_err(|error| WorkerError::Artifact(format!("read artifact for upload: {error}")))?;
         if sha256_ref(&bytes) != artifact_ref {
-            return Err(WorkerError::Artifact("local artifact SHA-256 mismatch".into()));
+            return Err(WorkerError::Artifact(
+                "local artifact SHA-256 mismatch".into(),
+            ));
         }
         let key = self.key(artifact_ref)?;
         let client = self.client.clone();
@@ -110,7 +124,13 @@ impl ArtifactStore {
         let key = self.key(artifact_ref)?;
         let response = self
             .runtime
-            .block_on(self.client.get_object().bucket(&self.bucket).key(&key).send())
+            .block_on(
+                self.client
+                    .get_object()
+                    .bucket(&self.bucket)
+                    .key(&key)
+                    .send(),
+            )
             .map_err(|error| WorkerError::Artifact(format!("S3 download failed: {error}")))?;
         let bytes = self
             .runtime
@@ -118,7 +138,9 @@ impl ArtifactStore {
             .map_err(|error| WorkerError::Artifact(format!("S3 response read failed: {error}")))?
             .into_bytes();
         if sha256_ref(&bytes) != artifact_ref {
-            return Err(WorkerError::Artifact("remote artifact SHA-256 mismatch".into()));
+            return Err(WorkerError::Artifact(
+                "remote artifact SHA-256 mismatch".into(),
+            ));
         }
         Ok(format!("s3://{}/{}", self.bucket, key))
     }

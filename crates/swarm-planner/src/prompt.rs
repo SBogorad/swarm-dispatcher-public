@@ -57,7 +57,11 @@ mod tests {
 
     #[test]
     fn prompt_contains_limits() {
-        let lim = Limits { max_tasks: 7, max_depth: 3, max_children: 4 };
+        let lim = Limits {
+            max_tasks: 7,
+            max_depth: 3,
+            max_children: 4,
+        };
         let p = system_prompt(&lim);
         assert!(p.contains("Не более 7 задач"));
         assert!(p.contains("Глубина ≤ 3"));

@@ -173,7 +173,10 @@ mod tests {
         for (code, is_expected) in cases {
             let e = DispatcherError::from_sqlstate(code)
                 .unwrap_or_else(|| panic!("sqlstate {code} not mapped"));
-            assert!(is_expected(&e), "sqlstate {code} mapped to wrong variant: {e:?}");
+            assert!(
+                is_expected(&e),
+                "sqlstate {code} mapped to wrong variant: {e:?}"
+            );
         }
     }
 

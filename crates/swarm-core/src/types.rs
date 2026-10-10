@@ -26,7 +26,9 @@ pub struct Budget {
     pub max_tasks: Option<u32>,
 }
 
-fn default_attempts() -> u32 { 3 }
+fn default_attempts() -> u32 {
+    3
+}
 
 impl Default for Budget {
     fn default() -> Self {
@@ -63,8 +65,14 @@ impl TaskContract {
         if self.kind.trim().is_empty()
             || self.checks.is_empty()
             || self.budget.attempts == 0
-            || self.needs.min_ram_gb.is_some_and(|v| !v.is_finite() || v < 0.0)
-            || self.needs.coder_class.is_some_and(|v| !v.is_finite() || v < 0.0)
+            || self
+                .needs
+                .min_ram_gb
+                .is_some_and(|v| !v.is_finite() || v < 0.0)
+            || self
+                .needs
+                .coder_class
+                .is_some_and(|v| !v.is_finite() || v < 0.0)
         {
             return Err(DispatcherError::ContractInvalid);
         }

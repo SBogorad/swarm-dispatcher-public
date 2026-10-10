@@ -11,7 +11,9 @@ pub mod prompt;
 
 pub use error::{PlannerError, Result};
 pub use llm::{LlmClient, LlmConfig};
-pub use parse::{deterministic_root_id, parse_response, validate_graph, Limits, PlannedGraph, PlannedTask};
+pub use parse::{
+    deterministic_root_id, parse_response, validate_graph, Limits, PlannedGraph, PlannedTask,
+};
 pub use prompt::{system_prompt, user_prompt};
 
 use serde_json::json;
@@ -84,7 +86,11 @@ pub fn subtask_contract(t: &PlannedTask) -> TaskContract {
     }
     let needs: Needs = serde_json::from_value(t.needs.clone()).unwrap_or_default();
     TaskContract {
-        kind: if t.kind.is_empty() { "task".into() } else { t.kind.clone() },
+        kind: if t.kind.is_empty() {
+            "task".into()
+        } else {
+            t.kind.clone()
+        },
         // §2.2: description подзадачи из LLM-ответа.
         description: opt_description(&t.description),
         checks: t.checks.clone(),
@@ -113,7 +119,12 @@ pub struct Planner {
 
 impl Planner {
     pub fn new(cfg: PlannerConfig, llm: LlmClient) -> Self {
-        Self { cfg, llm, context: None, expected: None }
+        Self {
+            cfg,
+            llm,
+            context: None,
+            expected: None,
+        }
     }
 
     pub fn with_context(mut self, ctx: Option<String>, expected: Option<String>) -> Self {
@@ -292,7 +303,11 @@ mod tests {
 
     #[test]
     fn root_contract_has_limits() {
-        let lim = Limits { max_tasks: 7, max_depth: 3, max_children: 4 };
+        let lim = Limits {
+            max_tasks: 7,
+            max_depth: 3,
+            max_children: 4,
+        };
         let c = root_contract("do it", &lim);
         assert_eq!(c.kind, "root");
         assert_eq!(c.budget.max_tasks, Some(7));
@@ -304,7 +319,11 @@ mod tests {
     // §6.1 (v0.3.1): корень получает description = текст задачи.
     #[test]
     fn planner_root_contract_has_description() {
-        let lim = Limits { max_tasks: 50, max_depth: 5, max_children: 10 };
+        let lim = Limits {
+            max_tasks: 50,
+            max_depth: 5,
+            max_children: 10,
+        };
         let c = root_contract("Функция на Rust: сложение двух чисел + тест", &lim);
         assert_eq!(
             c.description.as_deref(),

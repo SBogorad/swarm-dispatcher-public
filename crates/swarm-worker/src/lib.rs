@@ -16,11 +16,11 @@ pub mod storage;
 pub mod worker;
 
 pub use agent_loop::{
-    AgentLoopConfig, AgentResult, Step, ToolAudit, ToolAuditSink, ToolCall, parse_step,
+    parse_step, AgentLoopConfig, AgentResult, Step, ToolAudit, ToolAuditSink, ToolCall,
 };
 pub use allowlist::Allowlist;
 pub use audit::PgAuditSink;
 pub use error::{Result, WorkerError};
 pub use retry::RetryPolicy;
 pub use sandbox::{ExecOutput, Sandbox, SandboxConfig};
-pub use worker::{Outcome, WorkerConfig, process_lease};
+pub use worker::{process_lease, Outcome, WorkerConfig};

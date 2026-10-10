@@ -28,9 +28,7 @@ pub const EXPLICIT_DENY: &[&str] = &[
 ];
 
 /// Shell-операторы, запрещённые в v0.4 (до analysis pipelines, ТЗ §4).
-const FORBIDDEN_OPERATORS: &[&str] = &[
-    "|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r", "\\",
-];
+const FORBIDDEN_OPERATORS: &[&str] = &["|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r", "\\"];
 
 /// Оболочки, для которых делается рекурсивная проверка `-c`.
 const SHELLS: &[&str] = &["bash", "sh", "dash", "zsh"];

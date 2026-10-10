@@ -22,13 +22,15 @@ use swarm_worker::WorkerError;
 
 fn main() {
     let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL");
-    let artifacts_dir =
-        PathBuf::from(std::env::var("ARTIFACTS_DIR").unwrap_or_else(|_| "/tmp/demo_artifacts".into()));
+    let artifacts_dir = PathBuf::from(
+        std::env::var("ARTIFACTS_DIR").unwrap_or_else(|_| "/tmp/demo_artifacts".into()),
+    );
     std::fs::create_dir_all(&artifacts_dir).expect("artifacts dir");
 
     let mut d = SwarmDispatcher::connect(&dsn).expect("connect");
     let worker = "w1";
-    d.register_worker(worker, &serde_json::json!({"ram_gb": 16}), &[]).expect("register");
+    d.register_worker(worker, &serde_json::json!({"ram_gb": 16}), &[])
+        .expect("register");
 
     // 1. Задача: реальная мини-задача, решаемая shell-инструментами.
     let contract: TaskContract = serde_json::from_value(serde_json::json!({
@@ -81,22 +83,33 @@ fn main() {
             println!("tool calls: {}", r.tool_calls);
             println!("финальный ответ:\n{}", r.final_text);
 
-            let (reference, path, size) = swarm_worker::artifacts::write_artifact(
-                &artifacts_dir,
-                r.final_text.as_bytes(),
+            let (reference, path, size) =
+                swarm_worker::artifacts::write_artifact(&artifacts_dir, r.final_text.as_bytes())
+                    .expect("write artifact");
+            d.save_artifact(
+                &lease,
+                &reference,
+                &path.to_string_lossy(),
+                Some("text/plain"),
+                Some(size as i64),
             )
-            .expect("write artifact");
-            d.save_artifact(&lease, &reference, &path.to_string_lossy(), Some("text/plain"), Some(size as i64))
-                .expect("save_artifact");
+            .expect("save_artifact");
             let st = d.complete(&lease, &reference, 0).expect("complete");
             println!("\nartifact: {reference} ({size} B) -> {path:?}");
             println!("state after complete: {st}");
 
             let n = count_tool_calls(&dsn, lease.task_id).unwrap_or(-1);
             println!("событий tool_call в журнале: {n}");
-            println!("verify_chain: {}", d.verify_chain(lease.task_id).unwrap_or(false));
+            println!(
+                "verify_chain: {}",
+                d.verify_chain(lease.task_id).unwrap_or(false)
+            );
 
-            assert!(r.tool_calls >= 2, "ожидалось ≥2 tool call, получено {}", r.tool_calls);
+            assert!(
+                r.tool_calls >= 2,
+                "ожидалось ≥2 tool call, получено {}",
+                r.tool_calls
+            );
             println!("\nOK: agent loop выполнил ≥2 tool call с реальным LLM");
         }
         Err(e) => {

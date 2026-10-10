@@ -17,13 +17,13 @@ const MAX_BACKOFF_SEC: u64 = 30;
 
 fn main() {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env()
-            .add_directive("swarm_watchdog=info".parse().unwrap()))
+        .with_env_filter(
+            EnvFilter::from_default_env().add_directive("swarm_watchdog=info".parse().unwrap()),
+        )
         .json()
         .init();
 
-    let dsn = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
+    let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let interval = std::env::var("WATCHDOG_INTERVAL")
         .ok()
         .and_then(|s| s.parse().ok())
@@ -34,7 +34,8 @@ fn main() {
     ctrlc::set_handler(move || {
         info!("received shutdown signal, finishing current iteration");
         shutdown_handler.store(true, Ordering::SeqCst);
-    }).expect("install signal handler");
+    })
+    .expect("install signal handler");
 
     info!(interval_sec = interval, "watchdog starting");
 
