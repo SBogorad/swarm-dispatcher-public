@@ -368,10 +368,22 @@ begin
   select created_by into v_creator from artifacts where task_id = p_task and ref = p_ref;
   if v_creator = p_reviewer then raise exception 'self_review' using errcode = 'RV002'; end if;
   if p_verdict = 'approved' then
-    if jsonb_typeof(p_checks) <> 'array'
-       or jsonb_array_length(p_checks) < jsonb_array_length(t.contract->'checks')
-       or exists (select 1 from jsonb_array_elements(p_checks) e
-                  where e->>'status' is distinct from 'pass') then
+    if jsonb_typeof(p_checks) <> 'array' then
+      raise exception 'checks_failed' using errcode = 'RV003';
+    end if;
+    -- Строгий review-gate (G4): каждый required check из contract должен
+    -- иметь хотя бы один pass с тем же type. Проверка по длине больше не
+    -- принимается: `[{"status":"pass"},{"status":"pass"}]` обходил её.
+    if exists (
+      select 1
+      from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+      where not exists (
+        select 1
+        from jsonb_array_elements(p_checks) p
+        where p->>'type' = c->>'type'
+          and p->>'status' = 'pass'
+      )
+    ) then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
   end if;
