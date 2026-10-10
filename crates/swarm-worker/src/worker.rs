@@ -7,6 +7,7 @@ use crate::artifacts;
 use crate::error::{Result, WorkerError};
 use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
+use crate::storage::ArtifactStore;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -155,10 +156,14 @@ pub fn process_lease(
         Ok(resp) => {
             let (ref_, path, size) =
                 artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
+            let storage_path = match ArtifactStore::from_env()? {
+                Some(store) => store.put_verified(&ref_, &path, "text/plain")?,
+                None => path.to_string_lossy().into_owned(),
+            };
             d.save_artifact(
                 lease,
                 &ref_,
-                &path.to_string_lossy(),
+                &storage_path,
                 Some("text/plain"),
                 Some(size as i64),
             )?;

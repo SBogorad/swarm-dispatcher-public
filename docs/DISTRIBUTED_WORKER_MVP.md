@@ -80,12 +80,21 @@ PostgreSQL является единственным источником ист
 Для v0.6 нужно выбрать один общий backend:
 
 - S3-compatible object storage с content-addressed key `sha256/<digest>`;
+  для найденного профиля Beget используются endpoint `s3.ru1.storage.beget.cloud`,
+  region `ru-1` и path-style access; пример переменных без credentials находится
+  в `.env.artifacts.example`;
 - общий POSIX/NFS mount с каноническими относительными keys;
 - другой проверяемый CAS, доступный всем worker/reviewer nodes.
 
 Worker сначала сохраняет байты, затем проверяет digest и metadata, и только после этого вызывает `complete_task`. Reviewer на другой машине обязан повторно проверить наличие, размер и SHA-256. PostgreSQL не следует использовать для крупных payloads.
 
-Пока общий backend и межмашинная проверка digest не реализованы, v0.6 имеет статус `DESIGN_ONLY` для artifact handoff. Нельзя объявлять production-like remote release на основании одного общего PostgreSQL.
+S3-compatible backend теперь реализован в `swarm-worker` как opt-in режим:
+worker загружает локальный content-addressed файл, перечитывает объект и сверяет
+SHA-256 до записи metadata в PostgreSQL. Без полного `SWARM_ARTIFACT_S3_*`
+профиля сохраняется локальный режим. Реальный production-like acceptance всё
+равно требует отдельного dedicated bucket/prefix и прогона с двумя узлами.
+Нельзя объявлять production-like remote release на основании одного общего
+PostgreSQL или только успешной компиляции клиента.
 
 ## Acceptance criteria
 

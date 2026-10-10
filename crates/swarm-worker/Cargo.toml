@@ -12,6 +12,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10"
 ctrlc = "3.4"
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-types = { workspace = true }
+tokio = { workspace = true }
 thiserror = { workspace = true }
 # v0.4: аудит tool calls пишется отдельным соединением (§7).
 postgres = { workspace = true }

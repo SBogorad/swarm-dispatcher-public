@@ -12,6 +12,7 @@ pub mod parse_step;
 pub mod prompt;
 pub mod retry;
 pub mod sandbox;
+pub mod storage;
 pub mod worker;
 
 pub use agent_loop::{
