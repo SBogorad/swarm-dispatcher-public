@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-10T20:44:08+07:00" generator="scripts/build_audit_bundle.py">
+<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-10T20:47:56+07:00" generator="scripts/build_audit_bundle.py">
   <project>
     <name>swarm-dispatcher</name>
     <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-    <git is_git="true" head="c7739a8080b7abcfa435f9672f29fe971de871dc" branch="feature/v0.6-distributed-worker-mvp" dirty="false"/>
+    <git is_git="true" head="9524a386bd0c5fddc5bf5ebb42c84de54ec50405" branch="feature/v0.6-distributed-worker-mvp" dirty="false"/>
   </project>
   <manifest>
     <files count="16" total_bytes="106443"/>

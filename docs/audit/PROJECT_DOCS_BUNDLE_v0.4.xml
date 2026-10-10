@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS" generated="2026-10-10T20:00:23+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS" generated="2026-10-10T20:49:18+07:00" generator="scripts/build_project_bundle.py">
   <title>Документация и отчёты (без писем history/inbound)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="024e2a483a02209490fd81f10599dbd6c8f8f761"/>
+  <git is_git="true" head="9524a386bd0c5fddc5bf5ebb42c84de54ec50405"/>
   <manifest>
-    <files count="47" total_bytes="614671"/>
+    <files count="48" total_bytes="620630"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -40,6 +40,7 @@
       <entry path="docs/TZ_v0.3_llm_worker.md" lang="markdown" bytes="11499" lines="290" sha256="b0e6cfe44bf81b7277ff6c6933705d40d265c058ee46c98132cd54cf09a01627" md5="13e95316f378ea59f7674b0eaa267b4c"/>
       <entry path="docs/TZ_v0.4_shell_tools_sandbox.md" lang="markdown" bytes="11169" lines="287" sha256="67eaa042042ecee383dc9e0ac8a6f9b4ccb131935f7123ef27ec565a0d7b036b" md5="d3c3e9850cae4d6ab414dfe325abc1c4"/>
       <entry path="docs/VERIFICATION_LOG.md" lang="markdown" bytes="8512" lines="180" sha256="4479463c38933b94b3fd4a50d407f98ba8a52bda3b9b38620fb87b075cd32103" md5="bc32e73db77f51cc2c185f5bf88aa773"/>
+      <entry path="docs/ci/CI_COST.md" lang="markdown" bytes="5959" lines="92" sha256="5d6948721985661df829776f1de3550e7e86c909b38b07cec0c4e1b376861ea9" md5="301d92f78de2658239b0a1ebfb024a94"/>
       <entry path="docs/history/ANONYMIZED_ARCHITECTURE_DISCUSSION_v0.6.md" lang="markdown" bytes="4387" lines="37" sha256="b39f1a731c711a7d05fbefe36f57ac8a2aa05a0f8da086356a88b6fd30d0842f" md5="b619a5ea8163a6d988e41d1b16e9d177"/>
       <entry path="docs/history/AUDITED_DOC_v15.md" lang="markdown" bytes="135883" lines="684" sha256="cc702322793060d986f9420e1178951d2c5ced8c9232637cbfc1a0e316c1d6ed" md5="009df53cad241b5cfc3e449700ee24e9"/>
       <entry path="docs/history/README.md" lang="markdown" bytes="4795" lines="109" sha256="e1690bc6c81a77243e2e1c522362630d56b99fb474ced4d8b1030eba4c977e2e" md5="d30ad76ff88567e093a327504e303de0"/>
@@ -5782,6 +5783,102 @@ REPORT_v0.4_shell_tools_sandbox.md:
 - Верификация должна быть **независимой**. Автор не верифицирует сам себя.
 - Верификация должна быть **воспроизводимой**. Все команды — в отчёте.
 - Верификация должна быть **честной**. Если что-то не прошло — записать.
+]]></content>
+    </file>
+    <file path="docs/ci/CI_COST.md" lang="markdown" bytes="5959" lines="92" sha256="5d6948721985661df829776f1de3550e7e86c909b38b07cec0c4e1b376861ea9" md5="301d92f78de2658239b0a1ebfb024a94">
+      <content><![CDATA[
+# CI cost estimate — `release-gate.yml`
+
+Оценка расходов GitHub Actions для **приватного** репозитория
+`xodapi/swarm-dispatcher`. Актуально на 2026-10-10.
+
+## 1. В чём измеряется стоимость
+
+Приватные репозитории тратят **минуты Actions** из квоты плана:
+
+| План | Включённые минуты / месяц | Linux-множитель | Цена сверх квоты (Linux, 2-core) |
+|------|--------------------------|-----------------|-----------------------------------|
+| Free | 2 000 | ×1 | $0.008 / мин |
+| Team | 3 000 | ×1 | $0.008 / мин |
+| Enterprise | 50 000 | ×1 | $0.008 / мин |
+
+- Хостируемый `ubuntu-24.04` (2-core) тарифицируется **×1** — 1 реальная
+  минута = 1 billed-минута.
+- **Free для приватных репо даёт 2 000 мин/мес.** Публичные репо Actions
+  бесплатны без лимита — это принципиальная развилка (см. §4).
+- `actions/cache` и артефакты минутами **не** тарифицируются (артефакты —
+  место в хранилище, 7 дней retention тут ничтожны).
+
+## 2. Сколько стоит один прогон gate
+
+Пайплайн = checkout + toolchain + cache + `uv` + harness. Доминирует harness:
+`docker run postgres:16-alpine`, миграции, `cargo test --workspace` ×2
+(lib + full), RBAC-smoke, 4 pytest-набора.
+
+| Стадия | Холодный кэш | Тёплый кэш |
+|--------|-------------:|-----------:|
+| checkout (fetch-depth 0) | 0.2 мин | 0.2 мин |
+| Rust toolchain (1.85) | 0.3 мин | 0.1 мин |
+| restore/save cargo cache | 0.5 мин | 0.4 мин |
+| `uv` + venv pytest/psycopg2 | 0.4 мин | 0.2 мин |
+| **harness** (PG + cargo ×2 + RBAC + pytest) | **6–10 мин** | **5–8 мин** |
+| upload logs | 0.1 мин | 0.1 мин |
+| **Итого на job** | **≈ 8–11 мин** | **≈ 6–9 мин** |
+
+Консервативно берём **≈ 9 мин** на прогон (тёплый кэш, типичный случай).
+
+## 3. Прогноз нагрузки и денег
+
+Триггеры: `push` в `feature/**` и `master`, `pull_request` в `master`,
+`workflow_dispatch`. `concurrency.cancel-in-progress` гасит лишние прогоны
+при быстрой серии пушей — это главный демпфер расхода.
+
+| Сценарий | Прогонов / мес | Минут (×9) | В квоту Free (2 000)? |
+|----------|---------------:|-----------:|-----------------------|
+| Спокойный (2–3 пуша/день, 1 PR) | ~60 | ~540 | да, с запасом |
+| Средний (5–8 пушей/день, 3 PR) | ~150 | ~1 350 | да, впритык |
+| Активная разработка (10+ пушей/день) | ~300+ | ~2 700+ | **нет → перерасход** |
+
+**Перерасход (пример):** 2 700 мин − 2 000 = 700 мин × $0.008 ≈ **$5.6/мес**.
+Это порядок цены чашки кофе — не риск бюджета, но квоту съедает целиком.
+
+**Вывод:** при текущем темпе (2–3 пуша/день) CI **укладывается в бесплатные
+2 000 мин** и не стоит ничего. Риск появляется только на «горячих» днях.
+
+## 4. Как снизить/обнулить стоимость
+
+1. **Публичный репозиторий** — Actions бесплатны и безлимитны. Но это меняет
+   модель приватности; решение за владельцем, не за агентом.
+2. **`paths:`-фильтр** — не гонять gate на изменение `docs/**`, `*.md`:
+   `on.push.paths: ["crates/**","schema/**","step2/**","step2b/**","scripts/**","tests/**","Cargo.*"]`.
+   Режет прогоны на «доковых» коммитах (а их у нас много — агент часто пишет
+   доку).
+3. **Fast lane** — отдельный быстрый job (`cargo test --workspace --lib --locked`
+   без PG, ~2 мин) на каждый push + полный gate только на PR в `master`.
+   Это типовой паттерн «PR-gate + nightly/main-gate».
+4. **Self-hosted runner** — 0 минут GitHub, вся стоимость на своём железе.
+   Осмысленно, если появится постоянно включённый хост.
+5. **`cancel-in-progress`** уже включён (см. workflow) — не платим за
+   устаревшие прогоны в серии пушей.
+
+## 5. Как проверить факт расхода (не по прогнозу)
+
+Реальный расход виден в:
+`Settings → Billing and plans → Plans and usage → Actions usage`
+(или `gh api /orgs/xodapi/settings/billing/actions` — нужен admin-scope).
+
+Там же — **included minutes** и **paid minutes** за текущий цикл. Сверить
+через 1–2 недели и решить, нужен ли `paths:`-фильтр.
+
+## 6. Итог
+
+| Вопрос | Ответ |
+|--------|------|
+| Стоит ли CI денег сейчас? | **Нет** — при текущем темпе вписываемся в 2 000 бесплатных мин |
+| Порог риска | > 220 прогонов/мес (≈ 8 пушей/день) |
+| Ожидаемое превышение на «горячем» месяце | ~$3–6 |
+| Первый шаг оптимизации | `paths:`-фильтр (docs/CI вне scope) |
+| Радикальное обнуление | public repo или self-hosted runner (требует решения владельца) |
 ]]></content>
     </file>
     <file path="docs/history/ANONYMIZED_ARCHITECTURE_DISCUSSION_v0.6.md" lang="markdown" bytes="4387" lines="37" sha256="b39f1a731c711a7d05fbefe36f57ac8a2aa05a0f8da086356a88b6fd30d0842f" md5="b619a5ea8163a6d988e41d1b16e9d177">

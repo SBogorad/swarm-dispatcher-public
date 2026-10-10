@@ -40,3 +40,7 @@ scripts/build_project_bundle.py
 
 # Audit evidence produced for this wave.
 docs/audit/*
+
+# G1: CI gate itself (workflow + cost doc).
+.github/*
+docs/ci/*

@@ -42,8 +42,8 @@ jobs:
         with:
           fetch-depth: 0   # the harness diffs BASE..HEAD
 
-      - name: Install Rust toolchain (rust-version 1.85)
-        uses: dtolnay/rust-toolchain@1.85.0
+      - name: Install Rust toolchain (MSRV 1.94)
+        uses: dtolnay/rust-toolchain@1.94.0
         with:
           components: rustfmt
 

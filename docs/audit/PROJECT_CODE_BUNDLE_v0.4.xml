@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T20:00:23+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T20:49:18+07:00" generator="scripts/build_project_bundle.py">
   <title>Код проекта (Rust + тесты + манифесты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="024e2a483a02209490fd81f10599dbd6c8f8f761"/>
+  <git is_git="true" head="9524a386bd0c5fddc5bf5ebb42c84de54ec50405"/>
   <manifest>
-    <files count="45" total_bytes="375134"/>
+    <files count="45" total_bytes="377199"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -44,7 +44,7 @@
       <entry path="crates/swarm-worker/Cargo.toml" lang="toml" bytes="902" lines="32" sha256="7eac49b458f5f22091ace3f9c04b4e747e3a1ab3e9079f04fe6b89986b6659ef" md5="20b4de18e3f09f72ac2ebf4c6be148e0"/>
       <entry path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4840" lines="123" sha256="1380b6ba0651b30a89116828b27fcd1256d9cbeada1623ee6674f404a4ec937f" md5="9df11ec440423aa051a7484b6499c050"/>
       <entry path="crates/swarm-worker/src/agent_loop.rs" lang="rust" bytes="15103" lines="453" sha256="d2d4b89cfcedbab6f54cb699335c20928a41c20f51afa64eab3b03a8d061cc03" md5="95afa64156c184133c195da893ad01f1"/>
-      <entry path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="13527" lines="361" sha256="ff4e9631782a1bb4671e3d05e105ea7f51712d1e4071977c93bdc0cbf1b09c50" md5="49aa79443e73d581f9a1caa13bc9aa3e"/>
+      <entry path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="17248" lines="436" sha256="48e389dff202d89b66e9e971380beac81b6f47f853f90ff10512b12e2877c54a" md5="378384912da489ceef3100b978a7d853"/>
       <entry path="crates/swarm-worker/src/artifacts.rs" lang="rust" bytes="8019" lines="197" sha256="840be123cb3d9e61f75c2d8c06540161c2cba489e1bfc82c5b51aa8167d8e0f3" md5="f532f05aab4a20434e3d4063957db9a9"/>
       <entry path="crates/swarm-worker/src/audit.rs" lang="rust" bytes="3178" lines="83" sha256="7638c4d31e447c63d470342995658f23b345a10e2f8304fa82e54209e25dc844" md5="fa7a5e04ac9eb99d31c3a2d52c513dc7"/>
       <entry path="crates/swarm-worker/src/error.rs" lang="rust" bytes="1458" lines="47" sha256="db458aea5bef333dab5b3dc00eebabc30cbac22c3c613745759f517369e1cf10" md5="c20742c92ac3c2c5c17e1e020f51fa27"/>
@@ -53,7 +53,7 @@
       <entry path="crates/swarm-worker/src/parse_step.rs" lang="rust" bytes="16165" lines="369" sha256="74f8e69be76842679fdc4f61caedda7471f1c32fb1087f784e4f9d0592315246" md5="30c3f75bb69c0af263c9d3c33e634a03"/>
       <entry path="crates/swarm-worker/src/prompt.rs" lang="rust" bytes="9035" lines="201" sha256="59d9dd3c8a227d15948f5023e0c269929405a37f23476e32079900c14ecb86d1" md5="a2aeb6d28f4a2b7ff82013cacf43db85"/>
       <entry path="crates/swarm-worker/src/retry.rs" lang="rust" bytes="3238" lines="103" sha256="f44b5d1792135f71da38191f257ecf54d4bf2facfa32f7ffb9d67a3d8bea35b9" md5="a55ccea01123462543b8aba991e4d492"/>
-      <entry path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="22481" lines="642" sha256="1541f01960f4438ef5575af97ca6ebaccbb4bc6b0914445caa0f85294ee589c4" md5="043203d0267d7634392af43a267f9f0c"/>
+      <entry path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="20825" lines="592" sha256="b1e1db54631d8de91a60da8e83771227cd704926f8ffd5bfda59f73112e640c0" md5="719152ee55c73dc2a3e0b6d3e8982e7f"/>
       <entry path="crates/swarm-worker/src/storage.rs" lang="rust" bytes="5657" lines="165" sha256="73e82baa6fea1d489c9778a4578f251dc902f351683012d2e391b864e60be4c3" md5="55d20d72a6e238db61d97ac46ac6cf6e"/>
       <entry path="crates/swarm-worker/src/worker.rs" lang="rust" bytes="10016" lines="293" sha256="bf456e6b45963c86a19288415f4a45e92498c66e434b2f03cb065b2bef67303d" md5="289966d26870e14fe23fea4e281c35b7"/>
       <entry path="crates/swarm-worker/tests/worker_integration.rs" lang="rust" bytes="18954" lines="528" sha256="4f96891baa72a63fd7bbf6741bb4f629032ee171a5be429489912ddbdefca20e" md5="5d82325c067782c57941aa87d1ba5f17"/>
@@ -8357,7 +8357,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="13527" lines="361" sha256="ff4e9631782a1bb4671e3d05e105ea7f51712d1e4071977c93bdc0cbf1b09c50" md5="49aa79443e73d581f9a1caa13bc9aa3e">
+    <file path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="17248" lines="436" sha256="48e389dff202d89b66e9e971380beac81b6f47f853f90ff10512b12e2877c54a" md5="378384912da489ceef3100b978a7d853">
       <content><![CDATA[
 //! Allowlist команд для sandbox (ТЗ v0.4 §4).
 //!
@@ -8483,26 +8483,30 @@ impl Allowlist {
             }
         }
 
-        // 2. Обход каталога.
-        if cmd.split_whitespace().any(|t| t.contains("..")) {
+        // 2. Обход каталога + токенизация ЕДИНЫМ парсером (G2):
+        //    quote-aware argv-парсер, тот же, что применяет sandbox.exec.
+        //    Раньше allowlist шёл через split_whitespace, а sandbox — через
+        //    собственный quote-aware парсер; расхождение на quoting было
+        //    okном для обхода. Теперь источник истины один.
+        let tokens: Vec<String> = parse_command_argv(cmd)?;
+        if tokens.iter().any(|t| t.contains("..")) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: "путь с '..' запрещён".into(),
             });
         }
 
-        let tokens: Vec<&str> = cmd.split_whitespace().collect();
         let first = tokens[0].to_lowercase();
 
         // 3. Явный deny (в т.ч. абсолютный путь: /bin/rm → rm).
-        let base = first.rsplit('/').next().unwrap_or(&first);
+        let base = first.rsplit('/').next().unwrap_or(&first).to_string();
         if first.contains('/') && !trusted_executable(&first) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: "не доверенный путь executable".into(),
             });
         }
-        if EXPLICIT_DENY.contains(&base) {
+        if EXPLICIT_DENY.contains(&base.as_str()) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: format!("команда '{base}' в явном deny-списке"),
@@ -8510,7 +8514,7 @@ impl Allowlist {
         }
 
         // 4. Allowlist по первому слову.
-        if !self.allows(base) {
+        if !self.allows(&base) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: format!("'{base}' нет в allowlist"),
@@ -8518,8 +8522,9 @@ impl Allowlist {
         }
 
         // 5. Рекурсия для `bash -c "<внутренняя>"`.
-        if SHELLS.contains(&base) {
-            let Some(inner) = extract_dash_c(&tokens) else {
+        if SHELLS.contains(&base.as_str()) {
+            let refs: Vec<&str> = tokens.iter().map(String::as_str).collect();
+            let Some(inner) = extract_dash_c(&refs) else {
                 return Err(WorkerError::AllowlistRejected {
                     command: command.to_string(),
                     reason: "shell разрешён только с однозначным -c".into(),
@@ -8528,15 +8533,67 @@ impl Allowlist {
             return self.check_depth(&inner, depth + 1);
         }
 
-        if tokens.iter().any(|t| t.contains('"') || t.contains('\'')) {
-            return Err(WorkerError::AllowlistRejected {
-                command: command.to_string(),
-                reason: "неоднозначное quoting запрещено".into(),
-            });
-        }
-
         Ok(())
     }
+}
+
+/// Единый argv-парсер команд (G2).
+///
+/// Разбирает небольшой argv-язык: пробелы разделяют токены, одинарные и
+/// двойные кавычки группируют; shell-операторы и escape **отвергаются**, а не
+/// интерпретируются. Один и тот же парсер использует и allowlist-политика, и
+/// `sandbox.exec` — чтобы не было двух расходящихся мнений о том, где границы
+/// токенов.
+///
+/// Возвращает `Err`, если обнаружен запрещённый символ (`; | & < > ` $ \`),
+/// незакрытая кавычка или пустая команда.
+pub fn parse_command_argv(command: &str) -> Result<Vec<String>> {
+    let mut argv = Vec::new();
+    let mut token = String::new();
+    let mut quote = None;
+    let mut started = false;
+    for ch in command.chars() {
+        match quote {
+            Some(q) if ch == q => quote = None,
+            Some(_) => token.push(ch),
+            None if ch == '\'' || ch == '"' => {
+                quote = Some(ch);
+                started = true;
+            }
+            None if ch.is_whitespace() => {
+                if started {
+                    argv.push(std::mem::take(&mut token));
+                    started = false;
+                }
+            }
+            None if matches!(ch, ';' | '|' | '&' | '<' | '>' | '`' | '$' | '\\') => {
+                return Err(WorkerError::AllowlistRejected {
+                    command: command.to_string(),
+                    reason: format!("запрещённый shell-символ: {ch:?}"),
+                });
+            }
+            None => {
+                token.push(ch);
+                started = true;
+            }
+        }
+    }
+    if quote.is_some() {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: "незакрытая кавычка".into(),
+        });
+    }
+    if started {
+        argv.push(token);
+    }
+    if argv.is_empty() {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: "пустая команда".into(),
+        });
+    }
+    Ok(argv)
 }
 
 fn trusted_executable(path: &str) -> bool {
@@ -8718,6 +8775,24 @@ mod tests {
         assert!(al().check("bash -ec 'cargo test'").is_err());
         assert!(al().check("cat ${HOME}/.ssh/id_rsa").is_err());
         assert!(al().check("cat $(whoami)").is_err());
+    }
+
+    // G2 (audit): политика и sandbox используют ОДИН argv-парсер.
+    // Регрессия: до унификации allowlist шёл через split_whitespace и не
+    // видел, что `echo "hello world"` — это один токен; теперь видит.
+    #[test]
+    fn single_argv_parser_shared_with_sandbox() {
+        // Тот же парсер, что вызывает sandbox.exec (через Allows.
+        assert_eq!(
+            parse_command_argv("echo 'hello world'").unwrap(),
+            vec!["echo".to_string(), "hello world".to_string()]
+        );
+        // Кавычки больше не считаются «неоднозначным quoting» — это часть
+        // единого argv-языка, а не признак инъекции.
+        assert!(al().check("echo 'a b'").is_ok());
+        // А shell-символы внутри/вне кавычек по-прежнему отсекаются.
+        assert!(al().check("echo 'a; rm -rf /'").is_err());
+        assert!(al().check("echo `id`").is_err());
     }
 }
 ]]></content>
@@ -9916,7 +9991,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="22481" lines="642" sha256="1541f01960f4438ef5575af97ca6ebaccbb4bc6b0914445caa0f85294ee589c4" md5="043203d0267d7634392af43a267f9f0c">
+    <file path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="20825" lines="592" sha256="b1e1db54631d8de91a60da8e83771227cd704926f8ffd5bfda59f73112e640c0" md5="719152ee55c73dc2a3e0b6d3e8982e7f">
       <content><![CDATA[
 //! Docker-sandbox для shell tools (ТЗ v0.4 §2–§3, §5).
 //!
@@ -9928,6 +10003,7 @@ mod tests {
 //!
 //! Только синхронный код (`std::process`), без async — как требует ТЗ §12.
 
+use crate::allowlist::parse_command_argv;
 use crate::error::{Result, WorkerError};
 use sha2::{Digest, Sha256};
 use std::process::{Command, Stdio};
@@ -10387,57 +10463,6 @@ fn run_cmd_owned_inner(
         exit_code: status.code().unwrap_or(-1),
         timed_out,
     })
-}
-
-/// Parse the small argv language used by exec. No shell expansion or
-/// operators are interpreted, even if a direct caller bypasses Allowlist.
-fn parse_command_argv(command: &str) -> Result<Vec<String>> {
-    let mut argv = Vec::new();
-    let mut token = String::new();
-    let mut quote = None;
-    let mut started = false;
-    for ch in command.chars() {
-        match quote {
-            Some(q) if ch == q => quote = None,
-            Some(_) => token.push(ch),
-            None if ch == '\'' || ch == '"' => {
-                quote = Some(ch);
-                started = true;
-            }
-            None if ch.is_whitespace() => {
-                if started {
-                    argv.push(std::mem::take(&mut token));
-                    started = false;
-                }
-            }
-            None if matches!(ch, ';' | '|' | '&' | '<' | '>' | '`' | '$' | '\\') => {
-                return Err(WorkerError::AllowlistRejected {
-                    command: command.to_string(),
-                    reason: format!("запрещённый shell-символ: {ch:?}"),
-                });
-            }
-            None => {
-                token.push(ch);
-                started = true;
-            }
-        }
-    }
-    if quote.is_some() {
-        return Err(WorkerError::AllowlistRejected {
-            command: command.to_string(),
-            reason: "незакрытая кавычка".into(),
-        });
-    }
-    if started {
-        argv.push(token);
-    }
-    if argv.is_empty() {
-        return Err(WorkerError::AllowlistRejected {
-            command: command.to_string(),
-            reason: "пустая команда".into(),
-        });
-    }
-    Ok(argv)
 }
 
 #[cfg(test)]
