@@ -390,7 +390,7 @@ fn run_cmd_owned_inner(
     timeout: Duration,
     stdin_data: Option<String>,
 ) -> Result<RawOut> {
-    use std::io::Write;
+    use std::io::{Read, Write};
 
     let mut child = Command::new(bin)
         .args(args)
@@ -414,6 +414,26 @@ fn run_cmd_owned_inner(
         }
     }
 
+    // Drain both pipes concurrently. A child that writes more than the OS
+    // pipe buffer (~64 KiB) blocks on write; polling `try_wait` without
+    // reading would then let the wall-clock watchdog kill a healthy command
+    // and lose its output. Independent reader threads keep the pipes moving
+    // while the loop below only tracks liveness and the deadline.
+    let stdout_reader = child.stdout.take().map(|mut p| {
+        std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            let _ = p.read_to_end(&mut buf);
+            buf
+        })
+    });
+    let stderr_reader = child.stderr.take().map(|mut p| {
+        std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            let _ = p.read_to_end(&mut buf);
+            buf
+        })
+    });
+
     let deadline = Instant::now() + timeout;
     let mut timed_out = false;
     loop {
@@ -432,13 +452,19 @@ fn run_cmd_owned_inner(
         }
     }
 
-    let out = child
-        .wait_with_output()
+    let status = child
+        .wait()
         .map_err(|e| WorkerError::Sandbox(format!("output {bin}: {e}")))?;
+    let stdout = stdout_reader
+        .map(|h| h.join().unwrap_or_default())
+        .unwrap_or_default();
+    let stderr = stderr_reader
+        .map(|h| h.join().unwrap_or_default())
+        .unwrap_or_default();
     Ok(RawOut {
-        stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
-        stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
-        exit_code: out.status.code().unwrap_or(-1),
+        stdout: String::from_utf8_lossy(&stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&stderr).into_owned(),
+        exit_code: status.code().unwrap_or(-1),
         timed_out,
     })
 }
@@ -587,5 +613,30 @@ mod tests {
     fn command_argv_rejects_expansion_and_unclosed_quotes() {
         assert!(parse_command_argv("echo $(id)").is_err());
         assert!(parse_command_argv("echo 'unterminated").is_err());
+    }
+
+    // Wave 2: output larger than the OS pipe buffer must not deadlock.
+    // The child blocks on write once a pipe fills (~64 KiB); polling
+    // `try_wait` without draining the pipes would let the wall-clock watchdog
+    // kill a perfectly healthy command and lose its output.
+    #[test]
+    fn captures_output_larger_than_pipe_buffer() {
+        // 20000 lines * 17 bytes = ~332 KiB on stdout, far above 64 KiB.
+        let out = run_cmd(
+            "bash",
+            &["-c", "yes 0123456789abcdef | head -n 20000"],
+            Duration::from_secs(15),
+        )
+        .expect("run_cmd");
+        assert!(
+            !out.timed_out,
+            "large output must not be killed as a timeout (deadlock)"
+        );
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(
+            out.stdout.len(),
+            17 * 20_000,
+            "full stdout must be captured, not truncated by a stall"
+        );
     }
 }
