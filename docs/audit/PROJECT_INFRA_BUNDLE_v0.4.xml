@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T21:17:09+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T21:20:07+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="a57637f03dd24cb8095de58eb1ac32e8ee7f4243"/>
+  <git is_git="true" head="8731f885ad15d2983ed1d83b852c7a9299c0eecd"/>
   <manifest>
-    <files count="26" total_bytes="163156"/>
+    <files count="27" total_bytes="165671"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -15,6 +15,7 @@
     <index>
       <entry path=".dockerignore" lang="text" bytes="59" lines="6" sha256="09ba81543a788f3a573bf9461060e75cc513cc3323650524a0f70a8e12e39ee5" md5="c463722b3b1978e02ce241e8b2fcb9b3"/>
       <entry path=".env.example" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077"/>
+      <entry path=".github/workflows/release-gate.yml" lang="yaml" bytes="2474" lines="85" sha256="c5c24dd697087b43ad7ab8dea49d86605e8ad1c2c72df1ad178f105bfe4f2639" md5="ec81d50ac33a6990434564be42fbf2fe"/>
       <entry path=".gitignore" lang="text" bytes="295" lines="24" sha256="52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462" md5="8ccc227b713a10ccbe10bd18b431d738"/>
       <entry path="Dockerfile" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8"/>
       <entry path="LICENSE" lang="text" bytes="1104" lines="21" sha256="6a0f51d5703ca8719a56f87b7a5fb84a8c773f5e361487a1b28fe6580044dff9" md5="3b65cb8672dc4ecbcd6daad5814b0c57"/>
@@ -28,7 +29,7 @@
       <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8"/>
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4"/>
-      <entry path="scripts/build_project_bundle.py" lang="python" bytes="8591" lines="199" sha256="dc91a369fe6f784622cdee2ac49629e4e210c229acb7639497af0e0c43ce7d75" md5="bab1caaf6810276adc084eb08b5a04f2"/>
+      <entry path="scripts/build_project_bundle.py" lang="python" bytes="8632" lines="200" sha256="967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906" md5="84ba54580f877b77f42a47d4dc3888d0"/>
       <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170"/>
       <entry path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720"/>
       <entry path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
@@ -80,6 +81,95 @@ SANDBOX_IMAGE=agent-sandbox:1.85
 WORKER_ALLOWED_COMMANDS=bash,cargo,git,cat,ls,echo,mkdir,touch
 WORKER_CMD_TIMEOUT_SEC=60
 WORKER_MAX_ITERATIONS=20
+]]></content>
+    </file>
+    <file path=".github/workflows/release-gate.yml" lang="yaml" bytes="2474" lines="85" sha256="c5c24dd697087b43ad7ab8dea49d86605e8ad1c2c72df1ad178f105bfe4f2639" md5="ec81d50ac33a6990434564be42fbf2fe">
+      <content><![CDATA[
+name: release-gate
+
+# STRICT acceptance gate — mirrors scripts/acceptance_harness.sh --full-workspace-test.
+# Runs on GitHub-hosted runners with a disposable PostgreSQL 16 service
+# container; nothing persists between jobs.
+#
+# Cost note: this job is the only thing that consumes GitHub Actions minutes
+# for this (private) repository. See docs/ci/CI_COST.md for the estimate and
+# how to make it cheaper (path filters, fast lane, self-hosted runner).
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+jobs:
+  gate:
+    name: STRICT gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the harness diffs BASE..HEAD
+
+      - name: Install Rust toolchain (MSRV 1.94.1)
+        uses: dtolnay/rust-toolchain@1.94.1
+        with:
+          components: rustfmt
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install uv (for pytest venv)
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build sandbox image (agent-sandbox:1.85)
+        run: docker build -t agent-sandbox:1.85 sandbox/
+
+      # The harness provisions its OWN disposable database via `docker run`
+      # (postgres:16-alpine) and removes it in an EXIT trap, so it needs a
+      # Docker daemon — GitHub-hosted ubuntu runners provide one.
+      - name: Run STRICT acceptance harness
+        run: |
+          bash scripts/acceptance_harness.sh \
+            --base "${{ github.event.pull_request.base.sha || github.event.before }}" \
+            --branch HEAD \
+            --full-workspace-test \
+            --allowlist-file scripts/acceptance_allowlist.txt
+
+      - name: Upload gate logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-logs-${{ github.run_id }}
+          path: /tmp/swarm-dispatcher-acceptance/**
+          if-no-files-found: ignore
+          retention-days: 7
 ]]></content>
     </file>
     <file path=".gitignore" lang="text" bytes="295" lines="24" sha256="52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462" md5="8ccc227b713a10ccbe10bd18b431d738">
@@ -1886,7 +1976,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ]]></content>
     </file>
-    <file path="scripts/build_project_bundle.py" lang="python" bytes="8591" lines="199" sha256="dc91a369fe6f784622cdee2ac49629e4e210c229acb7639497af0e0c43ce7d75" md5="bab1caaf6810276adc084eb08b5a04f2">
+    <file path="scripts/build_project_bundle.py" lang="python" bytes="8632" lines="200" sha256="967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906" md5="84ba54580f877b77f42a47d4dc3888d0">
       <content encoding="xml-escaped">
 #!/usr/bin/env python3
 """Собирает полный аудит-бандл проекта (весь код) в XML, по томам.
@@ -1928,7 +2018,8 @@ VOLUMES: dict[str, dict] = {
         "title": "Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)",
         "globs": ["schema/*", "step2/*", "step2b/*", "scripts/*",
                   "docker-compose.yml", "Dockerfile", ".env.example",
-                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py"],
+                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py",
+                  ".github/workflows/*"],
     },
     "DOCS": {
         "title": "Документация и отчёты (без писем history/inbound)",

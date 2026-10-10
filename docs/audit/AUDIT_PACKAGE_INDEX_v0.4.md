@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-10T21:17:09+07:00
+**Сгенерировано:** 2026-10-10T21:20:45+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -11,36 +11,36 @@
 | Том | Содержание | Файлов | Строк | Исходники, байт | XML, байт |
 |-----|------------|-------:|------:|----------------:|----------:|
 | `CODE` | Код проекта (Rust + тесты + манифесты) | 45 | 11824 | 377201 | 398758 |
-| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3795 | 163156 | 175905 |
+| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 27 | 3881 | 165671 | 178879 |
 | `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 29 | 5920 | 290098 | 304203 |
 | `DOCS` | Документация и отчёты (без писем history/inbound) | 48 | 10278 | 620630 | 643360 |
-| **Итого** | | **148** | | **1451085** | **1522226** |
+| **Итого** | | **149** | | **1453600** | **1525200** |
 
 ## Хеши томов (для передачи аудитору)
 
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
 - Размер: 398758 байт
-- `sha256`: `018ba671898e97bdaf274a328c513d3b811774a73876dcd35595a3fff8920b55`
-- `md5`: `8a6b37ce906fc4bf096b300647db77ee`
+- `sha256`: `25c9654d76b849fdfacfeee85f6824fdfa2d2c06818b01caaeead1f7c07a1fc2`
+- `md5`: `e1ea74e3962af0b06e20b141e2118416`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
-- Размер: 175905 байт
-- `sha256`: `9d77c19a61c446017b9d972eac789e54d74a9f688cb86b048de9805d4197ce39`
-- `md5`: `974b164f0c3fdf062e1051e7e5413717`
+- Размер: 178879 байт
+- `sha256`: `296b46853ca4f3239ce0c66a905592ea8ea8c3eb16670e6df035990e473a3c26`
+- `md5`: `5e820d53a17b1f23afeade5dd3d0d5eb`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
 - Размер: 304203 байт
-- `sha256`: `ee9ee0a825ef84e11503d44ca70c4af91aba78f93467e3deb8df3a0afe2498d5`
-- `md5`: `9f8c230d8b41ec755c207a45c260e2a6`
+- `sha256`: `a8e4615b5d915c2e63ea0ac28c2218ddcec85761318b802b907ada7a58fc3ff3`
+- `md5`: `db3497d937cc923504470a3eea81f45b`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
 - Размер: 643360 байт
-- `sha256`: `0894b8e7f739e7f5d75ead31397ec217086a71bb4cc7cd2cdeda44915d2bd68a`
-- `md5`: `2648b42040c43b8071f9562b0d443b7d`
+- `sha256`: `17a8993640c3a056aee468714ee08b7aafa433102c41a5622311a7dbc2b411e1`
+- `md5`: `519313c4a8f3032621f1666b3a4f5615`
 
 ## Исключено сознательно
 
@@ -103,36 +103,37 @@
 | 44 | `crates/swarm-worker/tests/worker_integration.rs` | rust | 18954 | 528 | `4f96891baa72a63fd7bbf6741bb4f629032ee171a5be429489912ddbdefca20e` |
 | 45 | `crates/swarm-worker/tests/worker_sandbox.rs` | rust | 16153 | 476 | `f0f20c05d21c0cb4fb723ef18b30e9800ef1ae57e6d73bfa17617794f6a52a95` |
 
-### INFRA (26 файлов)
+### INFRA (27 файлов)
 
 | # | Путь | Язык | Байт | Строк | sha256 |
 |--:|------|------|-----:|------:|--------|
 | 1 | `.dockerignore` | text | 59 | 6 | `09ba81543a788f3a573bf9461060e75cc513cc3323650524a0f70a8e12e39ee5` |
 | 2 | `.env.example` | dotenv | 1175 | 26 | `2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416` |
-| 3 | `.gitignore` | text | 295 | 24 | `52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462` |
-| 4 | `Dockerfile` | dockerfile | 1477 | 35 | `add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c` |
-| 5 | `LICENSE` | text | 1104 | 21 | `6a0f51d5703ca8719a56f87b7a5fb84a8c773f5e361487a1b28fe6580044dff9` |
-| 6 | `docker-compose.yml` | yaml | 5478 | 141 | `73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5` |
-| 7 | `schema/schema_v0.sql` | sql | 23179 | 479 | `4f9ea6398fbd7f9671a3b3d3fd280252c12615304ba9cd4247e3f64b2bcd7482` |
-| 8 | `scripts/02-roles.sh` | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` |
-| 9 | `scripts/03-role-patches.sh` | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` |
-| 10 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
-| 11 | `scripts/acceptance_allowlist.txt` | text | 1457 | 50 | `807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e` |
-| 12 | `scripts/acceptance_harness.sh` | bash | 18792 | 460 | `0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b` |
-| 13 | `scripts/build_audit_bundle.py` | python | 6990 | 183 | `b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054` |
-| 14 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
-| 15 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
-| 16 | `scripts/build_project_bundle.py` | python | 8591 | 199 | `dc91a369fe6f784622cdee2ac49629e4e210c229acb7639497af0e0c43ce7d75` |
-| 17 | `scripts/run_mutations_v04.sh` | bash | 6630 | 155 | `b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a` |
-| 18 | `step2/roles.sql` | sql | 5275 | 80 | `bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6` |
-| 19 | `step2/roles_patch_planner_status.sql` | sql | 766 | 12 | `59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f` |
-| 20 | `step2/roles_patch_submit_review.sql` | sql | 4046 | 87 | `66d2483c1931da18098ea83f2b3335f8f0392ec1790221bf5f25a85b8ae75a54` |
-| 21 | `step2/roles_patch_tool_call_audit.sql` | sql | 2630 | 38 | `c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a` |
-| 22 | `step2/test_review_gate.py` | python | 5002 | 144 | `1a6d04694b7e65ec8c069add60fce3e3a1be109b8e4d2bce7e77bd55c444b6bb` |
-| 23 | `step2/test_roles.py` | python | 11297 | 241 | `3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d` |
-| 24 | `step2b/roles_2b.sql` | sql | 12338 | 232 | `177fb6183080898d52159e1fb506b0334ad2e0dd3e12477ae739687a23567afd` |
-| 25 | `step2b/test_roles_2b.py` | python | 12156 | 303 | `1d4887b4544cde1fbd7547791a120e752c8181e3c3413102f0d938cf479f8bc7` |
-| 26 | `tests/test_v0.py` | python | 18537 | 519 | `88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95` |
+| 3 | `.github/workflows/release-gate.yml` | yaml | 2474 | 85 | `c5c24dd697087b43ad7ab8dea49d86605e8ad1c2c72df1ad178f105bfe4f2639` |
+| 4 | `.gitignore` | text | 295 | 24 | `52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462` |
+| 5 | `Dockerfile` | dockerfile | 1477 | 35 | `add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c` |
+| 6 | `LICENSE` | text | 1104 | 21 | `6a0f51d5703ca8719a56f87b7a5fb84a8c773f5e361487a1b28fe6580044dff9` |
+| 7 | `docker-compose.yml` | yaml | 5478 | 141 | `73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5` |
+| 8 | `schema/schema_v0.sql` | sql | 23179 | 479 | `4f9ea6398fbd7f9671a3b3d3fd280252c12615304ba9cd4247e3f64b2bcd7482` |
+| 9 | `scripts/02-roles.sh` | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` |
+| 10 | `scripts/03-role-patches.sh` | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` |
+| 11 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
+| 12 | `scripts/acceptance_allowlist.txt` | text | 1457 | 50 | `807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e` |
+| 13 | `scripts/acceptance_harness.sh` | bash | 18792 | 460 | `0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b` |
+| 14 | `scripts/build_audit_bundle.py` | python | 6990 | 183 | `b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054` |
+| 15 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
+| 16 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
+| 17 | `scripts/build_project_bundle.py` | python | 8632 | 200 | `967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906` |
+| 18 | `scripts/run_mutations_v04.sh` | bash | 6630 | 155 | `b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a` |
+| 19 | `step2/roles.sql` | sql | 5275 | 80 | `bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6` |
+| 20 | `step2/roles_patch_planner_status.sql` | sql | 766 | 12 | `59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f` |
+| 21 | `step2/roles_patch_submit_review.sql` | sql | 4046 | 87 | `66d2483c1931da18098ea83f2b3335f8f0392ec1790221bf5f25a85b8ae75a54` |
+| 22 | `step2/roles_patch_tool_call_audit.sql` | sql | 2630 | 38 | `c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a` |
+| 23 | `step2/test_review_gate.py` | python | 5002 | 144 | `1a6d04694b7e65ec8c069add60fce3e3a1be109b8e4d2bce7e77bd55c444b6bb` |
+| 24 | `step2/test_roles.py` | python | 11297 | 241 | `3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d` |
+| 25 | `step2b/roles_2b.sql` | sql | 12338 | 232 | `177fb6183080898d52159e1fb506b0334ad2e0dd3e12477ae739687a23567afd` |
+| 26 | `step2b/test_roles_2b.py` | python | 12156 | 303 | `1d4887b4544cde1fbd7547791a120e752c8181e3c3413102f0d938cf479f8bc7` |
+| 27 | `tests/test_v0.py` | python | 18537 | 519 | `88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95` |
 
 ### DOCS_CORE (29 файлов)
 

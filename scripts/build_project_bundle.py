@@ -38,7 +38,8 @@ VOLUMES: dict[str, dict] = {
         "title": "Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)",
         "globs": ["schema/*", "step2/*", "step2b/*", "scripts/*",
                   "docker-compose.yml", "Dockerfile", ".env.example",
-                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py"],
+                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py",
+                  ".github/workflows/*"],
     },
     "DOCS": {
         "title": "Документация и отчёты (без писем history/inbound)",
