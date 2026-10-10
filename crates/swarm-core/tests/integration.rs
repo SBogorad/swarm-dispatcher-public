@@ -6,26 +6,47 @@
 //!
 //! Без `TEST_DATABASE_URL` тесты пропускаются.
 
-use swarm_core::{
-    Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict,
-};
+use swarm_core::{Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict};
 use uuid::Uuid;
 
 fn dsn() -> Option<String> {
     std::env::var("TEST_DATABASE_URL").ok()
 }
 
+/// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
+/// ... CASCADE` не должен уметь снести рабочую базу).
+fn assert_disposable_db(dsn: &str) {
+    let name = db_name(dsn);
+    let ok = name.starts_with("test_") || name.starts_with("v0") || name.starts_with("c2_");
+    assert!(
+        ok,
+        "refusing to TRUNCATE non-disposable database {name:?} \
+         (allowed prefixes: test_, v0, c2_); point TEST_DATABASE_URL at a throwaway DB"
+    );
+}
+
+/// Имя БД из DSN: key=value (`dbname=...`) или URI (`postgres://.../db`).
+fn db_name(dsn: &str) -> String {
+    if let Some(rest) = dsn
+        .strip_prefix("postgres://")
+        .or_else(|| dsn.strip_prefix("postgresql://"))
+    {
+        let after_host = rest.split('/').nth(1).unwrap_or("");
+        return after_host.split('?').next().unwrap_or("").to_string();
+    }
+    dsn.split_whitespace()
+        .find_map(|p| p.strip_prefix("dbname="))
+        .unwrap_or("")
+        .to_string()
+}
+
 fn truncate(d: &mut SwarmDispatcher) {
     // Прямой SQL: fixture-очистка. Не через методы, чтобы не зависеть от кода.
-    let mut client = postgres::Client::connect(
-        &std::env::var("TEST_DATABASE_URL").unwrap(),
-        postgres::NoTls,
-    )
-    .unwrap();
+    let dsn = std::env::var("TEST_DATABASE_URL").unwrap();
+    assert_disposable_db(&dsn);
+    let mut client = postgres::Client::connect(&dsn, postgres::NoTls).unwrap();
     client
-        .batch_execute(
-            "TRUNCATE events, reviews, task_deps, artifacts, tasks, workers CASCADE",
-        )
+        .batch_execute("TRUNCATE events, reviews, task_deps, artifacts, tasks, workers CASCADE")
         .unwrap();
     // Принудительно возвращаем d в чистое состояние.
     *d = SwarmDispatcher::connect(&std::env::var("TEST_DATABASE_URL").unwrap()).unwrap();
@@ -72,7 +93,10 @@ fn add_dep_cycle_rejected() {
 
     d.add_dep(b, a).unwrap();
     let err = d.add_dep(a, b).unwrap_err();
-    assert!(matches!(err, DispatcherError::CycleDetected), "got: {err:?}");
+    assert!(
+        matches!(err, DispatcherError::CycleDetected),
+        "got: {err:?}"
+    );
 }
 
 #[test]
@@ -175,7 +199,10 @@ fn raw(dsn: &str) -> postgres::Client {
 
 fn count(dsn: &str, ids: &[Uuid]) -> i64 {
     raw(dsn)
-        .query_one("select count(*) from tasks where id = any($1)", &[&ids.to_vec()])
+        .query_one(
+            "select count(*) from tasks where id = any($1)",
+            &[&ids.to_vec()],
+        )
         .unwrap()
         .get(0)
 }
