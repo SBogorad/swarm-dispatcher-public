@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-10T20:53:49+07:00
+**Сгенерировано:** 2026-10-10T21:17:09+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -10,37 +10,37 @@
 
 | Том | Содержание | Файлов | Строк | Исходники, байт | XML, байт |
 |-----|------------|-------:|------:|----------------:|----------:|
-| `CODE` | Код проекта (Rust + тесты + манифесты) | 45 | 11824 | 377199 | 398756 |
-| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3787 | 163016 | 175765 |
+| `CODE` | Код проекта (Rust + тесты + манифесты) | 45 | 11824 | 377201 | 398758 |
+| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3795 | 163156 | 175905 |
 | `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 29 | 5920 | 290098 | 304203 |
 | `DOCS` | Документация и отчёты (без писем history/inbound) | 48 | 10278 | 620630 | 643360 |
-| **Итого** | | **148** | | **1450943** | **1522084** |
+| **Итого** | | **148** | | **1451085** | **1522226** |
 
 ## Хеши томов (для передачи аудитору)
 
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
-- Размер: 398756 байт
-- `sha256`: `e95fe68289df62e2be5108c5372478907451b17adece7f674e34f6ddddc4b3b0`
-- `md5`: `73b1b5baa06b1c1c08790d34f311db4d`
+- Размер: 398758 байт
+- `sha256`: `018ba671898e97bdaf274a328c513d3b811774a73876dcd35595a3fff8920b55`
+- `md5`: `8a6b37ce906fc4bf096b300647db77ee`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
-- Размер: 175765 байт
-- `sha256`: `8a9952e107370638d5f8314f832ba3a0cb68ed282a4b8ff789cb226563009023`
-- `md5`: `454485519cbca41b2c2c221a992ec2b9`
+- Размер: 175905 байт
+- `sha256`: `9d77c19a61c446017b9d972eac789e54d74a9f688cb86b048de9805d4197ce39`
+- `md5`: `974b164f0c3fdf062e1051e7e5413717`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
 - Размер: 304203 байт
-- `sha256`: `409f6e30f8ad82e9eae61e221a47c82ea72ed04e6e84565786799ec5adea8264`
-- `md5`: `cb75d7781fbc65bbdfe255dee44312a2`
+- `sha256`: `ee9ee0a825ef84e11503d44ca70c4af91aba78f93467e3deb8df3a0afe2498d5`
+- `md5`: `9f8c230d8b41ec755c207a45c260e2a6`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
 - Размер: 643360 байт
-- `sha256`: `fd25fa574c4f335dcf6009983d77cee3912ce51eea20d389c259310cf5147f5a`
-- `md5`: `05caed02b932f61c09330c2b8669c531`
+- `sha256`: `0894b8e7f739e7f5d75ead31397ec217086a71bb4cc7cd2cdeda44915d2bd68a`
+- `md5`: `2648b42040c43b8071f9562b0d443b7d`
 
 ## Исключено сознательно
 
@@ -58,7 +58,7 @@
 | # | Путь | Язык | Байт | Строк | sha256 |
 |--:|------|------|-----:|------:|--------|
 | 1 | `Cargo.lock` | toml | 88617 | 3617 | `522f721dee695dd2da851f9cb11bfcbed40a409e1554247a8fededbdb5b1f625` |
-| 2 | `Cargo.toml` | toml | 865 | 36 | `7a93607700ff3a699874078a136f1a99a90338d20846de2c62e6c35201bb730b` |
+| 2 | `Cargo.toml` | toml | 867 | 36 | `b43634a10e13f2fd8317c4a0b2ed09c1a7ad87c55e22ee2542c9f233891be894` |
 | 3 | `crates/swarm-cli/Cargo.toml` | toml | 225 | 10 | `43cacce0e3960bb63925656b3ac96ccece391d295e041a7242844b134eb13f46` |
 | 4 | `crates/swarm-cli/src/main.rs` | rust | 6676 | 205 | `7202eb0ae1412fa3686c1067e7281b1d1c3a06de5504b35e17825e2b3c608e2b` |
 | 5 | `crates/swarm-core/Cargo.toml` | toml | 345 | 17 | `aa491b9d7ab721880f0f86efaa5c02875e9d3ab1a1dba37e474f2c70d81c1f40` |
@@ -117,7 +117,7 @@
 | 8 | `scripts/02-roles.sh` | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` |
 | 9 | `scripts/03-role-patches.sh` | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` |
 | 10 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
-| 11 | `scripts/acceptance_allowlist.txt` | text | 1317 | 42 | `0dd86cc2075343760d394c69f799ea73e1d47385d066ff17fdf5aa2747de6c54` |
+| 11 | `scripts/acceptance_allowlist.txt` | text | 1457 | 50 | `807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e` |
 | 12 | `scripts/acceptance_harness.sh` | bash | 18792 | 460 | `0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b` |
 | 13 | `scripts/build_audit_bundle.py` | python | 6990 | 183 | `b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054` |
 | 14 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |

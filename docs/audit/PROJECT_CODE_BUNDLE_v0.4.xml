@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T20:49:18+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T21:17:09+07:00" generator="scripts/build_project_bundle.py">
   <title>Код проекта (Rust + тесты + манифесты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="9524a386bd0c5fddc5bf5ebb42c84de54ec50405"/>
+  <git is_git="true" head="a57637f03dd24cb8095de58eb1ac32e8ee7f4243"/>
   <manifest>
-    <files count="45" total_bytes="377199"/>
+    <files count="45" total_bytes="377201"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -14,7 +14,7 @@
     </excluded>
     <index>
       <entry path="Cargo.lock" lang="toml" bytes="88617" lines="3617" sha256="522f721dee695dd2da851f9cb11bfcbed40a409e1554247a8fededbdb5b1f625" md5="2bee5e0f187c670b1d9d0255e111a91d"/>
-      <entry path="Cargo.toml" lang="toml" bytes="865" lines="36" sha256="7a93607700ff3a699874078a136f1a99a90338d20846de2c62e6c35201bb730b" md5="b2b3516882b3c5b2deff5d62e7571ebb"/>
+      <entry path="Cargo.toml" lang="toml" bytes="867" lines="36" sha256="b43634a10e13f2fd8317c4a0b2ed09c1a7ad87c55e22ee2542c9f233891be894" md5="3d9cbf6ad795602e8306e72f168026d9"/>
       <entry path="crates/swarm-cli/Cargo.toml" lang="toml" bytes="225" lines="10" sha256="43cacce0e3960bb63925656b3ac96ccece391d295e041a7242844b134eb13f46" md5="6de905d3d78ab75211ce0a387d32d121"/>
       <entry path="crates/swarm-cli/src/main.rs" lang="rust" bytes="6676" lines="205" sha256="7202eb0ae1412fa3686c1067e7281b1d1c3a06de5504b35e17825e2b3c608e2b" md5="ee12e71bef16784b0b874057f60f30e5"/>
       <entry path="crates/swarm-core/Cargo.toml" lang="toml" bytes="345" lines="17" sha256="aa491b9d7ab721880f0f86efaa5c02875e9d3ab1a1dba37e474f2c70d81c1f40" md5="afa18665cc4ff26a353e3305a5636880"/>
@@ -3682,7 +3682,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
 ]]></content>
     </file>
-    <file path="Cargo.toml" lang="toml" bytes="865" lines="36" sha256="7a93607700ff3a699874078a136f1a99a90338d20846de2c62e6c35201bb730b" md5="b2b3516882b3c5b2deff5d62e7571ebb">
+    <file path="Cargo.toml" lang="toml" bytes="867" lines="36" sha256="b43634a10e13f2fd8317c4a0b2ed09c1a7ad87c55e22ee2542c9f233891be894" md5="3d9cbf6ad795602e8306e72f168026d9">
       <content><![CDATA[
 [workspace]
 resolver = "2"
@@ -3698,7 +3698,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.85"
+rust-version = "1.94.1"
 license = "MIT"
 
 [workspace.dependencies]

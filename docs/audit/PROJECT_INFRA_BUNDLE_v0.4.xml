@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T20:49:18+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T21:17:09+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="9524a386bd0c5fddc5bf5ebb42c84de54ec50405"/>
+  <git is_git="true" head="a57637f03dd24cb8095de58eb1ac32e8ee7f4243"/>
   <manifest>
-    <files count="26" total_bytes="163016"/>
+    <files count="26" total_bytes="163156"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -23,7 +23,7 @@
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
-      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1317" lines="42" sha256="0dd86cc2075343760d394c69f799ea73e1d47385d066ff17fdf5aa2747de6c54" md5="0af0a47933bd792aa9a15c07e2c13b4c"/>
+      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1457" lines="50" sha256="807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e" md5="f31b96b6094d6eae208abd7ad3619a07"/>
       <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7"/>
       <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8"/>
@@ -883,7 +883,7 @@ psql -v ON_ERROR_STOP=1 \
      -f /sql/roles_2b.sql
 ]]></content>
     </file>
-    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="1317" lines="42" sha256="0dd86cc2075343760d394c69f799ea73e1d47385d066ff17fdf5aa2747de6c54" md5="0af0a47933bd792aa9a15c07e2c13b4c">
+    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="1457" lines="50" sha256="807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e" md5="f31b96b6094d6eae208abd7ad3619a07">
       <content><![CDATA[
 # Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
 # One rule per line: exact path, or `prefix/*` for a directory subtree.
@@ -927,6 +927,14 @@ scripts/build_project_bundle.py
 
 # Audit evidence produced for this wave.
 docs/audit/*
+
+# G1: CI gate itself (workflow + cost doc).
+.github/*
+docs/ci/*
+
+# MSRV correction required by the G1 toolchain pin.
+Cargo.toml
+Cargo.lock
 ]]></content>
     </file>
     <file path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7">
