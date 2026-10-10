@@ -26,5 +26,14 @@ crates/swarm-planner/tests/*
 crates/swarm-worker/tests/*
 scripts/run_mutations_v04.sh
 
+# Wave 3 fallout: workspace-wide rustfmt + the audit-bundle XML fix.
+crates/swarm-core/src/*
+crates/swarm-llm/src/*
+crates/swarm-planner/src/*
+crates/swarm-watchdog/src/*
+crates/swarm-worker/examples/*
+crates/swarm-worker/src/*
+scripts/build_audit_bundle.py
+
 # Audit evidence produced for this wave.
 docs/audit/*
