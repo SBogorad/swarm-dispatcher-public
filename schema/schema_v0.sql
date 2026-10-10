@@ -137,11 +137,23 @@ begin
 end $$;
 
 create function validate_contract(c jsonb) returns void language plpgsql immutable as $$
-declare k text;
+declare k text; e jsonb;
 begin
   if jsonb_typeof(c->'checks') is distinct from 'array' or jsonb_array_length(c->'checks') = 0 then
     raise exception 'contract_invalid: checks required' using errcode = 'CT001';
   end if;
+  -- F15: каждый элемент checks — объект с непустым строковым type; id опционален,
+  -- но если задан — непустая строка. Без этого задача без type не одобряется вечно.
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if jsonb_typeof(e) <> 'object'
+       or jsonb_typeof(e->'type') is distinct from 'string' or btrim(e->>'type') = '' then
+      raise exception 'contract_invalid: every check must be an object with non-empty string type'
+        using errcode = 'CT001';
+    end if;
+    if jsonb_exists(e, 'id') and (jsonb_typeof(e->'id') <> 'string' or btrim(e->>'id') = '') then
+      raise exception 'contract_invalid: check id must be a non-empty string' using errcode = 'CT001';
+    end if;
+  end loop;
   foreach k in array array['min_ram_gb','coder_class'] loop
     if jsonb_exists(c->'needs', k) and jsonb_typeof(c->'needs'->k) <> 'number' then
       raise exception 'contract_invalid: needs.% must be number', k using errcode = 'CT001';
@@ -357,7 +369,7 @@ end $$;
 
 create function submit_review(p_task uuid, p_ref text, p_reviewer text,
                               p_verdict text, p_checks jsonb)
-returns text language plpgsql as $$
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
 declare t tasks%rowtype; v_creator text; v_new text;
 begin
   select * into t from tasks where id = p_task for update;
@@ -371,18 +383,21 @@ begin
     if jsonb_typeof(p_checks) <> 'array' then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
-    -- Строгий review-gate (G4): каждый required check из contract должен
-    -- иметь хотя бы один pass с тем же type. Проверка по длине больше не
-    -- принимается: `[{"status":"pass"},{"status":"pass"}]` обходил её.
+    -- Строгий review-gate (F2, вариант A): ключ проверки =
+    --   coalesce(id, type || '|' || run).
+    -- Для каждого ключа число pass в отчёте >= числа требований контракта с этим
+    -- ключом. Сопоставление только по type обходилось: контракт с двумя cmd
+    -- (cargo test, cargo clippy) закрывался одним generic {"type":"cmd","status":"pass"}.
+    -- Учёт run разводит такие проверки на разные ключи.
     if exists (
-      select 1
-      from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
-      where not exists (
-        select 1
-        from jsonb_array_elements(p_checks) p
-        where p->>'type' = c->>'type'
-          and p->>'status' = 'pass'
-      )
+      select 1 from (
+        select coalesce(c->>'id', (c->>'type') || '|' || coalesce(c->>'run', '')) as k,
+               count(*) as n
+          from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+         group by 1) req
+       where (select count(*) from jsonb_array_elements(p_checks) p
+               where coalesce(p->>'id', (p->>'type') || '|' || coalesce(p->>'run', '')) = req.k
+                 and p->>'status' = 'pass') < req.n
     ) then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;

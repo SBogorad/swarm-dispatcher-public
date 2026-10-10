@@ -329,7 +329,6 @@ provision_database() {
     -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
     -v "$WORKTREE/step2/roles_patch_planner_status.sql:/c2/patch_planner.sql:ro"
     -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
-    -v "$WORKTREE/step2/roles_patch_submit_review.sql:/c2/patch_review.sql:ro"
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
@@ -359,7 +358,6 @@ provision_database() {
     -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
-  pg postgres "$DB_PASSWORD" -f /c2/patch_review.sql
   DB_READY=1
   status PASS "disposable PostgreSQL 16 provisioned and initialized"
 }

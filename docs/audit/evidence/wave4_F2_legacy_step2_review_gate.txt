@@ -1,0 +1,5 @@
+### legacy step2/test_review_gate.py on FIXED db (regression guard)  |  2026-10-11T05:10:57+07:00
+### container=w4_f2f15_fix_2099503 port=32806  creds REDACTED
+
+.....                                                                    [100%]
+5 passed in 1.76s

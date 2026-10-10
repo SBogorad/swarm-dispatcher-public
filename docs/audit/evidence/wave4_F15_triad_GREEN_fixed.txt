@@ -1,0 +1,6 @@
+### F15 triad — GREEN on fix  |  2026-10-11T05:08:06+07:00
+### container=w4_f2f15_fix_2099503 port=32806  creds REDACTED
+### fix: every check = object with non-empty string type; id optional (schema_v0.sql)
+
+..........                                                               [100%]
+10 passed in 0.46s

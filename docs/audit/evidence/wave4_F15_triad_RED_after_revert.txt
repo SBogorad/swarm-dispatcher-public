@@ -1,0 +1,14 @@
+### F15 triad — RED after revert  |  2026-10-11T05:09:11+07:00
+### container=w4_f2f15_fix_2099503  creds REDACTED
+### reverted: validate_contract restored (no checks[] shape validation)
+
+tests/test_contract_form_f15.py:64: Failed
+=========================== short test summary info ============================
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks0]
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks1]
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks2]
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks3]
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks4]
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks5]
+FAILED tests/test_contract_form_f15.py::test_f15_rejects_malformed_checks[bad_checks6]
+7 failed, 3 passed in 0.38s

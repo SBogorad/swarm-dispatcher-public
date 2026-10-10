@@ -1,0 +1,17 @@
+### F2 triad — RED after revert  |  2026-10-11T05:08:57+07:00
+### container=w4_f2f15_fix_2099503 port=32806  creds REDACTED
+### reverted: gate restored to EXISTS-by-type (has_f2_key=f)
+### expectation: F2 cases RED again (bypass works), positive controls still pass
+
+            ],
+        )
+>       with pytest.raises(psycopg2.DatabaseError) as e:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE DatabaseError
+
+tests/test_review_gate_f2.py:163: Failed
+=========================== short test summary info ============================
+FAILED tests/test_review_gate_f2.py::test_f2_two_checks_same_type_need_two_passes
+FAILED tests/test_review_gate_f2.py::test_f2_two_ids_need_two_passes - Failed...
+FAILED tests/test_review_gate_f2.py::test_f2_wrong_run_does_not_close_other_command
+3 failed, 2 passed in 0.38s

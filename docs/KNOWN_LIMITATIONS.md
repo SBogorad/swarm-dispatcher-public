@@ -207,7 +207,26 @@
 - **Обход для проверки:** запускать `worker_sandbox`-тесты с хоста, где Docker
   доступен напрямую (именно так проверено: 9/9 passed).
 
-### 5.7. tmpfs `/workspace` монтируется с `exec`
+### 5.7. Дублирование `submit_review` устранено — ✅ ЗАКРЫТА (2026-10-11, F16г)
+
+- **Что было:** `submit_review` определялась **дважды** — в
+  `schema/schema_v0.sql` и в `step2/roles_patch_submit_review.sql`. Патч
+  применялся после схемы (`04-role-patches.sh`) и **перекрывал** её тело
+  устаревшей версией. Любой фикс в схеме был мёртвым кодом: initdb побеждал
+  патчем (подтверждено на свежем initdb: `has_f2_key=f`).
+- **Почему это дефект:** первопричина скрытых регрессий (F16г из аудита):
+  один объект имел два источника истины. Патч не нёс уникальной полезной
+  нагрузки — `GRANT EXECUTE ... TO swarm_reviewer` уже в `step2/roles.sql:79`,
+  а тело gate было устаревшим (обходится по `type`, см. F2).
+- **Решение:** `step2/roles_patch_submit_review.sql` **удалён**; монтирование
+  и вызов убраны из `scripts/acceptance_harness.sh` (в `docker-compose.yml`
+  его и не было). Единственный источник истины для `submit_review` и
+  `validate_contract` — `schema/schema_v0.sql`.
+- **Статус:** закрыто 2026-10-11 вместе с фиксом F2/F15 (строгий review-gate:
+  ключ проверки `coalesce(id, type||'|'||run)`, `type` обязателен, `id`
+  опционален). Триады RED→GREEN→RED в `docs/audit/evidence/`.
+
+### 5.8. tmpfs `/workspace` монтируется с `exec`
 
 - **Что:** в sandbox `/workspace` — tmpfs с `exec` (иначе `cargo test`
   не может запустить собранный бинарник: Docker по умолчанию добавляет

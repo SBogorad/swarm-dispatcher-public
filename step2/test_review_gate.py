@@ -1,14 +1,20 @@
-"""Negative tests for the review gate (P0 #5).
+"""Negative tests for the review gate (P0 #5, updated for F2/F15 wave 4).
 
-Regression coverage for the length-only check in `submit_review`:
-the old code accepted N fake `{"status":"pass"}` items with no matching
-`type`, bypassing `contract.checks`. After
-`step2/roles_patch_submit_review.sql`, every required check type from the
-contract must have a matching `type` + `status='pass'` in `p_checks`, or the
-review is rejected with RV003.
+Regression coverage for the review gate in `submit_review`:
+  * the old length-only check accepted N fake `{"status":"pass"}` items with no
+    matching type, bypassing `contract.checks`;
+  * the later EXISTS-by-type check still allowed ONE generic
+    `{"type":"cmd","status":"pass"}` to close TWO `cmd` requirements (F2).
 
-Run (DB with schema_v0.sql + roles.sql + roles_patch_submit_review.sql,
-passwords pw_<role>):
+Current rule (single source schema/schema_v0.sql): the comparison key is
+`coalesce(id, type || '|' || run)`; for every key, the number of `pass` items in
+the report must be >= the number of contract requirements with that key.
+`type` is mandatory (F15); `id` is optional.
+
+NOTE: step2/roles_patch_submit_review.sql was removed (F16г) — submit_review
+lives ONLY in schema/schema_v0.sql now.
+
+Run (DB with schema_v0.sql + roles.sql + roles_2b.sql, passwords pw_<role>):
   ROLES_DB=v0roles ROLES_HOST=localhost ADMIN_PW=pw pytest -q step2/test_review_gate.py
 """
 import json
