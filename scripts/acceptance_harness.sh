@@ -241,7 +241,7 @@ shell_checks() {
 }
 
 compose_check() {
-  local env_file
+  local env_file rendered
   env_file="$(mktemp)"
   cat >"$env_file" <<'ENV'
 DB_PASSWORD=dummy_db_password
@@ -256,8 +256,48 @@ SWARM_PW_W2=dummy_w2_password
 SWARM_PW_W_1=dummy_w_1_password
 SWARM_PW_GPU_1=dummy_gpu_1_password
 ENV
-  docker compose --env-file "$env_file" -f "$WORKTREE/docker-compose.yml" config >/dev/null
+  rendered="$(mktemp)"
+  docker compose --env-file "$env_file" -f "$WORKTREE/docker-compose.yml" config >"$rendered" 2>/dev/null || true
   rm -f "$env_file"
+  [[ -s "$rendered" ]] || { rm -f "$rendered"; return 1; }
+  RENDERED_COMPOSE_FILE="$rendered" compose_security_acceptance
+  local rc=$?
+  rm -f "$rendered"
+  return $rc
+}
+
+# P0-3: pin the worker container boundary in a verifiable check, not just docs.
+compose_security_acceptance() {
+  python3 - <<'PY'
+import os, sys, yaml
+with open(os.environ["RENDERED_COMPOSE_FILE"], encoding="utf-8") as f:
+    cfg = yaml.safe_load(f) or {}
+services = cfg.get("services", {})
+workers = [n for n in services if n.startswith("worker-")]
+def fail(msg):
+    print(f"FAIL {msg}")
+    sys.exit(1)
+if not workers:
+    fail("no worker-* service in compose")
+for name in sorted(workers):
+    svc = services[name]
+    if svc.get("read_only") is not True:
+        fail(f"{name}: read_only must be true")
+    if "ALL" not in (svc.get("cap_drop") or []):
+        fail(f"{name}: cap_drop must include ALL")
+    sec = svc.get("security_opt") or []
+    if not any("no-new-privileges" in s for s in sec):
+        fail(f"{name}: no-new-privileges missing")
+    for vol in svc.get("volumes") or []:
+        src = vol if isinstance(vol, str) else (vol.get("source") or "")
+        if "docker.sock" in str(src):
+            fail(f"{name}: docker.sock must not be mounted by default")
+    if svc.get("privileged") is True:
+        fail(f"{name}: privileged must not be set")
+    if svc.get("network_mode") == "host":
+        fail(f"{name}: host network mode not allowed")
+print("PASS worker container boundary pinned: " + ", ".join(sorted(workers)))
+PY
 }
 
 pg() {
