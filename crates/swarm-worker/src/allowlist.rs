@@ -323,4 +323,41 @@ mod tests {
         assert!(al().check("echo foo\\; rm -rf /").is_err());
         assert!(al().check("echo ${HOME}").is_err());
     }
+
+    // P0-1: shell-форма без однозначного `-c` — скрипт, интерактив, голый shell.
+    #[test]
+    fn allowlist_rejects_shell_script_operand() {
+        for c in [
+            "bash script.sh", // script operand вместо -c
+            "sh /tmp/x.sh",
+            "bash",    // голый shell
+            "bash -i", // интерактивный shell
+            "bash --login",
+        ] {
+            assert!(al().check(c).is_err(), "{c} должен быть отклонён");
+        }
+    }
+
+    // P0-1: проверка доверенного executable path, а не только basename.
+    #[test]
+    fn allowlist_rejects_untrusted_executable_path() {
+        assert!(
+            al().check("/tmp/cargo build").is_err(),
+            "basename cargo, но путь недоверенный"
+        );
+        assert!(al().check("./cargo build").is_err());
+        assert!(al().check("/usr/local/bin/git status").is_err());
+        assert!(al().check("../cargo build").is_err());
+        // доверенный путь shell с -c проходит
+        assert!(al().check("/bin/bash -c \"cargo test\"").is_ok());
+    }
+
+    // P0-1: комбинированные флаги и env-подстановки.
+    #[test]
+    fn allowlist_rejects_combined_flags_and_env_substitution() {
+        assert!(al().check("bash -xc 'cargo test'").is_err());
+        assert!(al().check("bash -ec 'cargo test'").is_err());
+        assert!(al().check("cat ${HOME}/.ssh/id_rsa").is_err());
+        assert!(al().check("cat $(whoami)").is_err());
+    }
 }
