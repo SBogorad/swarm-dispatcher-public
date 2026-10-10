@@ -44,3 +44,7 @@ docs/audit/*
 # G1: CI gate itself (workflow + cost doc).
 .github/*
 docs/ci/*
+
+# MSRV correction required by the G1 toolchain pin.
+Cargo.toml
+Cargo.lock
