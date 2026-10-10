@@ -8,6 +8,7 @@
 //!
 //! Только синхронный код (`std::process`), без async — как требует ТЗ §12.
 
+use crate::allowlist::parse_command_argv;
 use crate::error::{Result, WorkerError};
 use sha2::{Digest, Sha256};
 use std::process::{Command, Stdio};
@@ -467,57 +468,6 @@ fn run_cmd_owned_inner(
         exit_code: status.code().unwrap_or(-1),
         timed_out,
     })
-}
-
-/// Parse the small argv language used by exec. No shell expansion or
-/// operators are interpreted, even if a direct caller bypasses Allowlist.
-fn parse_command_argv(command: &str) -> Result<Vec<String>> {
-    let mut argv = Vec::new();
-    let mut token = String::new();
-    let mut quote = None;
-    let mut started = false;
-    for ch in command.chars() {
-        match quote {
-            Some(q) if ch == q => quote = None,
-            Some(_) => token.push(ch),
-            None if ch == '\'' || ch == '"' => {
-                quote = Some(ch);
-                started = true;
-            }
-            None if ch.is_whitespace() => {
-                if started {
-                    argv.push(std::mem::take(&mut token));
-                    started = false;
-                }
-            }
-            None if matches!(ch, ';' | '|' | '&' | '<' | '>' | '`' | '$' | '\\') => {
-                return Err(WorkerError::AllowlistRejected {
-                    command: command.to_string(),
-                    reason: format!("запрещённый shell-символ: {ch:?}"),
-                });
-            }
-            None => {
-                token.push(ch);
-                started = true;
-            }
-        }
-    }
-    if quote.is_some() {
-        return Err(WorkerError::AllowlistRejected {
-            command: command.to_string(),
-            reason: "незакрытая кавычка".into(),
-        });
-    }
-    if started {
-        argv.push(token);
-    }
-    if argv.is_empty() {
-        return Err(WorkerError::AllowlistRejected {
-            command: command.to_string(),
-            reason: "пустая команда".into(),
-        });
-    }
-    Ok(argv)
 }
 
 #[cfg(test)]
