@@ -4,10 +4,14 @@
 
 # The acceptance harness itself.
 scripts/acceptance_harness.sh
+scripts/acceptance_allowlist.txt
 
 # P0 SQL patches and their tests.
 step2/roles_patch_submit_review.sql
 step2/test_review_gate.py
+
+# P0 Rust hardening: allowlist and agent-loop path validation (+ tests).
+crates/swarm-worker/src/*
 
 # Audit evidence produced for this wave.
 docs/audit/*

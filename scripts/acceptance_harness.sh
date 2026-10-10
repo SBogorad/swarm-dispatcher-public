@@ -353,7 +353,15 @@ database_acceptance() {
 review_gate_acceptance() {
   local failures_before=$FAILURES
   [[ "$DB_READY" == 1 ]]
-  [[ -f "$WORKTREE/step2/test_review_gate.py" ]] || { status BLOCKED "review-gate tests missing (step2/test_review_gate.py)"; return 0; }
+  local suite
+  local suites=(
+    "step2/test_roles.py|RBAC role separation + catalog invariants (P0 #3/#4)"
+    "step2b/test_roles_2b.py|worker identity, SET ROLE, id collisions (P0 #4)"
+    "step2/test_review_gate.py|review-gate negative tests (P0 #5)"
+  )
+  for suite in "${suites[@]}"; do
+    [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
+  done
   local py="$WORKTREE/.venv/bin/python"
   if [[ ! -x "$py" ]]; then
     if command -v uv >/dev/null 2>&1; then
@@ -365,11 +373,16 @@ review_gate_acceptance() {
     return 0
   fi
   export ROLES_DB=c2_swarm ROLES_HOST=127.0.0.1 ROLES_PORT=$TEST_DB_PORT ADMIN_PW="$DB_PASSWORD"
-  export SWARM_PW_PLANNER=c2_planner SWARM_PW_REVIEWER=c2_reviewer SWARM_PW_OPERATOR=c2_operator
-  export SWARM_PW_W1=c2_w1 SWARM_PW_WORKER=c2_worker
-  run_worktree_step "review-gate negative tests (P0 #5) on patched c2_ database" \
-    "$py" -m pytest -q step2/test_review_gate.py
-  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW SWARM_PW_PLANNER SWARM_PW_REVIEWER SWARM_PW_OPERATOR SWARM_PW_W1 SWARM_PW_WORKER
+  export SWARM_PW_W1=c2_w1 SWARM_PW_W2=c2_w2 SWARM_PW_W_1=c2_w_1 SWARM_PW_GPU_1=c2_gpu_1
+  export SWARM_PW_WORKER=c2_worker SWARM_PW_WATCHDOG=c2_watchdog SWARM_PW_PLANNER=c2_planner
+  export SWARM_PW_REVIEWER=c2_reviewer SWARM_PW_OPERATOR=c2_operator SWARM_PW_CLI=c2_cli
+  for suite in "${suites[@]}"; do
+    run_worktree_step "${suite##*|} on patched c2_ database" \
+      "$py" -m pytest -q "${suite%%|*}"
+  done
+  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW
+  unset SWARM_PW_W1 SWARM_PW_W2 SWARM_PW_W_1 SWARM_PW_GPU_1 SWARM_PW_WORKER SWARM_PW_WATCHDOG
+  unset SWARM_PW_PLANNER SWARM_PW_REVIEWER SWARM_PW_OPERATOR SWARM_PW_CLI
   ((FAILURES == failures_before))
 }
 
@@ -400,5 +413,5 @@ else
 fi
 if command -v docker >/dev/null 2>&1; then
   run_step "RBAC smoke on disposable c2_ database" database_acceptance
-  run_step "review-gate acceptance on disposable c2_ database" review_gate_acceptance
+  run_step "RBAC/path/review Python suites on disposable c2_ database" review_gate_acceptance
 fi
