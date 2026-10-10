@@ -51,7 +51,9 @@ VOLUMES: dict[str, dict] = {
                   "docs/KNOWN_LIMITATIONS.md", "docs/PROJECT_STATE.md",
                   "docs/METHODOLOGY.md", "docs/VERIFICATION_LOG.md",
                   "README.md", "CHANGELOG.md", "RESUME.md", "MANIFEST.md",
-                  "REPORT_*.md", "docs/audit/AUDITOR_BRIEF_v0.4.md"],
+                  "REPORT_*.md", "docs/audit/AUDITOR_BRIEF_v0.4.md",
+                  "docs/audit/AUDITOR_BRIEF_v0.4.en.md",
+                  "docs/audit/README_AUDIT_PACKAGE.md"],
     },
 }
 

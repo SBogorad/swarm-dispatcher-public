@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-10T19:53:22+07:00
+**Сгенерировано:** 2026-10-10T20:00:23+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -11,36 +11,36 @@
 | Том | Содержание | Файлов | Строк | Исходники, байт | XML, байт |
 |-----|------------|-------:|------:|----------------:|----------:|
 | `CODE` | Код проекта (Rust + тесты + манифесты) | 45 | 11799 | 375134 | 396691 |
-| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3683 | 158077 | 170824 |
-| `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 27 | 5655 | 277741 | 290829 |
+| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3685 | 158190 | 170937 |
+| `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 29 | 5920 | 290098 | 304203 |
 | `DOCS` | Документация и отчёты (без писем history/inbound) | 47 | 10186 | 614671 | 636966 |
-| **Итого** | | **145** | | **1425623** | **1495310** |
+| **Итого** | | **147** | | **1438093** | **1508797** |
 
 ## Хеши томов (для передачи аудитору)
 
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
 - Размер: 396691 байт
-- `sha256`: `dcd5618b899caf52d6e642e1c0f17035fcfb4f82171b477f22644799ea931555`
-- `md5`: `e7eee5b7511b6649bf34df4158e68546`
+- `sha256`: `a409f3d352af843d12c9a73a99e1689c8e19ab634a41334f5904f1e6aa29ace0`
+- `md5`: `7c851fa12005a0d6a426141089630197`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
-- Размер: 170824 байт
-- `sha256`: `9e5e65b58c4206252a57d4707da4774e453ebe6a73ed2ead94516ad84951317b`
-- `md5`: `baadecdefab32eef1ae259f073fa4d99`
+- Размер: 170937 байт
+- `sha256`: `b27cb3f4a778c8473e47860e1b7e76bd3ec4360df6824d11a6f39868c88471e2`
+- `md5`: `50673ea83b84d06c6e916307c9dc1c67`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
-- Размер: 290829 байт
-- `sha256`: `d0d541d0a2e37d63f14ff6a998f782751e59cbdd2919d2358dda7c6cdbdde56a`
-- `md5`: `dbc5ddba0fe8321158b28b7f6d11cd2d`
+- Размер: 304203 байт
+- `sha256`: `c736d6ef89fb81cb0b089e699e5628632b88374a075a33c473817b1834257251`
+- `md5`: `08201c0f1dc093d690f73df38a8997f3`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
 - Размер: 636966 байт
-- `sha256`: `5437ffdea67ede6695f81f30ee705e75016a2081441a22d40e66963506462681`
-- `md5`: `9caf9fc7e798a37c3d46ff962e4d796a`
+- `sha256`: `22dccb70e882c12a9f651b316dfaf3a897e41205eab238dc50a4cd757b96be94`
+- `md5`: `ac8eca6d55d4aa2288cb8b0640552901`
 
 ## Исключено сознательно
 
@@ -122,7 +122,7 @@
 | 13 | `scripts/build_audit_bundle.py` | python | 6990 | 183 | `b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054` |
 | 14 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
 | 15 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
-| 16 | `scripts/build_project_bundle.py` | python | 8478 | 197 | `039bc85c67845940f7b31fe4c378ea57d08481c840cf38f5b5bf5755d5622936` |
+| 16 | `scripts/build_project_bundle.py` | python | 8591 | 199 | `dc91a369fe6f784622cdee2ac49629e4e210c229acb7639497af0e0c43ce7d75` |
 | 17 | `scripts/run_mutations_v04.sh` | bash | 6630 | 155 | `b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a` |
 | 18 | `step2/roles.sql` | sql | 5275 | 80 | `bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6` |
 | 19 | `step2/roles_patch_planner_status.sql` | sql | 766 | 12 | `59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f` |
@@ -134,7 +134,7 @@
 | 25 | `step2b/test_roles_2b.py` | python | 9490 | 238 | `af3b884701f47ffbbf39945f47790155a1b55716e1ede3965a345dd712795856` |
 | 26 | `tests/test_v0.py` | python | 18537 | 519 | `88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95` |
 
-### DOCS_CORE (27 файлов)
+### DOCS_CORE (29 файлов)
 
 | # | Путь | Язык | Байт | Строк | sha256 |
 |--:|------|------|-----:|------:|--------|
@@ -164,7 +164,9 @@
 | 24 | `docs/TZ_v0.3_llm_worker.md` | markdown | 11499 | 290 | `b0e6cfe44bf81b7277ff6c6933705d40d265c058ee46c98132cd54cf09a01627` |
 | 25 | `docs/TZ_v0.4_shell_tools_sandbox.md` | markdown | 11169 | 287 | `67eaa042042ecee383dc9e0ac8a6f9b4ccb131935f7123ef27ec565a0d7b036b` |
 | 26 | `docs/VERIFICATION_LOG.md` | markdown | 8512 | 180 | `4479463c38933b94b3fd4a50d407f98ba8a52bda3b9b38620fb87b075cd32103` |
-| 27 | `docs/audit/AUDITOR_BRIEF_v0.4.md` | markdown | 10541 | 164 | `a50fedc370bbdebcdc991c5bd0219ff1063acdc41e409107eac53a1c623e4a8a` |
+| 27 | `docs/audit/AUDITOR_BRIEF_v0.4.en.md` | markdown | 7364 | 169 | `319186b702ec4a26b6d3442b21cf1dda1cfacf43c91f1a40ba13e4fcd76e245e` |
+| 28 | `docs/audit/AUDITOR_BRIEF_v0.4.md` | markdown | 10541 | 164 | `a50fedc370bbdebcdc991c5bd0219ff1063acdc41e409107eac53a1c623e4a8a` |
+| 29 | `docs/audit/README_AUDIT_PACKAGE.md` | markdown | 4993 | 96 | `e822b5efd3e55a16029545708ee847232ebe7b415380a29b22b0d11042f2127d` |
 
 ### DOCS (47 файлов)
 

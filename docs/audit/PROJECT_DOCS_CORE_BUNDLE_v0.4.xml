@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS_CORE" generated="2026-10-10T19:52:56+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS_CORE" generated="2026-10-10T20:00:23+07:00" generator="scripts/build_project_bundle.py">
   <title>Ключевая документация (ТЗ, архитектура, ограничения, отчёты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="f2588ea4e5589d23dc876e6835f49fa30556611e"/>
+  <git is_git="true" head="024e2a483a02209490fd81f10599dbd6c8f8f761"/>
   <manifest>
-    <files count="27" total_bytes="277741"/>
+    <files count="29" total_bytes="290098"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -39,7 +39,9 @@
       <entry path="docs/TZ_v0.3_llm_worker.md" lang="markdown" bytes="11499" lines="290" sha256="b0e6cfe44bf81b7277ff6c6933705d40d265c058ee46c98132cd54cf09a01627" md5="13e95316f378ea59f7674b0eaa267b4c"/>
       <entry path="docs/TZ_v0.4_shell_tools_sandbox.md" lang="markdown" bytes="11169" lines="287" sha256="67eaa042042ecee383dc9e0ac8a6f9b4ccb131935f7123ef27ec565a0d7b036b" md5="d3c3e9850cae4d6ab414dfe325abc1c4"/>
       <entry path="docs/VERIFICATION_LOG.md" lang="markdown" bytes="8512" lines="180" sha256="4479463c38933b94b3fd4a50d407f98ba8a52bda3b9b38620fb87b075cd32103" md5="bc32e73db77f51cc2c185f5bf88aa773"/>
+      <entry path="docs/audit/AUDITOR_BRIEF_v0.4.en.md" lang="markdown" bytes="7364" lines="169" sha256="319186b702ec4a26b6d3442b21cf1dda1cfacf43c91f1a40ba13e4fcd76e245e" md5="961414f68b6c20ed92b9453a550867e9"/>
       <entry path="docs/audit/AUDITOR_BRIEF_v0.4.md" lang="markdown" bytes="10541" lines="164" sha256="a50fedc370bbdebcdc991c5bd0219ff1063acdc41e409107eac53a1c623e4a8a" md5="4790fa25340db0047858d0720874da24"/>
+      <entry path="docs/audit/README_AUDIT_PACKAGE.md" lang="markdown" bytes="4993" lines="96" sha256="e822b5efd3e55a16029545708ee847232ebe7b415380a29b22b0d11042f2127d" md5="58817c038a50131822e4f22aaeb51f98"/>
     </index>
   </manifest>
   <files>
@@ -5634,6 +5636,179 @@ REPORT_v0.4_shell_tools_sandbox.md:
 - Верификация должна быть **честной**. Если что-то не прошло — записать.
 ]]></content>
     </file>
+    <file path="docs/audit/AUDITOR_BRIEF_v0.4.en.md" lang="markdown" bytes="7364" lines="169" sha256="319186b702ec4a26b6d3442b21cf1dda1cfacf43c91f1a40ba13e4fcd76e245e" md5="961414f68b6c20ed92b9453a550867e9">
+      <content encoding="xml-escaped">
+# Audit brief: `swarm-dispatcher` v0.4
+
+**To:** an independent auditor (an LLM with no repository access).
+**Input:** XML volumes with the full source code, infrastructure, and documentation.
+**Task:** find correctness, security, and concurrency defects — with evidence from the code.
+
+---
+
+## 1. What this project is
+
+`swarm-dispatcher` is a distributed task scheduler on PostgreSQL. The queue, the
+state machine, and the access rules live **in the database** (`SECURITY DEFINER`
+SQL functions), not in the application. The Rust processes are thin clients of
+that queue.
+
+Components (crates):
+
+| Crate | Role |
+|-------|------|
+| `swarm-core` | Data model, dispatcher, transactions, types |
+| `swarm-planner` | Task decomposition via an LLM (Planner) |
+| `swarm-worker` | Subtask execution, artifacts, retry |
+| `swarm-watchdog` | Returns expired leases to the queue |
+| `swarm-cli` | Operator interface, review |
+| `swarm-llm` | LLM provider client |
+
+**Project constraints (respect them in your findings):**
+- **Synchronous** code only, no async/tokio.
+- PostgreSQL only. The DB schema is the source of truth.
+- The public `swarm-core` API must not change (audit, not refactoring).
+
+---
+
+## 2. How to read the package
+
+Volumes (all inside the ZIP next to this brief):
+
+| Volume | File | Contents |
+|--------|------|----------|
+| `CODE` | `PROJECT_CODE_BUNDLE_v0.4.xml` | Rust: 6 crates, src + tests + fixtures, Cargo |
+| `INFRA` | `PROJECT_INFRA_BUNDLE_v0.4.xml` | SQL (schema/roles/patches), init scripts, Dockerfile, compose, `.env.example` |
+| `DOCS_CORE` | `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml` | Specs, architecture, known limitations, reports |
+| `DOCS` | `PROJECT_DOCS_BUNDLE_v0.4.xml` | The above + methodology, decision history, correspondence |
+
+**Recommended order:**
+1. `INFRA` → `schema/schema_v0.sql`, `step2/roles.sql`, `step2b/roles_2b.sql` — first understand
+   the state machine and the privileges.
+2. `CODE` → `swarm-core` (dispatcher), then `swarm-worker`, `swarm-watchdog`, `swarm-planner`.
+3. `DOCS_CORE` → `ARCHITECTURE.md`, `KNOWN_LIMITATIONS.md` — what the authors **claim**.
+4. The rest as needed.
+
+**Integrity:** `CHECKSUMS_v0.4.txt` (sha256 per volume). Every file inside a volume carries
+`sha256` and `md5` in `&lt;manifest&gt;`; the full text is in `&lt;content&gt;`.
+
+**Format:** `&lt;file path="…" sha256="…"&gt;&lt;content&gt;&lt;![CDATA[ …text… ]]&gt;&lt;/content&gt;&lt;/file&gt;`.
+
+---
+
+## 3. What to check
+
+### 3.1. State machine and DB invariants
+Files: `schema/schema_v0.sql`, `step2/roles.sql`, `step2b/roles_2b.sql`, `crates/swarm-core/src/dispatcher.rs`.
+
+- Are **orphan states** possible: a task `claimed` with no live lease, `done` without an artifact,
+  `failed` without a reason?
+- Are there transitions the function **allows** but the state machine should not?
+- Is `claim` atomic? Check `FOR UPDATE SKIP LOCKED` and the selection predicate — is there a window
+  between selecting the row and updating it?
+- Can one task be handed to **two workers**?
+- Are `lease_expires_at` and the system clock consistent (time-skew vulnerability)?
+
+### 3.2. Concurrency: watchdog vs worker
+Files: `crates/swarm-watchdog/src/main.rs`, `crates/swarm-worker/src/worker.rs`.
+
+- Can the watchdog **steal** a task from a live worker (false timeout)?
+- What happens if the worker finishes **after** the watchdog requeued the task?
+  A duplicate artifact write? A lost result?
+- Is there protection against a "zombie" worker (process alive but not progressing)?
+
+### 3.3. Role privileges (least privilege)
+Files: `schema/roles.sql`, `step2/roles.sql`, `step2/roles_patch_planner_status.sql`, `step2b/roles_2b.sql`.
+
+- Does each role have **only what it needs**? Is there a direct `INSERT`/`UPDATE` into tables that
+  bypasses the functions?
+- `SECURITY DEFINER` functions: is `search_path` pinned? Otherwise — privilege escalation via object
+  shadowing.
+- Can `swarm_worker_w1` call the planner functions (`swarm_planner`)?
+- The grant patch ships as a separate file — **check the order** `schema → roles → roles_2b →
+  roles_patch_planner_status` and that, without the patch, nothing breaks except what is expected.
+
+### 3.4. Planner: trust in the LLM
+Files: `crates/swarm-planner/src/parse.rs`, `lib.rs`, `prompt.rs`.
+
+- What happens on **garbage/incomplete** JSON from the model? Is there a retry? Can it be an
+  infinite loop?
+- **Prompt injection**: the task text goes into the prompt inside `&lt;untrusted&gt;…&lt;/untrusted&gt;` and is
+  stripped from the JSON contract. Is that enough? Find a path where the description influences the
+  plan structure.
+- Cyclic dependencies in the plan: are they checked?
+- Is there a cap on the number of subtasks (protection against a "10,000-step plan")?
+
+### 3.5. Worker: artifacts and retry
+Files: `crates/swarm-worker/src/artifacts.rs`, `worker.rs`, `retry.rs`, `prompt.rs`.
+
+- Is the artifact `sha256` computed **before** the DB write? Can the DB and the disk diverge (artifact
+  written, hash not — and vice versa)?
+- Retry: how many attempts? What happens on a failure **mid-way** — is a partial artifact left behind?
+- Is the artifact of a previous attempt overwritten?
+
+### 3.6. Tests: honesty of coverage
+Files: `crates/*/tests/*.rs`, `tests/test_v0.py`, `step2/test_roles.py`, `step2b/test_roles_2b.py`.
+
+- Do the integration tests really hit PostgreSQL, or do they substitute mocks?
+- Are there **concurrency** tests (two workers, watchdog + worker), or is everything sequential?
+- The reports claim mutation testing M1–M7. Check against the tests: is it reproducible? Which
+  mutants **survive** (the tests do not catch them)?
+- Find claims in the reports that the code **does not support**.
+
+### 3.7. Documentation vs code
+Files: `README.md`, `docs/KNOWN_LIMITATIONS.md`, `docs/ARCHITECTURE.md`, `REPORT_*.md`.
+
+- Verify the **honesty** of the claims. Particular attention: `KNOWN_LIMITATIONS.md` — are all
+  limitations really listed, or is something withheld?
+- `docs/TZ_v0.4_shell_tools_sandbox.md` — the spec for shell tools and the Docker sandbox.
+  **Its implementation is not in this bundle** (expected; next version). Check only that the spec is
+  self-consistent.
+
+---
+
+## 4. What not to do
+
+- Do not rewrite the code wholesale, do not propose general refactoring.
+- Do not comment on style, formatting, or naming.
+- Do not invent problems without a **quote from the code**.
+- Do not equate "tests pass" with "code is correct". Inspect the tests themselves.
+
+---
+
+## 5. Answer format
+
+One finding — one block:
+
+```
+### [SEVERITY] Short title
+- File: path:line
+- Essence: what is wrong and why it is a defect
+- Evidence: code quote (5–15 lines)
+- Reproduction / verification: how to confirm it
+- Proposal: the minimal fix
+```
+
+`SEVERITY`: `CRITICAL` (data loss/corruption, privilege escalation) · `HIGH` (race, invariant bypass) ·
+`MEDIUM` (error handling, resources) · `LOW` (minor) · `INFO` (observation).
+
+At the end — a summary: how many findings per severity, and the **three main risks** of the project.
+
+If a section has no findings, say so explicitly: "checked, clean".
+
+---
+
+## 6. Package verification
+
+```bash
+sha256sum -c CHECKSUMS_v0.4.txt          # volume integrity
+unzip -l swarm-dispatcher_audit_v0.4.zip # contents
+```
+
+The volumes are reproducible from the repository:
+`python3 scripts/build_project_bundle.py &amp;&amp; python3 scripts/build_audit_index.py`.
+      </content>
+    </file>
     <file path="docs/audit/AUDITOR_BRIEF_v0.4.md" lang="markdown" bytes="10541" lines="164" sha256="a50fedc370bbdebcdc991c5bd0219ff1063acdc41e409107eac53a1c623e4a8a" md5="4790fa25340db0047858d0720874da24">
       <content encoding="xml-escaped">
 # Аудит-бриф: `swarm-dispatcher` v0.4
@@ -5801,6 +5976,106 @@ unzip -l swarm-dispatcher_audit_v0.4.zip # состав
 Тома пересобираемы из репозитория:
 `python3 scripts/build_project_bundle.py &amp;&amp; python3 scripts/build_audit_index.py`.
       </content>
+    </file>
+    <file path="docs/audit/README_AUDIT_PACKAGE.md" lang="markdown" bytes="4993" lines="96" sha256="e822b5efd3e55a16029545708ee847232ebe7b415380a29b22b0d11042f2127d" md5="58817c038a50131822e4f22aaeb51f98">
+      <content><![CDATA[
+# Audit package: `swarm-dispatcher` v0.4 / Аудит-пакет: `swarm-dispatcher` v0.4
+
+**README — RU/EN.** Both languages are provided for the whole package.
+**README — RU/EN.** Обе версии приведены для всего пакета.
+
+---
+
+## EN
+
+### What this is
+
+A self-contained, machine-readable snapshot of the `swarm-dispatcher` repository
+for an **independent external auditor** (an LLM), together with a brief describing
+what to look for. Content is shipped as XML volumes; every file carries a full
+text body and two hashes (`sha256`, `md5`); secrets are excluded.
+
+### Files in this package
+
+| File | Language | Purpose |
+|------|----------|---------|
+| `AUDITOR_BRIEF_v0.4.md` | RU | The brief: scope, what to check, answer format |
+| `AUDITOR_BRIEF_v0.4.en.md` | EN | The same brief, in English |
+| `PROJECT_CODE_BUNDLE_v0.4.xml` | — | Rust: 6 crates (src, tests, fixtures, Cargo) |
+| `PROJECT_INFRA_BUNDLE_v0.4.xml` | — | SQL (schema/roles/patches), init scripts, Docker/compose, config |
+| `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml` | RU | Core docs (specs, architecture, limitations, reports) |
+| `PROJECT_DOCS_BUNDLE_v0.4.xml` | RU | Core docs + methodology, decision history, correspondence |
+| `SCRIPTS_BUNDLE_v0.4.xml` | — | All repository scripts (SQL/bash/py) |
+| `AUDIT_PACKAGE_INDEX_v0.4.md` | RU | Index of the pack with per-volume hashes |
+| `AUDIT_BUNDLE_REPORT_v0.4.md` | RU | Report on the scripts bundle |
+| `CHECKSUMS_v0.4.txt` | — | `sha256` per volume |
+
+### Revision under audit
+
+- Branch: `feature/v0.6-distributed-worker-mvp`
+- HEAD (`git rev-parse`): recorded in each volume as `<git head="…"/>`
+  and in `AUDIT_PACKAGE_INDEX_v0.4.md`.
+- The bundle head **must equal** the git HEAD you were given; if not, the package
+  is stale — ask for a rebuild.
+
+### How to start
+
+1. Read `AUDITOR_BRIEF_v0.4.en.md` (or the RU original).
+2. Verify integrity: `sha256sum -c CHECKSUMS_v0.4.txt`.
+3. Follow the recommended reading order in the brief (§2).
+
+### Language note
+
+The brief is available in **Russian and English**. The source code, SQL, and
+commit messages are in English; the project documentation (in the volumes) is
+primarily Russian. Findings may be reported in either language.
+
+---
+
+## RU
+
+### Что это
+
+Самодостаточный машиночитаемый снимок репозитория `swarm-dispatcher` для
+**внешнего независимого аудитора** (LLM), вместе с брифом о том, что проверять.
+Содержимое — XML-тома; каждый файл с полным текстом и двумя хешами
+(`sha256`, `md5`); секреты исключены.
+
+### Состав пакета
+
+| Файл | Язык | Назначение |
+|------|------|------------|
+| `AUDITOR_BRIEF_v0.4.md` | RU | Бриф: рамки, что проверять, формат ответа |
+| `AUDITOR_BRIEF_v0.4.en.md` | EN | Тот же бриф на английском |
+| `PROJECT_CODE_BUNDLE_v0.4.xml` | — | Rust: 6 крейтов (src, тесты, фикстуры, Cargo) |
+| `PROJECT_INFRA_BUNDLE_v0.4.xml` | — | SQL (схема/роли/патчи), init-скрипты, Docker/compose, конфиг |
+| `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml` | RU | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) |
+| `PROJECT_DOCS_BUNDLE_v0.4.xml` | RU | Ключевая документация + методология, история решений, переписка |
+| `SCRIPTS_BUNDLE_v0.4.xml` | — | Все скрипты репозитория (SQL/bash/py) |
+| `AUDIT_PACKAGE_INDEX_v0.4.md` | RU | Индекс пакета с хешами по томам |
+| `AUDIT_BUNDLE_REPORT_v0.4.md` | RU | Отчёт по бандлу скриптов |
+| `CHECKSUMS_v0.4.txt` | — | `sha256` по томам |
+
+### Ревизия под аудитом
+
+- Ветка: `feature/v0.6-distributed-worker-mvp`
+- HEAD (`git rev-parse`): записан в каждом томе как `<git head="…"/>`
+  и в `AUDIT_PACKAGE_INDEX_v0.4.md`.
+- Head бандла **обязан совпадать** с выданным git HEAD; если нет — пакет устарел,
+  запросите пересборку.
+
+### Как начать
+
+1. Прочитайте `AUDITOR_BRIEF_v0.4.md` (или английскую версию).
+2. Проверьте целостность: `sha256sum -c CHECKSUMS_v0.4.txt`.
+3. Идите по рекомендуемому порядку в брифе (§2).
+
+### О языке
+
+Бриф доступен **на русском и английском**. Исходный код, SQL и сообщения коммитов —
+на английском; документация проекта (в томах) — преимущественно на русском.
+Находки можно оформлять на любом из двух языков.
+]]></content>
     </file>
   </files>
 </audit-volume>
