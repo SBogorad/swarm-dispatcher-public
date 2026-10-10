@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-10T21:20:45+07:00
+**Сгенерировано:** 2026-10-10T21:40:42+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -21,26 +21,26 @@
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
 - Размер: 398758 байт
-- `sha256`: `25c9654d76b849fdfacfeee85f6824fdfa2d2c06818b01caaeead1f7c07a1fc2`
-- `md5`: `e1ea74e3962af0b06e20b141e2118416`
+- `sha256`: `2ffb4f323e7f9a546f6f4f244280d64348c37b1954ccc35a259ac1abbd0dba31`
+- `md5`: `3c6570a32c173ac3ddea16b8708cc673`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
 - Размер: 178879 байт
-- `sha256`: `296b46853ca4f3239ce0c66a905592ea8ea8c3eb16670e6df035990e473a3c26`
-- `md5`: `5e820d53a17b1f23afeade5dd3d0d5eb`
+- `sha256`: `b726c0dd3ed903960739bdc49fe6562624c68bfccdb1e93537c00dc399cc462e`
+- `md5`: `2aeb0bedc28bd73ffff70876836b3087`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
 - Размер: 304203 байт
-- `sha256`: `a8e4615b5d915c2e63ea0ac28c2218ddcec85761318b802b907ada7a58fc3ff3`
-- `md5`: `db3497d937cc923504470a3eea81f45b`
+- `sha256`: `ebef8bfd9c4a92fc12ed6c28df1c5e48eaff5cb05e5caa5adb522f109eb989ba`
+- `md5`: `e2fc34993080ef9d40c8dcf2e9c4f49c`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
 - Размер: 643360 байт
-- `sha256`: `17a8993640c3a056aee468714ee08b7aafa433102c41a5622311a7dbc2b411e1`
-- `md5`: `519313c4a8f3032621f1666b3a4f5615`
+- `sha256`: `48763630bd31420c5a4db8ace869e79c7723db8652f18e08cd33e9e02a73e5be`
+- `md5`: `3908813e6de64917f8a4d12d7d921166`
 
 ## Исключено сознательно
 
