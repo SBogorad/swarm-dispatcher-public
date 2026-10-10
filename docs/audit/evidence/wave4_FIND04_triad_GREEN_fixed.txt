@@ -1,0 +1,7 @@
+### FIND-04 triad — GREEN on fix  |  2026-10-11T04:49:05+07:00  |  HEAD 9c74a1f6e141b3ddd91e9e32f2ac9dcb1604a96a+working-tree-fix
+### container=w4_find04_1892894 port=32803  creds REDACTED
+### fix: perform assert_worker_identity(p_worker); added as first line of record_tool_call
+### expectation: case1 GREEN (WK003), case2/case3 GREEN (legit path intact)
+
+...                                                                      [100%]
+3 passed in 0.42s

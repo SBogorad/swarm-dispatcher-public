@@ -1,0 +1,31 @@
+### FIND-04 triad — RED on pre-fix  |  2026-10-11T04:48:32+07:00  |  HEAD 9c74a1f6e141b3ddd91e9e32f2ac9dcb1604a96a
+### container=w4_find04_1892894 port=32803  creds REDACTED
+### pre-fix: record_tool_call calls assert_worker_identity? = f
+### expectation: case1 RED (spoof passes -> event written as w2), case2/case3 GREEN
+
+F..                                                                      [100%]
+=================================== FAILURES ===================================
+____________________ test_case1_w1_cannot_forge_event_as_w2 ____________________
+
+admin = <connection object at 0x75ec73a79440; dsn: 'user=postgres password=[REDACTED] dbname=c2_swarm host=127.0.0.1 port=32803', closed: 0>
+
+    def test_case1_w1_cannot_forge_event_as_w2(admin):
+        """w1 пишет tool_call на аренде w2, указав p_worker='w2'.
+    
+        ДО фикса: вызов проходит, событие атрибутируется w2 -> assert падает (КРАСНЫЙ).
+        ПОСЛЕ:    WK003 worker_identity_mismatch -> зелёный.
+        """
+        task_w2, epoch_w2 = _make_leased_task(admin, "w2")
+    
+        w1 = _worker_conn("w1")
+        try:
+            cur = w1.cursor()
+            forged = json.dumps({"tool": "run_shell", "command": "spoofed_by_w1"})
+>           with pytest.raises(psycopg2.DatabaseError) as e:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE DatabaseError
+
+tests/test_find04_record_tool_call_identity.py:127: Failed
+=========================== short test summary info ============================
+FAILED tests/test_find04_record_tool_call_identity.py::test_case1_w1_cannot_forge_event_as_w2
+1 failed, 2 passed in 0.53s

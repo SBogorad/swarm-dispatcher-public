@@ -25,6 +25,9 @@ create or replace function record_tool_call(
   p_task uuid, p_worker text, p_epoch bigint, p_event_id text, p_payload jsonb)
 returns boolean language plpgsql as $$
 begin
+  -- FIND-04: session_user обязан соответствовать p_worker (иначе WK003).
+  -- Без этой строки воркер w1 мог записать событие от имени w2 на его аренде.
+  perform assert_worker_identity(p_worker);
   -- Аренда жива и принадлежит этому воркеру? Иначе GR-ошибка.
   perform assert_lease(p_task, p_worker, p_epoch);
   return append_event(p_task, p_event_id, 'tool_call', p_worker, p_payload);
