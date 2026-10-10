@@ -1,0 +1,14 @@
+# F3 investigation evidence — head e21a824, clean PG 16.15
+# stack: schema_v0.sql -> roles.sql -> roles_2b.sql -> roles_patch_planner_status.sql -> roles_patch_tool_call_audit.sql
+
+## rolcanlogin state after full init:
+swarm_worker | rolcanlogin=false
+swarm_worker_gpu_1 | rolcanlogin=true
+swarm_worker_w1 | rolcanlogin=true
+swarm_worker_w2 | rolcanlogin=true
+swarm_worker_w_1 | rolcanlogin=true
+
+## attempt to log in as swarm_worker:
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  role "swarm_worker" is not permitted to log in
+
+## verdict: F3 does NOT reproduce at e21a824 (role is nologin); test_16 already expects this.
