@@ -205,3 +205,28 @@ grant swarm_worker to swarm_worker_w1;
 grant swarm_worker to swarm_worker_w2;
 grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
+
+-- ============================================================
+-- 3b. Defense-in-depth: каждой per-worker роли запрещён SET на
+--     чужую роль (включая саму общую swarm_worker).
+--
+--     Без этого PG16 по умолчанию выдаёт set_option = true при
+--     grant, и компрометация одной роли позволяет SET ROLE на
+--     другую. Защита identity и так держится на session_user
+--     (см. assert_worker_identity), но мы убираем и сам механизм.
+--
+--     Синтаксис проверен на PostgreSQL 16.15:
+--       revoke set option for <role> from <role>
+--     (не "REVOKE SET ON ROLE" — такого варианта в PG16 нет).
+-- ============================================================
+revoke set option for swarm_worker from swarm_worker_w1;
+revoke set option for swarm_worker from swarm_worker_w2;
+revoke set option for swarm_worker from swarm_worker_w_1;
+revoke set option for swarm_worker from swarm_worker_gpu_1;
+
+-- Перекрёстный запрет: ни одна worker-роль не имеет SET на любую
+-- другую worker-роль (матрица N x N, включая саму себя).
+revoke set option for swarm_worker_w1    from swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w2    from swarm_worker_w1, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w_1   from swarm_worker_w1, swarm_worker_w2, swarm_worker_gpu_1;
+revoke set option for swarm_worker_gpu_1 from swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1;
