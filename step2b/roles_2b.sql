@@ -148,6 +148,9 @@ declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_worker_identity(p_worker);
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
