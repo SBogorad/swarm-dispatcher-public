@@ -1,0 +1,13 @@
+# Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
+# One rule per line: exact path, or `prefix/*` for a directory subtree.
+# Lines starting with '#' and blank lines are ignored.
+
+# The acceptance harness itself.
+scripts/acceptance_harness.sh
+
+# P0 SQL patches and their tests.
+step2/roles_patch_submit_review.sql
+step2/test_review_gate.py
+
+# Audit evidence produced for this wave.
+docs/audit/*

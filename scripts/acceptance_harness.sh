@@ -289,6 +289,7 @@ provision_database() {
     -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
     -v "$WORKTREE/step2/roles_patch_planner_status.sql:/c2/patch_planner.sql:ro"
     -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
+    -v "$WORKTREE/step2/roles_patch_submit_review.sql:/c2/patch_review.sql:ro"
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
@@ -318,6 +319,7 @@ provision_database() {
     -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
+  pg postgres "$DB_PASSWORD" -f /c2/patch_review.sql
   DB_READY=1
   status PASS "disposable PostgreSQL 16 provisioned and initialized"
 }
@@ -348,6 +350,29 @@ database_acceptance() {
   ((FAILURES == failures_before))
 }
 
+review_gate_acceptance() {
+  local failures_before=$FAILURES
+  [[ "$DB_READY" == 1 ]]
+  [[ -f "$WORKTREE/step2/test_review_gate.py" ]] || { status BLOCKED "review-gate tests missing (step2/test_review_gate.py)"; return 0; }
+  local py="$WORKTREE/.venv/bin/python"
+  if [[ ! -x "$py" ]]; then
+    if command -v uv >/dev/null 2>&1; then
+      (cd "$WORKTREE" && uv venv --quiet .venv && uv pip install --quiet --python .venv/bin/python pytest psycopg2-binary) || true
+    fi
+  fi
+  if [[ ! -x "$py" ]]; then
+    status BLOCKED "python venv with pytest+psycopg2 unavailable (install uv or .venv)"
+    return 0
+  fi
+  export ROLES_DB=c2_swarm ROLES_HOST=127.0.0.1 ROLES_PORT=$TEST_DB_PORT ADMIN_PW="$DB_PASSWORD"
+  export SWARM_PW_PLANNER=c2_planner SWARM_PW_REVIEWER=c2_reviewer SWARM_PW_OPERATOR=c2_operator
+  export SWARM_PW_W1=c2_w1 SWARM_PW_WORKER=c2_worker
+  run_worktree_step "review-gate negative tests (P0 #5) on patched c2_ database" \
+    "$py" -m pytest -q step2/test_review_gate.py
+  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW SWARM_PW_PLANNER SWARM_PW_REVIEWER SWARM_PW_OPERATOR SWARM_PW_W1 SWARM_PW_WORKER
+  ((FAILURES == failures_before))
+}
+
 run_step "diff allowlist ($BASE..$BRANCH)" check_diff_scope
 run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
@@ -375,4 +400,5 @@ else
 fi
 if command -v docker >/dev/null 2>&1; then
   run_step "RBAC smoke on disposable c2_ database" database_acceptance
+  run_step "review-gate acceptance on disposable c2_ database" review_gate_acceptance
 fi
