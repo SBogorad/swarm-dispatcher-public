@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-08T22:47:17+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T18:09:14+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
-  <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
-  <git is_git="false"><note>not a git repository</note></git>
+  <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
+  <git is_git="true" head="e26056dd3983ffa60b8e1b3f6419b9ddee093a5f"/>
   <manifest>
-    <files count="23" total_bytes="120300"/>
+    <files count="26" total_bytes="156884"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -14,28 +14,31 @@
     </excluded>
     <index>
       <entry path=".dockerignore" lang="text" bytes="59" lines="6" sha256="09ba81543a788f3a573bf9461060e75cc513cc3323650524a0f70a8e12e39ee5" md5="c463722b3b1978e02ce241e8b2fcb9b3"/>
-      <entry path=".env.example" lang="dotenv" bytes="740" lines="17" sha256="ae9b238982794808c38b9856e9268dfedb732555a7ffc6ba697f41176977ad14" md5="881eda95ee6ba793c4433a38767a7641"/>
-      <entry path=".gitignore" lang="text" bytes="136" lines="13" sha256="02f25f52e2540397c7b1b05a59f4d28270ab2766b018e1067d07afe61b5a77a2" md5="429541877fd462cc37f3f1ac11a3d5cc"/>
+      <entry path=".env.example" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077"/>
+      <entry path=".gitignore" lang="text" bytes="295" lines="24" sha256="52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462" md5="8ccc227b713a10ccbe10bd18b431d738"/>
       <entry path="Dockerfile" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8"/>
       <entry path="LICENSE" lang="text" bytes="1104" lines="21" sha256="6a0f51d5703ca8719a56f87b7a5fb84a8c773f5e361487a1b28fe6580044dff9" md5="3b65cb8672dc4ecbcd6daad5814b0c57"/>
-      <entry path="docker-compose.yml" lang="yaml" bytes="4907" lines="133" sha256="4d08704c506630428606fb3386965e698988d6e9cb3691b886cadcd49ba39162" md5="229661245c945eb66e16a99fb115d487"/>
-      <entry path="schema/roles.sql" lang="sql" bytes="151" lines="1" sha256="24d154d1c1c3ec534b69cb7736dc454e944918630d2ca049f4bf05dc2761b979" md5="9e98b5ff604055990e6e68aac54129a3"/>
-      <entry path="schema/schema_v0.sql" lang="sql" bytes="22375" lines="458" sha256="04792f46abe134f216b1dff4ad07d36041559d787441d1b6a99eb3b8f4362ecf" md5="a45e28945b5b967289b88eeb834866d3"/>
+      <entry path="docker-compose.yml" lang="yaml" bytes="5478" lines="141" sha256="73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5" md5="a834e621209f0a2917dc2989d21577a6"/>
+      <entry path="schema/schema_v0.sql" lang="sql" bytes="22717" lines="467" sha256="051734edeca4fb30c6d9a9b8063898dfb9f1d72b47b80a0a30a6b68a03c42e20" md5="988908125bc24c5ab7edfbde367cda80"/>
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
-      <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6718" lines="180" sha256="5b2f10166caeba3fe3310c923ab1aaf536b8c3364278388a302ac1de35fc5906" md5="cb5294ca5f55fd7ae04e712c57c56f51"/>
+      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="967" lines="30" sha256="b69204a8427b9d91ee71f154fd73a8e91732c3d2f9c7a131398bc986cbb85e52" md5="59bc9ef6f4e92eb19b7919a7d4ff7bc5"/>
+      <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7"/>
+      <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6731" lines="180" sha256="fb446d35a47a8c1362feef12c3077dfff7a66f26395d5a04ddf720ccbceb0d6e" md5="0572dea9f9b937e883c3ff1c86e2fb4b"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5567" lines="128" sha256="d528b9dd103f1e2f03ea8ec5ff74090d190d9e198fd710acf7a351031d7ded7a" md5="de716adce3e6ef69a4cd4da50dc44548"/>
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7393" lines="162" sha256="ba87780d987945f3fb45ad036f16bd37f06c0ab02f7cce152d65771823c26c8c" md5="dc4a03a98c9cc34e12a4c3ca2189c5e1"/>
       <entry path="scripts/build_project_bundle.py" lang="python" bytes="7882" lines="189" sha256="7987d4a053cfd71f7766c1bb95e64d2bd65b5d518fd2b8d74bfda52fbfaff3aa" md5="0e2d079aebcab9ac190b38dc0cd118e3"/>
-      <entry path="step2/roles.sql" lang="sql" bytes="5122" lines="77" sha256="65ed077ccee3eb515d3585c1e7a168c52d9798735b97f4d8f482fa606ebe5274" md5="fba1f83b96f54880ea608f46b5aaf56b"/>
+      <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170"/>
+      <entry path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720"/>
       <entry path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
-      <entry path="step2/test_roles.py" lang="python" bytes="11162" lines="238" sha256="48b4e2c6c0592aff876660936ea07a323e9a318d241f41380eb0d9fcaeb8f2f2" md5="18d576fe36f26af828bc66e4f8e1f04d"/>
-      <entry path="step2b/roles_2b.sql" lang="sql" bytes="10409" lines="199" sha256="2798101331f945e5e4dce66e881de1742c7d0799893fd51df0c8d6e3fce93297" md5="0cb5c0b4d176e3a13c2cc13689f25233"/>
-      <entry path="step2b/roles_2b_patch_section3.sql" lang="sql" bytes="1579" lines="26" sha256="6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7" md5="163c97a1368fe023c59ff914b48a2a34"/>
-      <entry path="step2b/test_roles_2b.DELIVERED_partial.py" lang="python" bytes="3477" lines="97" sha256="156146fb1bc1df3392c7b3bec215510db62dd7e4c910e8653c364a36a00d7a94" md5="6176c13bcba716db0b171c5ad4cbc5f6"/>
-      <entry path="step2b/test_roles_2b.py" lang="python" bytes="8859" lines="224" sha256="49670ce179dbd56db352527cf9699ae08a706a20a468c49d9a600e7ae46d2356" md5="fddca7ccf11bb6ae2728c4331471013b"/>
-      <entry path="tests/test_v0.py" lang="python" bytes="17483" lines="488" sha256="fa27fcb25b4ffa9d6ea37877f5e8441a2b00307ceba00ae569c5281e8952e53f" md5="e920b59abbd37db1861908a20f7ffe89"/>
+      <entry path="step2/roles_patch_submit_review.sql" lang="sql" bytes="4046" lines="87" sha256="66d2483c1931da18098ea83f2b3335f8f0392ec1790221bf5f25a85b8ae75a54" md5="5c49cb6d4a17dde82b180584a92fdbc5"/>
+      <entry path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2630" lines="38" sha256="c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a" md5="bb9915c1806053d510028c5b0aedc5a7"/>
+      <entry path="step2/test_review_gate.py" lang="python" bytes="5002" lines="144" sha256="1a6d04694b7e65ec8c069add60fce3e3a1be109b8e4d2bce7e77bd55c444b6bb" md5="75c08b39f2ce7d6a44f4eb73c3b5884c"/>
+      <entry path="step2/test_roles.py" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726"/>
+      <entry path="step2b/roles_2b.sql" lang="sql" bytes="10640" lines="207" sha256="36eeb36b0a29994eae86d05cb6eb038c08b0d8c7304d0a88386552eb301c4e3c" md5="7c315403484248c554fe40c6200a9de4"/>
+      <entry path="step2b/test_roles_2b.py" lang="python" bytes="9490" lines="238" sha256="af3b884701f47ffbbf39945f47790155a1b55716e1ede3965a345dd712795856" md5="cf56f2c8af949ef61d3171560dfc2fcb"/>
+      <entry path="tests/test_v0.py" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff"/>
     </index>
   </manifest>
   <files>
@@ -49,7 +52,7 @@ build.log
 docker-compose.yml.orig
 ]]></content>
     </file>
-    <file path=".env.example" lang="dotenv" bytes="740" lines="17" sha256="ae9b238982794808c38b9856e9268dfedb732555a7ffc6ba697f41176977ad14" md5="881eda95ee6ba793c4433a38767a7641">
+    <file path=".env.example" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077">
       <content><![CDATA[
 # Обязательно
 DB_PASSWORD=<замените на 64-символьный пароль>
@@ -68,12 +71,24 @@ SWARM_PW_W1=<замените>
 SWARM_PW_W2=<замените>
 SWARM_PW_W_1=<замените>
 SWARM_PW_GPU_1=<замените>
+
+# --- v0.4: shell tools + Docker sandbox (необязательно) ---
+# WORKER_SHELL_TOOLS=1 включает Agent Loop с shell-командами.
+# ВНИМАНИЕ: требует доступа к Docker-сокету (см. docs/KNOWN_LIMITATIONS.md §6).
+WORKER_SHELL_TOOLS=0
+SANDBOX_IMAGE=agent-sandbox:1.85
+WORKER_ALLOWED_COMMANDS=bash,cargo,git,cat,ls,echo,mkdir,touch
+WORKER_CMD_TIMEOUT_SEC=60
+WORKER_MAX_ITERATIONS=20
 ]]></content>
     </file>
-    <file path=".gitignore" lang="text" bytes="136" lines="13" sha256="02f25f52e2540397c7b1b05a59f4d28270ab2766b018e1067d07afe61b5a77a2" md5="429541877fd462cc37f3f1ac11a3d5cc">
+    <file path=".gitignore" lang="text" bytes="295" lines="24" sha256="52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462" md5="8ccc227b713a10ccbe10bd18b431d738">
       <content><![CDATA[
 # Rust
 target/
+
+# Load-test output
+bench/results/
 
 # Python
 .venv/
@@ -82,9 +97,16 @@ __pycache__/
 
 # Секреты и локальное
 .env
+.env.*
+!.env.example
 *.log
 build.log
+*.tmp.*
 docker-compose.yml.orig
+
+# Локальные данные и переписка
+.pytest_cache/
+docs/history/inbound/
 ]]></content>
     </file>
     <file path="Dockerfile" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8">
@@ -151,7 +173,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ]]></content>
     </file>
-    <file path="docker-compose.yml" lang="yaml" bytes="4907" lines="133" sha256="4d08704c506630428606fb3386965e698988d6e9cb3691b886cadcd49ba39162" md5="229661245c945eb66e16a99fb115d487">
+    <file path="docker-compose.yml" lang="yaml" bytes="5478" lines="141" sha256="73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5" md5="a834e621209f0a2917dc2989d21577a6">
       <content><![CDATA[
 services:
   postgres:
@@ -178,6 +200,7 @@ services:
       - ./step2b/roles_2b.sql:/sql/roles_2b.sql:ro
       - ./scripts/03-roles-2b.sh:/docker-entrypoint-initdb.d/03-roles-2b.sh:ro
       - ./step2/roles_patch_planner_status.sql:/sql/roles_patch_planner_status.sql:ro
+      - ./step2/roles_patch_tool_call_audit.sql:/sql/roles_patch_tool_call_audit.sql:ro
       - ./scripts/03-role-patches.sh:/docker-entrypoint-initdb.d/04-role-patches.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
@@ -213,6 +236,13 @@ services:
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      # v0.4: shell tools + Docker sandbox.
+      # ВНИМАНИЕ: 1 требует доступа к Docker-сокету (docs/KNOWN_LIMITATIONS.md §6).
+      WORKER_SHELL_TOOLS: ${WORKER_SHELL_TOOLS:-0}
+      SANDBOX_IMAGE: ${SANDBOX_IMAGE:-agent-sandbox:1.85}
+      WORKER_ALLOWED_COMMANDS: ${WORKER_ALLOWED_COMMANDS:-bash,cargo,git,cat,ls,echo,mkdir,touch}
+      WORKER_CMD_TIMEOUT_SEC: ${WORKER_CMD_TIMEOUT_SEC:-60}
+      WORKER_MAX_ITERATIONS: ${WORKER_MAX_ITERATIONS:-20}
       RUST_LOG: swarm_worker=info
     security_opt:
       - no-new-privileges:true
@@ -288,12 +318,7 @@ volumes:
   postgres_data:
 ]]></content>
     </file>
-    <file path="schema/roles.sql" lang="sql" bytes="151" lines="1" sha256="24d154d1c1c3ec534b69cb7736dc454e944918630d2ca049f4bf05dc2761b979" md5="9e98b5ff604055990e6e68aac54129a3">
-      <content><![CDATA[
--- roles.sql: не предоставлен в документе (v0 использует единственного пользователя swarm).
-]]></content>
-    </file>
-    <file path="schema/schema_v0.sql" lang="sql" bytes="22375" lines="458" sha256="04792f46abe134f216b1dff4ad07d36041559d787441d1b6a99eb3b8f4362ecf" md5="a45e28945b5b967289b88eeb834866d3">
+    <file path="schema/schema_v0.sql" lang="sql" bytes="22717" lines="467" sha256="051734edeca4fb30c6d9a9b8063898dfb9f1d72b47b80a0a30a6b68a03c42e20" md5="988908125bc24c5ab7edfbde367cda80">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -557,6 +582,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
 
@@ -592,6 +620,9 @@ end $$;
 create function heartbeat(p_task uuid, p_worker text, p_epoch bigint, p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec), updated_at = now()
    where id = p_task and state = 'leased' and lease_owner = p_worker
      and lease_epoch = p_epoch and lease_until > now();
@@ -628,6 +659,9 @@ returns text language plpgsql as $$
 declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
@@ -837,7 +871,505 @@ psql -v ON_ERROR_STOP=1 \
      -f /sql/roles_2b.sql
 ]]></content>
     </file>
-    <file path="scripts/build_audit_bundle.py" lang="python" bytes="6718" lines="180" sha256="5b2f10166caeba3fe3310c923ab1aaf536b8c3364278388a302ac1de35fc5906" md5="cb5294ca5f55fd7ae04e712c57c56f51">
+    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="967" lines="30" sha256="b69204a8427b9d91ee71f154fd73a8e91732c3d2f9c7a131398bc986cbb85e52" md5="59bc9ef6f4e92eb19b7919a7d4ff7bc5">
+      <content><![CDATA[
+# Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
+# One rule per line: exact path, or `prefix/*` for a directory subtree.
+# Lines starting with '#' and blank lines are ignored.
+
+# The acceptance harness itself.
+scripts/acceptance_harness.sh
+scripts/acceptance_allowlist.txt
+
+# P0 SQL patches and their tests.
+step2/roles_patch_submit_review.sql
+step2/test_review_gate.py
+
+# P0 state-machine integrity: base schema, per-worker roles, state invariants.
+schema/schema_v0.sql
+step2b/roles_2b.sql
+tests/test_v0.py
+
+# P0 Rust hardening: allowlist and agent-loop path validation (+ tests).
+crates/swarm-worker/src/*
+
+# Wave 3 (test honesty): CLI exit codes / no fabricated checks, disabled-DB
+# guards in the integration suites, fail-closed mutation pre-checks.
+crates/swarm-cli/src/main.rs
+crates/swarm-core/tests/*
+crates/swarm-planner/tests/*
+crates/swarm-worker/tests/*
+scripts/run_mutations_v04.sh
+
+# Audit evidence produced for this wave.
+docs/audit/*
+]]></content>
+    </file>
+    <file path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7">
+      <content><![CDATA[
+#!/usr/bin/env bash
+# Disposable acceptance harness for the schema/RBAC acceptance branch.
+# This file intentionally does not use docker compose: the database has no
+# named volume and is removed by the EXIT trap on every path.
+set -Eeuo pipefail
+
+BASE=""
+BRANCH="HEAD"
+WORKTREE="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FULL_WORKSPACE_TEST=0
+ALLOW_BLOCKED=0
+LOG_DIR="${TMPDIR:-/tmp}/swarm-dispatcher-acceptance"
+CONTAINER=""
+DB_PASSWORD=""
+LOG_FILE=""
+SEALED_LOG_FILE=""
+ATTESTATION_FILE=""
+EVENT_FILE=""
+ALLOWLIST_FILE=""
+FAILURES=0
+BLOCKED_COUNT=0
+DB_READY=0
+TEST_DATABASE_URL=""
+SANITIZED_TEST_DATABASE_URL=""
+TEST_DB_HOST="127.0.0.1"
+TEST_DB_PORT=""
+TEST_DB_NAME="c2_swarm"
+TEST_DB_USER="postgres"
+CREDENTIALS_REDACTED=0
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/acceptance_harness.sh --base COMMIT [options]
+
+Options:
+  --base COMMIT             Required diff comparison base.
+  --branch REF              Ref to check (default: HEAD).
+  --worktree PATH           Checkout to inspect (default: current directory).
+  --allowlist-file PATH     Exact paths/prefixes (path or path/*, one per line).
+  --log-dir PATH            Temporary log directory.
+  --full-workspace-test     Require and run cargo test --workspace (release requirement).
+  --allow-blocked            Diagnostic mode: allow BLOCKED checks and mark gate CONDITIONAL.
+
+Default is a STRICT release gate: omitting --full-workspace-test records that check
+as BLOCKED and exits nonzero. Use --allow-blocked only for diagnostics.
+  -h, --help                Show this help.
+USAGE
+}
+
+while (($#)); do
+  case "$1" in
+    --base) BASE="${2:?--base requires a commit}"; shift 2 ;;
+    --branch) BRANCH="${2:?--branch requires a ref}"; shift 2 ;;
+    --worktree) WORKTREE="${2:?--worktree requires a path}"; shift 2 ;;
+    --allowlist-file) ALLOWLIST_FILE="${2:?--allowlist-file requires a path}"; shift 2 ;;
+    --log-dir) LOG_DIR="${2:?--log-dir requires a path}"; shift 2 ;;
+    --full-workspace-test) FULL_WORKSPACE_TEST=1; shift ;;
+    --allow-blocked) ALLOW_BLOCKED=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "FAIL unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$BASE" ]]; then
+  echo "FAIL --base is required" >&2
+  usage >&2
+  exit 2
+fi
+
+WORKTREE="$(cd "$WORKTREE" && pwd)"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/harness-$(date -u +%Y%m%dT%H%M%SZ)-$$.log"
+SEALED_LOG_FILE="${LOG_FILE%.log}.sealed.log"
+ATTESTATION_FILE="${LOG_FILE%.log}.attestation.json"
+EVENT_FILE="${LOG_FILE%.log}.events.tsv"
+touch "$EVENT_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+status() {
+  local state="$1" label="$2" exit_code="${3:-0}" command="${4:-}"
+  printf '%s %s\n' "$state" "$label"
+  printf '%s\t%s\t%s\t%s\n' "$state" "$exit_code" "$label" "$command" >>"$EVENT_FILE"
+  if [[ "$state" == FAIL ]]; then
+    FAILURES=$((FAILURES + 1))
+  elif [[ "$state" == BLOCKED ]]; then
+    BLOCKED_COUNT=$((BLOCKED_COUNT + 1))
+    if ((ALLOW_BLOCKED == 0)); then
+      FAILURES=$((FAILURES + 1))
+    fi
+  fi
+  return 0
+}
+
+run_step() {
+  local label="$1"; shift
+  printf 'RUN %s\n' "$label"
+  local command_text
+  command_text="$(printf '%q ' "$@")"
+  printf 'COMMAND %s\n' "$command_text"
+  set +e
+  "$@"
+  local rc=$?
+  set -e
+  if ((rc == 0)); then
+    status PASS "$label" "$rc" "$command_text"
+  else
+    status FAIL "$label (see log)" "$rc" "$command_text"
+  fi
+  return 0
+}
+
+run_worktree_step() {
+  local label="$1"; shift
+  printf 'RUN %s\n' "$label"
+  local command_text
+  command_text="(cd $(printf '%q' "$WORKTREE") && $(printf '%q ' "$@"))"
+  printf 'COMMAND %s\n' "$command_text"
+  set +e
+  (cd "$WORKTREE" && "$@")
+  local rc=$?
+  set -e
+  if ((rc == 0)); then
+    status PASS "$label" "$rc" "$command_text"
+  else
+    status FAIL "$label (see log)" "$rc" "$command_text"
+  fi
+  return 0
+}
+
+write_attestation() {
+  local base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate
+  base_sha="$(git -C "$WORKTREE" rev-parse "$BASE" 2>/dev/null || printf 'UNRESOLVED')"
+  head_sha="$(git -C "$WORKTREE" rev-parse "$BRANCH" 2>/dev/null || printf 'UNRESOLVED')"
+  branch_name="$(git -C "$WORKTREE" symbolic-ref --short -q HEAD 2>/dev/null || printf '%s' "$BRANCH")"
+  timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  rustc="$(rustc -Vv 2>/dev/null || printf 'UNAVAILABLE')"
+  cargo="$(cargo -V 2>/dev/null || printf 'UNAVAILABLE')"
+  pg_version="${PG_VERSION:-UNAVAILABLE}"
+  image_ref="postgres:16-alpine"
+  image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
+  log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
+  release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER SANITIZED_TEST_DATABASE_URL CREDENTIALS_REDACTED EVENT_FILE SEALED_LOG_FILE
+  python3 - <<'PY'
+import json, os
+events = []
+with open(os.environ["EVENT_FILE"], encoding="utf-8") as f:
+    for line in f:
+        state, code, label, command = line.rstrip("\n").split("\t", 3)
+        events.append({"status": state, "exit_code": int(code), "label": label, "command": command})
+with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
+    json.dump({
+        "format": "swarm-dispatcher-acceptance-attestation/v1",
+        "base_sha": os.environ["base_sha"], "branch": os.environ["branch_name"],
+        "head_sha": os.environ["head_sha"], "timestamp_utc": os.environ["timestamp"],
+        "release_gate": os.environ["release_gate"],
+        "blocked_count": int(os.environ["BLOCKED_COUNT"]),
+        "full_workspace_test_requested": bool(int(os.environ["FULL_WORKSPACE_TEST"])),
+        "toolchain": {"rustc_Vv": os.environ["rustc"], "cargo": os.environ["cargo"]},
+        "postgres": {"server_version": os.environ["pg_version"], "image": os.environ["image_ref"], "image_digest": os.environ["image_digest"]},
+        "test_database": {"dsn": os.environ.get("SANITIZED_TEST_DATABASE_URL", "UNAVAILABLE"), "host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
+        "credentials_redacted": bool(int(os.environ["CREDENTIALS_REDACTED"])),
+        "statuses": events,
+        "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
+        "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
+    }, f, indent=2, sort_keys=True)
+    f.write("\n")
+PY
+}
+
+cleanup() {
+  local rc=$?
+  if [[ -n "$CONTAINER" ]] && command -v docker >/dev/null 2>&1; then
+    docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+    printf 'PASS disposable container cleaned: %s\n' "$CONTAINER"
+  fi
+  PG_VERSION="${PG_VERSION:-UNAVAILABLE}"
+  if ((rc != 0 || FAILURES != 0)); then
+    printf 'FAIL acceptance harness completed with %d failure(s); log: %s; attestation: %s\n' "$FAILURES" "$LOG_FILE" "$ATTESTATION_FILE"
+  else
+    printf 'PASS acceptance harness complete; log: %s; attestation: %s\n' "$LOG_FILE" "$ATTESTATION_FILE"
+  fi
+  # Remove the ephemeral credential before sealing generated artifacts.
+  if [[ -n "$DB_PASSWORD" && -f "$LOG_FILE" ]]; then
+    sed -i "s|$DB_PASSWORD|[REDACTED]|g" "$LOG_FILE"
+    if grep -Fq "$DB_PASSWORD" "$LOG_FILE"; then
+      printf 'FAIL temporary database password remains in log\n'
+      FAILURES=$((FAILURES + 1))
+    else
+      CREDENTIALS_REDACTED=1
+      printf 'PASS temporary database password absent from log\n'
+    fi
+  fi
+  # Seal the complete sanitized log before generating JSON; attestation generation emits no log output.
+  cp -- "$LOG_FILE" "$SEALED_LOG_FILE"
+  write_attestation
+  exit "$((rc != 0 ? rc : (FAILURES > 0 ? 1 : 0)))"
+}
+trap cleanup EXIT
+
+check_diff_scope() {
+  local path rule prefix matched
+  if [[ -n "$ALLOWLIST_FILE" ]]; then
+    [[ -f "$ALLOWLIST_FILE" ]] || { printf 'allowlist file not found: %s\n' "$ALLOWLIST_FILE"; return 1; }
+  fi
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    matched=0
+    if [[ -n "$ALLOWLIST_FILE" ]]; then
+      while IFS= read -r rule || [[ -n "$rule" ]]; do
+        rule="${rule%%#*}"
+        rule="$(printf '%s' "$rule" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+        [[ -z "$rule" ]] && continue
+        if [[ "$rule" == */\* ]]; then
+          prefix="${rule%/*}/"
+          [[ "$path" == "$prefix"* ]] && matched=1
+        else
+          [[ "$path" == "$rule" ]] && matched=1
+        fi
+        ((matched)) && break
+      done < "$ALLOWLIST_FILE"
+    else
+      [[ "$path" == scripts/acceptance_harness.sh || "$path" == docs/audit/* ]] && matched=1
+    fi
+    ((matched)) || { printf 'out-of-scope path: %s\n' "$path"; return 1; }
+  done < <(git -C "$WORKTREE" diff --name-only "$BASE..$BRANCH")
+}
+
+shell_checks() {
+  local file
+  bash -n "$SCRIPT_DIR/acceptance_harness.sh"
+  while IFS= read -r file; do
+    bash -n "$file"
+  done < <(find "$WORKTREE/scripts" -maxdepth 1 -type f -name '*.sh' -print)
+  if command -v shellcheck >/dev/null 2>&1; then
+    shellcheck "$SCRIPT_DIR/acceptance_harness.sh"
+  else
+    status BLOCKED "shellcheck unavailable (bash -n passed)"
+  fi
+}
+
+compose_check() {
+  local env_file rendered
+  env_file="$(mktemp)"
+  cat >"$env_file" <<'ENV'
+DB_PASSWORD=dummy_db_password
+SWARM_PW_WORKER=dummy_worker_password
+SWARM_PW_WATCHDOG=dummy_watchdog_password
+SWARM_PW_PLANNER=dummy_planner_password
+SWARM_PW_REVIEWER=dummy_reviewer_password
+SWARM_PW_OPERATOR=dummy_operator_password
+SWARM_PW_CLI=dummy_cli_password
+SWARM_PW_W1=dummy_w1_password
+SWARM_PW_W2=dummy_w2_password
+SWARM_PW_W_1=dummy_w_1_password
+SWARM_PW_GPU_1=dummy_gpu_1_password
+ENV
+  rendered="$(mktemp)"
+  docker compose --env-file "$env_file" -f "$WORKTREE/docker-compose.yml" config >"$rendered" 2>/dev/null || true
+  rm -f "$env_file"
+  [[ -s "$rendered" ]] || { rm -f "$rendered"; return 1; }
+  RENDERED_COMPOSE_FILE="$rendered" compose_security_acceptance
+  local rc=$?
+  rm -f "$rendered"
+  return $rc
+}
+
+# P0-3: pin the worker container boundary in a verifiable check, not just docs.
+compose_security_acceptance() {
+  python3 - <<'PY'
+import os, sys, yaml
+with open(os.environ["RENDERED_COMPOSE_FILE"], encoding="utf-8") as f:
+    cfg = yaml.safe_load(f) or {}
+services = cfg.get("services", {})
+workers = [n for n in services if n.startswith("worker-")]
+def fail(msg):
+    print(f"FAIL {msg}")
+    sys.exit(1)
+if not workers:
+    fail("no worker-* service in compose")
+for name in sorted(workers):
+    svc = services[name]
+    if svc.get("read_only") is not True:
+        fail(f"{name}: read_only must be true")
+    if "ALL" not in (svc.get("cap_drop") or []):
+        fail(f"{name}: cap_drop must include ALL")
+    sec = svc.get("security_opt") or []
+    if not any("no-new-privileges" in s for s in sec):
+        fail(f"{name}: no-new-privileges missing")
+    for vol in svc.get("volumes") or []:
+        src = vol if isinstance(vol, str) else (vol.get("source") or "")
+        if "docker.sock" in str(src):
+            fail(f"{name}: docker.sock must not be mounted by default")
+    if svc.get("privileged") is True:
+        fail(f"{name}: privileged must not be set")
+    if svc.get("network_mode") == "host":
+        fail(f"{name}: host network mode not allowed")
+print("PASS worker container boundary pinned: " + ", ".join(sorted(workers)))
+PY
+}
+
+pg() {
+  local user="$1" password="$2"; shift 2
+  docker exec -e PGPASSWORD="$password" "$CONTAINER" psql -X -v ON_ERROR_STOP=1 -U "$user" -d c2_swarm "$@"
+}
+
+expect_failure() {
+  local label="$1"; shift
+  if "$@" >/dev/null 2>&1; then
+    status FAIL "$label unexpectedly succeeded"
+    return 1
+  fi
+  status PASS "$label"
+}
+
+provision_database() {
+  local failures_before=$FAILURES
+  command -v docker >/dev/null 2>&1
+  DB_PASSWORD="c2_$(openssl rand -hex 20)"
+  CONTAINER="c2_acceptance_${USER:-user}_$$"
+  CONTAINER="${CONTAINER//[^a-zA-Z0-9_.-]/_}"
+  local common_args=(
+    --name "$CONTAINER" -e POSTGRES_DB=c2_swarm -e POSTGRES_USER=postgres
+    -e "POSTGRES_PASSWORD=$DB_PASSWORD"
+    -p 127.0.0.1::5432
+    -v "$WORKTREE/schema/schema_v0.sql:/c2/schema.sql:ro"
+    -v "$WORKTREE/step2/roles.sql:/c2/roles.sql:ro"
+    -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
+    -v "$WORKTREE/step2/roles_patch_planner_status.sql:/c2/patch_planner.sql:ro"
+    -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
+    -v "$WORKTREE/step2/roles_patch_submit_review.sql:/c2/patch_review.sql:ro"
+  )
+  docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
+  PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
+  TEST_DB_PORT="$(docker port "$CONTAINER" 5432/tcp | awk -F: 'NR == 1 {print $NF}')"
+  [[ "$TEST_DB_PORT" =~ ^[0-9]+$ ]]
+  TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=${DB_PASSWORD} dbname=${TEST_DB_NAME}"
+  SANITIZED_TEST_DATABASE_URL="host=localhost port=${TEST_DB_PORT} user=postgres password=[REDACTED] dbname=${TEST_DB_NAME}"
+  [[ "$TEST_DATABASE_URL" == *"password=${DB_PASSWORD}"* ]]
+  [[ "$SANITIZED_TEST_DATABASE_URL" != *"${DB_PASSWORD}"* ]]
+  local ready=0
+  for _ in {1..60}; do
+    if docker exec -e PGPASSWORD="$DB_PASSWORD" "$CONTAINER" \
+      psql -X -U postgres -d c2_swarm -c 'select 1' >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
+    sleep 1
+  done
+  ((ready == 1))
+
+  # Apply exactly the repository's accepted order, with ON_ERROR_STOP on each file.
+  pg postgres "$DB_PASSWORD" -f /c2/schema.sql
+  pg postgres "$DB_PASSWORD" -v worker_pw=c2_worker -v watchdog_pw=c2_watchdog \
+    -v planner_pw=c2_planner -v reviewer_pw=c2_reviewer -v operator_pw=c2_operator \
+    -v cli_pw=c2_cli -f /c2/roles.sql
+  pg postgres "$DB_PASSWORD" -v w1_pw=c2_w1 -v w2_pw=c2_w2 -v w_1_pw=c2_w_1 \
+    -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
+  pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
+  pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
+  pg postgres "$DB_PASSWORD" -f /c2/patch_review.sql
+  DB_READY=1
+  status PASS "disposable PostgreSQL 16 provisioned and initialized"
+}
+
+database_acceptance() {
+  local failures_before=$FAILURES
+  [[ "$DB_READY" == 1 ]]
+
+  local common_worker_login worker_login
+  common_worker_login="$(pg postgres "$DB_PASSWORD" -Atc "select rolcanlogin from pg_roles where rolname='swarm_worker'")"
+  worker_login="$(pg postgres "$DB_PASSWORD" -Atc "select rolcanlogin from pg_roles where rolname='swarm_worker_w1'")"
+  if [[ "$common_worker_login" == f ]]; then
+    status PASS "common swarm_worker is NOLOGIN"
+  else
+    status FAIL "common swarm_worker must be NOLOGIN (P0 RBAC fix is absent from this branch)"
+  fi
+  if [[ "$worker_login" == t ]]; then
+    status PASS "per-worker role swarm_worker_w1 is LOGIN"
+  else
+    status FAIL "per-worker role swarm_worker_w1 must be LOGIN"
+  fi
+
+  pg swarm_worker_w1 c2_w1 -c "select register_worker('w1', '{\"ram_gb\":16}'::jsonb)"
+  status PASS "per-worker register_worker works"
+  expect_failure "worker identity spoofing is rejected" pg swarm_worker_w1 c2_w1 -c "select register_worker('w2', '{\"ram_gb\":16}'::jsonb)"
+  expect_failure "cli claim_task is denied" pg swarm_cli c2_cli -c "select claim_task('w1', 10)"
+  expect_failure "SET ROLE spoofing is denied" pg swarm_worker_w1 c2_w1 -c "set role swarm_worker_w2"
+  ((FAILURES == failures_before))
+}
+
+review_gate_acceptance() {
+  local failures_before=$FAILURES
+  [[ "$DB_READY" == 1 ]]
+  local suite
+  local suites=(
+    "step2/test_roles.py|RBAC role separation + catalog invariants (P0 #3/#4)"
+    "step2b/test_roles_2b.py|worker identity, SET ROLE, id collisions (P0 #4)"
+    "step2/test_review_gate.py|review-gate negative tests (P0 #5)"
+    "tests/test_v0.py|state machine: lease/epoch, add_dep, reopen cascade (P0 #6/#7)"
+  )
+  for suite in "${suites[@]}"; do
+    [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
+  done
+  local py="$WORKTREE/.venv/bin/python"
+  if [[ ! -x "$py" ]]; then
+    if command -v uv >/dev/null 2>&1; then
+      (cd "$WORKTREE" && uv venv --quiet .venv && uv pip install --quiet --python .venv/bin/python pytest psycopg2-binary) || true
+    fi
+  fi
+  if [[ ! -x "$py" ]]; then
+    status BLOCKED "python venv with pytest+psycopg2 unavailable (install uv or .venv)"
+    return 0
+  fi
+  export ROLES_DB=c2_swarm ROLES_HOST=127.0.0.1 ROLES_PORT=$TEST_DB_PORT ADMIN_PW="$DB_PASSWORD"
+  export SWARM_PW_W1=c2_w1 SWARM_PW_W2=c2_w2 SWARM_PW_W_1=c2_w_1 SWARM_PW_GPU_1=c2_gpu_1
+  export SWARM_PW_WORKER=c2_worker SWARM_PW_WATCHDOG=c2_watchdog SWARM_PW_PLANNER=c2_planner
+  export SWARM_PW_REVIEWER=c2_reviewer SWARM_PW_OPERATOR=c2_operator SWARM_PW_CLI=c2_cli
+  # tests/test_v0.py speaks PGDSN (superuser): reuse the disposable DSN.
+  export PGDSN="dbname=c2_swarm user=postgres host=127.0.0.1 port=$TEST_DB_PORT password=$DB_PASSWORD"
+  for suite in "${suites[@]}"; do
+    run_worktree_step "${suite##*|} on patched c2_ database" \
+      "$py" -m pytest -q "${suite%%|*}"
+  done
+  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW PGDSN
+  unset SWARM_PW_W1 SWARM_PW_W2 SWARM_PW_W_1 SWARM_PW_GPU_1 SWARM_PW_WORKER SWARM_PW_WATCHDOG
+  unset SWARM_PW_PLANNER SWARM_PW_REVIEWER SWARM_PW_OPERATOR SWARM_PW_CLI
+  ((FAILURES == failures_before))
+}
+
+run_step "diff allowlist ($BASE..$BRANCH)" check_diff_scope
+run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
+run_step "shell syntax checks" shell_checks
+if command -v docker >/dev/null 2>&1; then
+  run_step "compose config with dummy environment" compose_check
+  run_step "provision disposable PostgreSQL 16 before Rust tests" provision_database
+else
+  status BLOCKED "docker unavailable: compose config and database acceptance not run"
+fi
+if command -v cargo >/dev/null 2>&1; then
+  run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked -- --test-threads=1
+else
+  status BLOCKED "cargo unavailable: Rust unit tests not run"
+fi
+if ((FULL_WORKSPACE_TEST)); then
+  if ((DB_READY == 1)); then
+    export TEST_DATABASE_URL
+    export DATABASE_URL="$TEST_DATABASE_URL"
+    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked -- --test-threads=1
+  else
+    status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
+  fi
+else
+  status BLOCKED "full workspace test not requested (use --full-workspace-test for release gate)"
+fi
+if command -v docker >/dev/null 2>&1; then
+  run_step "RBAC smoke on disposable c2_ database" database_acceptance
+  run_step "RBAC/path/review Python suites on disposable c2_ database" review_gate_acceptance
+fi
+]]></content>
+    </file>
+    <file path="scripts/build_audit_bundle.py" lang="python" bytes="6731" lines="180" sha256="fb446d35a47a8c1362feef12c3077dfff7a66f26395d5a04ddf720ccbceb0d6e" md5="0572dea9f9b937e883c3ff1c86e2fb4b">
       <content encoding="xml-escaped">
 #!/usr/bin/env python3
 """Собирает XML-бандл всех скриптов репозитория для аудита.
@@ -867,19 +1399,19 @@ FILES = [
     ("scripts/03-role-patches.sh", "init", "bash"),
     # --- схема и роли (SQL) ---
     ("schema/schema_v0.sql", "schema", "sql"),
-    ("schema/roles.sql", "roles", "sql"),
     ("step2/roles.sql", "roles", "sql"),
     ("step2/roles_patch_planner_status.sql", "roles-patch", "sql"),
+    ("step2/roles_patch_tool_call_audit.sql", "roles-patch", "sql"),
     ("step2b/roles_2b.sql", "roles", "sql"),
     ("step2b/roles_2b_patch_section3.sql", "roles-patch", "sql"),
     # --- контейнеризация ---
     ("Dockerfile", "container", "dockerfile"),
+    ("sandbox/Dockerfile", "container", "dockerfile"),
     ("docker-compose.yml", "container", "yaml"),
     # --- тесты ---
     ("tests/test_v0.py", "test", "python"),
     ("step2/test_roles.py", "test", "python"),
     ("step2b/test_roles_2b.py", "test", "python"),
-    ("step2b/test_roles_2b.DELIVERED_partial.py", "test", "python"),
     # --- конфиг без секретов ---
     (".env.example", "config", "dotenv"),
     # --- вспомогательное ---
@@ -1514,7 +2046,166 @@ if __name__ == "__main__":
 
       </content>
     </file>
-    <file path="step2/roles.sql" lang="sql" bytes="5122" lines="77" sha256="65ed077ccee3eb515d3585c1e7a168c52d9798735b97f4d8f482fa606ebe5274" md5="fba1f83b96f54880ea608f46b5aaf56b">
+    <file path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170">
+      <content><![CDATA[
+#!/usr/bin/env bash
+# run_mutations_v04.sh — мутационное тестирование v0.4 (ТЗ §9, M1–M6).
+#
+# Каждая мутация ломает ровно одну защиту; ожидается, что соответствующий тест
+# ПАДАЕТ. Мутация, которую тесты не заметили, = выживший мутант.
+#
+# Использование:
+#   TEST_DATABASE_URL="host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox" \
+#   SANDBOX_IMAGE=agent-sandbox:1.85 ./scripts/run_mutations_v04.sh
+#
+# Скрипт сам восстанавливает файлы (backup + trap).
+
+set -uo pipefail
+cd "$(dirname "$0")/.."
+
+: "${TEST_DATABASE_URL:=host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox}"
+: "${SANDBOX_IMAGE:=agent-sandbox:1.85}"
+export TEST_DATABASE_URL SANDBOX_IMAGE
+
+# ---------------------------------------------------------------------------
+# Environment pre-conditions (аудит: тестовая честность).
+#
+# Мутационный прогон, который не может подключиться к БД или собрать тесты,
+# помечает ЛЮБУЮ мутацию как CAUGHT (тест «упал» = компиляция/connect упали).
+# Это ложноположительный результат. Поэтому: pre-condition FAIL => BLOCKED
+# (не PASS/FAIL), и скрипт выходит, ничего не инвертируя.
+# ---------------------------------------------------------------------------
+db_name() {
+  local dsn="$1" name
+  if [[ "$dsn" == postgres://* || "$dsn" == postgresql://* ]]; then
+    name="${dsn#*://}"; name="${name#*/}"; name="${name%%/*}"; name="${name%%\?*}"
+  else
+    local tok
+    for tok in $dsn; do [[ "$tok" == dbname=* ]] && name="${tok#dbname=}"; done
+  fi
+  printf '%s' "$name"
+}
+
+blocked() { echo "BLOCKED $1"; exit 3; }
+
+db="$(db_name "$TEST_DATABASE_URL")"
+case "$db" in
+  test_*|v0*|c2_*) : ;;
+  *) blocked "non-disposable database '$db' (allowed prefixes: test_, v0, c2_) — refusing to run mutations" ;;
+esac
+export PGPASSWORD="$(printf '%s' "$TEST_DATABASE_URL" | sed -n 's/.*password=\([^ ]*\).*/\1/p')"
+pg_host="$(printf '%s' "$TEST_DATABASE_URL" | sed -n 's/.*host=\([^ ]*\).*/\1/p')"
+pg_port="$(printf '%s' "$TEST_DATABASE_URL" | sed -n 's/.*port=\([^ ]*\).*/\1/p')"
+pg_user="$(printf '%s' "$TEST_DATABASE_URL" | sed -n 's/.*user=\([^ ]*\).*/\1/p')"
+if ! pg_isready -h "${pg_host:-127.0.0.1}" -p "${pg_port:-5432}" -U "${pg_user:-postgres}" \
+     -d "$db" >/dev/null 2>&1; then
+  blocked "Postgres not reachable at ${pg_host:-127.0.0.1}:${pg_port:-5432} db=$db"
+fi
+if ! docker image inspect "$SANDBOX_IMAGE" >/dev/null 2>&1; then
+  blocked "sandbox image '$SANDBOX_IMAGE' not present locally"
+fi
+# Один прогон без мутаций: baseline должен быть ЗЕЛЁНЫМ (иначе любой CAUGHT — артефакт).
+if ! cargo test -p swarm-worker --lib --locked >/tmp/mut_baseline.log 2>&1; then
+  blocked "baseline 'cargo test -p swarm-worker --lib' is red before any mutation (see /tmp/mut_baseline.log)"
+fi
+echo "pre-conditions OK: db=$db image=$SANDBOX_IMAGE baseline=green"
+
+W=crates/swarm-worker/src
+BACKUP_DIR=$(mktemp -d)
+declare -a TOUCHED=()
+
+restore() {
+  for f in "${TOUCHED[@]:-}"; do
+    [ -n "$f" ] && cp -f "$BACKUP_DIR/$(basename "$f")" "$f" 2>/dev/null
+  done
+  rm -rf "$BACKUP_DIR"
+}
+trap restore EXIT
+
+snapshot() {
+  local f="$1"
+  cp -f "$f" "$BACKUP_DIR/$(basename "$f")"
+  TOUCHED+=("$f")
+}
+
+pass=0; caught=0; survived=0
+declare -a RESULTS=()
+
+run_mutation() {
+  local id="$1" desc="$2" file="$3" sed_expr="$4" test_cmd="$5" expect_test="$6"
+  snapshot "$file"
+  sed -i "$sed_expr" "$file"
+  # убедимся, что мутация вообще применилась
+  if cmp -s "$file" "$BACKUP_DIR/$(basename "$file")"; then
+    RESULTS+=("$id  SKIP  мутация не применилась ($desc)")
+    restore_one "$file"
+    return
+  fi
+  if eval "$test_cmd" >/tmp/mut_$id.log 2>&1; then
+    RESULTS+=("$id  SURVIVED  $desc  (тест $expect_test не упал)")
+    survived=$((survived+1))
+  else
+    RESULTS+=("$id  CAUGHT    $desc  (тест $expect_test упал, как ожидалось)")
+    caught=$((caught+1))
+  fi
+  restore_one "$file"
+}
+
+restore_one() {
+  cp -f "$BACKUP_DIR/$(basename "$1")" "$1"
+}
+
+LIB_TEST='cargo test -p swarm-worker --lib --locked'
+INT_TEST='cargo test -p swarm-worker --test worker_sandbox --locked -- --test-threads=1'
+
+# M1 — убрать проверку allowlist целиком (check всегда Ok).
+run_mutation M1 "убрать allowlist check" "$W/allowlist.rs" \
+  's|self.check_depth(command, 0)|Ok(())|' \
+  "$LIB_TEST allowlist_rejects_rm" "allowlist_rejects_rm"
+
+# M2 — убрать обработку таймаута.
+run_mutation M2 "убрать timeout" "$W/sandbox.rs" \
+  's/if out.exit_code == 124 {/if false \&\& out.exit_code == 124 {/' \
+  "$INT_TEST worker_timeout_handled" "worker_timeout_handled"
+
+# M3 — убрать --cap-drop ALL.
+run_mutation M3 "убрать --cap-drop ALL" "$W/sandbox.rs" \
+  's/"--cap-drop".into(),/"--cap-drop-X".into(),/' \
+  "$LIB_TEST run_args_have_security_flags" "run_args_have_security_flags"
+
+# M4 — убрать --network none.
+run_mutation M4 "убрать --network none" "$W/sandbox.rs" \
+  's/network: "none".into(),/network: "bridge".into(),/' \
+  "$INT_TEST worker_network_isolated" "worker_network_isolated"
+
+# M5 — убрать --read-only.
+run_mutation M5 "убрать --read-only" "$W/sandbox.rs" \
+  's/"--read-only".into(),/"--read-only-X".into(),/' \
+  "$INT_TEST sandbox_starts_and_stops" "sandbox_starts_and_stops"
+
+# M6 — убрать запись audit-события.
+run_mutation M6 "убрать audit event" "$W/agent_loop.rs" \
+  's/sink.record(\&audit)?;/let _ = \&audit;/' \
+  "$INT_TEST tool_call_events_logged" "tool_call_events_logged"
+
+echo
+echo "==================== РЕЗУЛЬТАТЫ МУТАЦИЙ M1–M6 ===================="
+for r in "${RESULTS[@]}"; do echo "$r"; done
+echo "----------------------------------------------------------------"
+echo "поймано: $caught / $((caught+survived))   выжило: $survived"
+echo
+echo "--- git diff --stat (должно быть пусто) ---"
+if command -v git >/dev/null && git rev-parse --git-dir >/dev/null 2>&1; then
+  git diff --stat
+else
+  echo "(не git-репозиторий — проверяем контрольные суммы ниже)"
+fi
+md5sum "$W/allowlist.rs" "$W/sandbox.rs" "$W/agent_loop.rs"
+
+[ "$survived" -eq 0 ]
+]]></content>
+    </file>
+    <file path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720">
       <content><![CDATA[
 -- swarm roles v0.2: горизонтальное разделение прав.
 -- Запуск (суперпользователем, ПОСЛЕ schema_v0.sql):
@@ -1534,6 +2225,9 @@ select format('create role %I login nosuperuser nocreatedb nocreaterole', r)
   from unnest(array['swarm_worker','swarm_watchdog','swarm_planner',
                     'swarm_reviewer','swarm_operator','swarm_cli']) r
  where not exists (select 1 from pg_roles where rolname = r) \gexec
+
+-- Общая worker-роль содержит права-членство, но не является login identity.
+alter role swarm_worker nologin;
 
 alter role swarm_worker   password :'worker_pw';
 alter role swarm_watchdog password :'watchdog_pw';
@@ -1611,7 +2305,288 @@ grant execute on function reopen_task, unblock_task, verify_chain, task_status t
 grant execute on function task_status(int) to swarm_planner;
 ]]></content>
     </file>
-    <file path="step2/test_roles.py" lang="python" bytes="11162" lines="238" sha256="48b4e2c6c0592aff876660936ea07a323e9a318d241f41380eb0d9fcaeb8f2f2" md5="18d576fe36f26af828bc66e4f8e1f04d">
+    <file path="step2/roles_patch_submit_review.sql" lang="sql" bytes="4046" lines="87" sha256="66d2483c1931da18098ea83f2b3335f8f0392ec1790221bf5f25a85b8ae75a54" md5="5c49cb6d4a17dde82b180584a92fdbc5">
+      <content><![CDATA[
+-- Patch: strict review-gate verification in submit_review (P0 #5).
+--
+-- Problem (audit v0.6.0-mvp-rc1): the `approved` branch compared review
+-- checks by *length only*:
+--
+--   if jsonb_array_length(p_checks) < jsonb_array_length(t.contract->'checks')
+--      or exists (... e->>'status' is distinct from 'pass')
+--
+-- That lets a reviewer bypass the gates by submitting N fake
+-- `{"status":"pass"}` items with no matching `type`, e.g.:
+--
+--   contract.checks = [{"type":"unit"},{"type":"lint"}]
+--   p_checks        = [{"status":"pass"},{"status":"pass"}]   -- must now fail RV003
+--
+-- Fix: every required check type from `contract.checks` must have at least one
+-- item in `p_checks` with the same `type` AND `status = 'pass'`. Extra passing
+-- checks are allowed. Missing type, or status != pass, raises RV003.
+--
+-- Apply AFTER schema/schema_v0.sql and step2/roles.sql (same pattern as
+-- roles_patch_planner_status.sql / roles_patch_tool_call_audit.sql).
+--
+-- NOTE: CREATE OR REPLACE FUNCTION does NOT preserve SECURITY DEFINER /
+-- SET search_path, so they are re-declared explicitly below.
+
+create or replace function submit_review(p_task uuid, p_ref text, p_reviewer text,
+                                         p_verdict text, p_checks jsonb)
+returns text language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare t tasks%rowtype; v_creator text; v_new text;
+begin
+  select * into t from tasks where id = p_task for update;
+  if not found then raise exception 'task_not_found' using errcode = 'GR000'; end if;
+  if t.state <> 'review' or t.result_ref is distinct from p_ref then
+    raise exception 'review_stale' using errcode = 'RV001';  -- ревью строго привязано к хэшу
+  end if;
+  select created_by into v_creator from artifacts where task_id = p_task and ref = p_ref;
+  if v_creator = p_reviewer then raise exception 'self_review' using errcode = 'RV002'; end if;
+  if p_verdict = 'approved' then
+    if jsonb_typeof(p_checks) <> 'array' then
+      raise exception 'checks_failed' using errcode = 'RV003';
+    end if;
+    -- Strict gate: каждый required check из contract должен иметь ровно
+    -- один pass с тем же type. Только длина больше не принимается.
+    if exists (
+      select 1
+      from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+      where not exists (
+        select 1
+        from jsonb_array_elements(p_checks) p
+        where p->>'type' = c->>'type'
+          and p->>'status' = 'pass'
+      )
+    ) then
+      raise exception 'checks_failed' using errcode = 'RV003';
+    end if;
+  end if;
+  insert into reviews (task_id, artifact_ref, reviewer, verdict, checks)
+  values (p_task, p_ref, p_reviewer, p_verdict, p_checks);
+
+  if p_verdict = 'approved' then v_new := 'done';
+  elsif p_verdict = 'changes_requested' then
+    v_new := case when t.rework + 1 > c_num(t.contract, '{budget,max_rework}', 3)
+                  then 'blocked' else 'ready' end;
+  else v_new := 'blocked';
+  end if;
+
+  update tasks
+     set state = v_new,
+         rework = rework + case when p_verdict = 'changes_requested' then 1 else 0 end,
+         lease_epoch = lease_epoch + case when v_new = 'ready' then 1 else 0 end,
+         block_reason = case when v_new = 'blocked' then
+                        case when p_verdict = 'rejected' then 'rejected' else 'max_rework' end end,
+         updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'review:' || p_ref || ':' || p_reviewer, 'review_submitted',
+                       p_reviewer, jsonb_build_object('verdict', p_verdict, 'new_state', v_new));
+  if v_new = 'done' then perform promote_ready(); end if;
+  return v_new;
+end $$;
+
+alter function submit_review(uuid, text, text, text, jsonb) owner to swarm_owner;
+alter function submit_review(uuid, text, text, text, jsonb)
+  security definer set search_path = public, pg_temp;
+
+grant execute on function submit_review(uuid, text, text, text, jsonb) to swarm_reviewer;
+]]></content>
+    </file>
+    <file path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2630" lines="38" sha256="c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a" md5="bb9915c1806053d510028c5b0aedc5a7">
+      <content><![CDATA[
+-- roles_patch_tool_call_audit.sql — v0.4 §7: аудит tool calls (shell tools).
+--
+-- ПОЧЕМУ ПАТЧ, А НЕ ПРАВКА schema_v0.sql:
+--   schema_v0.sql неприкосновенен (ТЗ v0.4 §0 «Неприкосновенно»).
+--
+-- ПОЧЕМУ ФУНКЦИЯ, А НЕ ПРЯМОЙ INSERT В events:
+--   step2/roles.sql §6 явно закрывает внутренние функции (append_event, assert_lease,
+--   lock_root, validate_contract, event_hash, c_num) — «журнал нельзя подделать снаружи».
+--   Прямой insert в events от имени swarm_worker нарушил бы это свойство. Поэтому
+--   воркер получает одну контролируемую точку входа: она проверяет, что аренда жива
+--   и принадлежит этому воркеру, и только затем пишет событие от имени swarm_owner.
+--
+-- Применять ПОСЛЕ: schema_v0.sql → step2/roles.sql → step2b/roles_2b.sql.
+-- Идемпотентен.
+
+-- 1. Разрешить kind='tool_call' (констрейнт расширяется, старые значения сохранены).
+alter table events drop constraint if exists events_kind_check;
+alter table events add constraint events_kind_check check (kind in (
+  'created', 'dep_added', 'promoted', 'claimed', 'artifact_saved', 'completed',
+  'review_submitted', 'reclaimed', 'reopened', 'cascade_blocked', 'unblocked',
+  'tool_call'));
+
+-- 2. Точка входа аудита: только для живого владельца аренды.
+create or replace function record_tool_call(
+  p_task uuid, p_worker text, p_epoch bigint, p_event_id text, p_payload jsonb)
+returns boolean language plpgsql as $$
+begin
+  -- Аренда жива и принадлежит этому воркеру? Иначе GR-ошибка.
+  perform assert_lease(p_task, p_worker, p_epoch);
+  return append_event(p_task, p_event_id, 'tool_call', p_worker, p_payload);
+end $$;
+
+-- 3. Права: владелец-не-суперпользователь, исполнение от его имени, доступ только воркеру.
+alter function record_tool_call(uuid, text, bigint, text, jsonb) owner to swarm_owner;
+alter function record_tool_call(uuid, text, bigint, text, jsonb)
+  security definer set search_path = public, pg_temp;
+revoke all on function record_tool_call(uuid, text, bigint, text, jsonb) from public;
+grant execute on function record_tool_call(uuid, text, bigint, text, jsonb) to swarm_worker;
+]]></content>
+    </file>
+    <file path="step2/test_review_gate.py" lang="python" bytes="5002" lines="144" sha256="1a6d04694b7e65ec8c069add60fce3e3a1be109b8e4d2bce7e77bd55c444b6bb" md5="75c08b39f2ce7d6a44f4eb73c3b5884c">
+      <content><![CDATA[
+"""Negative tests for the review gate (P0 #5).
+
+Regression coverage for the length-only check in `submit_review`:
+the old code accepted N fake `{"status":"pass"}` items with no matching
+`type`, bypassing `contract.checks`. After
+`step2/roles_patch_submit_review.sql`, every required check type from the
+contract must have a matching `type` + `status='pass'` in `p_checks`, or the
+review is rejected with RV003.
+
+Run (DB with schema_v0.sql + roles.sql + roles_patch_submit_review.sql,
+passwords pw_<role>):
+  ROLES_DB=v0roles ROLES_HOST=localhost ADMIN_PW=pw pytest -q step2/test_review_gate.py
+"""
+import json
+import os
+import uuid
+
+import psycopg2
+import pytest
+
+DB = os.environ.get("ROLES_DB", "v0roles")
+HOST = os.environ.get("ROLES_HOST", "localhost")
+PORT = int(os.environ.get("ROLES_PORT", "5432"))
+ADMIN_PW = os.environ.get("ADMIN_PW", "pw")
+RV003 = "RV003"
+
+# Two required checks: a bypass must supply BOTH types to pass.
+CONTRACT = json.dumps({
+    "kind": "t",
+    "checks": [{"type": "unit"}, {"type": "lint"}],
+    "budget": {"attempts": 3, "max_rework": 3},
+})
+
+
+def connect(user, pw):
+    c = psycopg2.connect(host=HOST, port=PORT, dbname=DB, user=user, password=pw)
+    c.autocommit = True
+    return c
+
+
+def as_role(role):
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+    else:
+        suffix = role.split("_", 1)[1]
+    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
+
+
+def attempt(conn, sql, params=None):
+    """None if executed; otherwise SQLSTATE."""
+    try:
+        conn.cursor().execute(sql, params)
+        return None
+    except psycopg2.Error as e:
+        return e.pgcode
+
+
+@pytest.fixture
+def admin():
+    c = connect("postgres", ADMIN_PW)
+    c.cursor().execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
+    yield c
+    c.close()
+
+
+def _task_in_review(admin):
+    """Drive a task to state='review' with a stored artifact; return (task_id, ref)."""
+    pl = as_role("swarm_planner")
+    wk = as_role("swarm_worker_w1")
+    task = str(uuid.uuid4())
+    c = pl.cursor()
+    c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (task, CONTRACT))
+    c.execute("select promote_ready()")
+    c = wk.cursor()
+    c.execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
+    c.execute("select out_task_id, out_epoch from claim_task('w1', 60)")
+    _, epoch = c.fetchone()
+    ref = "sha256:gate"
+    c.execute("select save_artifact(%s, 'w1', %s, %s, '/p')", (task, epoch, ref))
+    c.execute("select complete_task(%s, 'w1', %s, %s, 1)", (task, epoch, ref))
+    assert c.fetchone()[0] == "review"
+    return task, ref
+
+
+def test_length_only_bypass_is_rejected(admin):
+    """The old attack: two pass items without type must NOT satisfy a 2-check contract."""
+    task, ref = _task_in_review(admin)
+    rv = as_role("swarm_reviewer")
+    fake = json.dumps([{"status": "pass"}, {"status": "pass"}])
+    assert attempt(rv,
+                   "select submit_review(%s, %s, 'rev', 'approved', %s::jsonb)",
+                   (task, ref, fake)) == RV003
+
+
+def test_missing_one_required_type_is_rejected(admin):
+    """Only one of the two required types present → still RV003."""
+    task, ref = _task_in_review(admin)
+    rv = as_role("swarm_reviewer")
+    partial = json.dumps([{"type": "unit", "status": "pass"}])
+    assert attempt(rv,
+                   "select submit_review(%s, %s, 'rev', 'approved', %s::jsonb)",
+                   (task, ref, partial)) == RV003
+
+
+def test_failed_status_on_required_type_is_rejected(admin):
+    """Matching types but one status != pass → RV003."""
+    task, ref = _task_in_review(admin)
+    rv = as_role("swarm_reviewer")
+    mixed = json.dumps([
+        {"type": "unit", "status": "pass"},
+        {"type": "lint", "status": "fail"},
+    ])
+    assert attempt(rv,
+                   "select submit_review(%s, %s, 'rev', 'approved', %s::jsonb)",
+                   (task, ref, mixed)) == RV003
+
+
+def test_full_matching_checks_are_accepted(admin):
+    """All required types present with pass → approved, task done."""
+    task, ref = _task_in_review(admin)
+    rv = as_role("swarm_reviewer")
+    good = json.dumps([
+        {"type": "unit", "status": "pass"},
+        {"type": "lint", "status": "pass"},
+    ])
+    c = rv.cursor()
+    c.execute("select submit_review(%s, %s, 'rev', 'approved', %s::jsonb)",
+              (task, ref, good))
+    assert c.fetchone()[0] == "done"
+
+
+def test_extra_passing_checks_are_allowed(admin):
+    """Extra pass items beyond the contract must not break acceptance."""
+    task, ref = _task_in_review(admin)
+    rv = as_role("swarm_reviewer")
+    extra = json.dumps([
+        {"type": "unit", "status": "pass"},
+        {"type": "lint", "status": "pass"},
+        {"type": "smoke", "status": "pass"},
+    ])
+    c = rv.cursor()
+    c.execute("select submit_review(%s, %s, 'rev', 'approved', %s::jsonb)",
+              (task, ref, extra))
+    assert c.fetchone()[0] == "done"
+]]></content>
+    </file>
+    <file path="step2/test_roles.py" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726">
       <content><![CDATA[
 """Тесты разделения ролей (roles.sql) на реальном Postgres 16.
 
@@ -1634,7 +2609,7 @@ DB = os.environ.get("ROLES_DB", "v0roles")
 HOST = os.environ.get("ROLES_HOST", "localhost")
 PORT = int(os.environ.get("ROLES_PORT", "5432"))
 ADMIN_PW = os.environ.get("ADMIN_PW", "pw")
-ROLES = ["swarm_worker", "swarm_watchdog", "swarm_planner",
+ROLES = ["swarm_worker_w1", "swarm_watchdog", "swarm_planner",
          "swarm_reviewer", "swarm_operator", "swarm_cli"]
 DENIED = "42501"
 
@@ -1646,7 +2621,10 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+    else:
+        suffix = role.split("_", 1)[1]
     return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
 
 
@@ -1696,9 +2674,9 @@ INTERNAL = {
 }
 
 ALLOWED = {
-    "swarm_worker":   {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
+    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
     "swarm_watchdog": {"reclaim_expired", "promote_ready"},
-    "swarm_planner":  {"add_task", "add_dep", "promote_ready"},
+    "swarm_planner":  {"add_task", "add_dep", "promote_ready", "task_status"},
     "swarm_reviewer": {"submit_review", "verify_chain"},
     "swarm_operator": {"reopen_task", "unblock_task", "verify_chain", "task_status"},
 }
@@ -1746,7 +2724,7 @@ def test_no_ddl_in_public(admin, role):
 
 def test_worker_cannot_approve_own_work(admin):
     """Главное следствие ролей: самоприёмка закрыта на уровне БД, а не только проверкой created_by."""
-    assert attempt(as_role("swarm_worker"),
+    assert attempt(as_role("swarm_worker_w1"),
                    f"select submit_review({U}, 'sha256:a', 'w1', 'approved', '[]'::jsonb)") == DENIED
 
 
@@ -1777,7 +2755,7 @@ def test_temp_table_cannot_hijack_security_definer(admin):
     t = str(uuid.uuid4())
     cur.execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
     cur.execute("select promote_ready()")
-    w = as_role("swarm_worker")
+    w = as_role("swarm_worker_w1")
     wc = w.cursor()
     wc.execute("create temp table tasks (id uuid, state text)")
     wc.execute("create temp table workers (id text)")
@@ -1788,7 +2766,7 @@ def test_temp_table_cannot_hijack_security_definer(admin):
 def test_full_workflow_uses_only_role_permissions(admin):
     """Реальный сценарий целиком, каждый шаг от своей роли, без суперпользователя."""
     pl, wk, rv, wd, op = (as_role(r) for r in
-                          ["swarm_planner", "swarm_worker", "swarm_reviewer", "swarm_watchdog", "swarm_operator"])
+                          ["swarm_planner", "swarm_worker_w1", "swarm_reviewer", "swarm_watchdog", "swarm_operator"])
     root, child = str(uuid.uuid4()), str(uuid.uuid4())
     c = pl.cursor()
     c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (root, CONTRACT))
@@ -1853,7 +2831,7 @@ def test_task_status_shows_state_but_not_contract(admin):
     assert cols[:3] == ["id", "root_id", "state"]
 ]]></content>
     </file>
-    <file path="step2b/roles_2b.sql" lang="sql" bytes="10409" lines="199" sha256="2798101331f945e5e4dce66e881de1742c7d0799893fd51df0c8d6e3fce93297" md5="0cb5c0b4d176e3a13c2cc13689f25233">
+    <file path="step2b/roles_2b.sql" lang="sql" bytes="10640" lines="207" sha256="36eeb36b0a29994eae86d05cb6eb038c08b0d8c7304d0a88386552eb301c4e3c" md5="7c315403484248c554fe40c6200a9de4">
       <content><![CDATA[
 -- swarm roles 2b v0.2: идентификация воркера.
 -- Запуск ПОСЛЕ schema_v0.sql и roles.sql (суперпользователем):
@@ -1899,7 +2877,6 @@ alter function assert_worker_identity(text) security definer set search_path = p
 
 revoke all on function normalize_worker_id(text) from public;
 revoke all on function assert_worker_identity(text) from public;
-grant execute on function normalize_worker_id(text) to public;  -- безвредная, для отладки
 -- assert_worker_identity — не выдаём никому; вызывается только из обёрток.
 
 -- ============================================================
@@ -1930,6 +2907,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
@@ -1967,6 +2947,9 @@ create or replace function heartbeat(p_task uuid, p_worker text, p_epoch bigint,
                                      p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec),
                    updated_at = now()
@@ -2000,6 +2983,9 @@ declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_worker_identity(p_worker);
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
@@ -2056,138 +3042,7 @@ grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
 ]]></content>
     </file>
-    <file path="step2b/roles_2b_patch_section3.sql" lang="sql" bytes="1579" lines="26" sha256="6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7" md5="163c97a1368fe023c59ff914b48a2a34">
-      <content><![CDATA[
--- ============================================================
--- 3. Роли для тестов
--- ============================================================
--- Соответствие worker_id → роль:
---   'w1'    → swarm_worker_w1      (без изменений)
---   'w2'    → swarm_worker_w2      (без изменений)
---   'w-1'   → swarm_worker_w_1     (нормализация: дефис → подчёркивание)
---   'GPU-1' → swarm_worker_gpu_1   (нормализация: регистр + дефис)
-select 'create role swarm_worker_w1 login password ' || quote_literal(:'w1_pw')
- where not exists (select 1 from pg_roles where rolname = 'swarm_worker_w1') \gexec
-select 'create role swarm_worker_w2 login password ' || quote_literal(:'w2_pw')
- where not exists (select 1 from pg_roles where rolname = 'swarm_worker_w2') \gexec
-select 'create role swarm_worker_w_1 login password ' || quote_literal(:'w_1_pw')
- where not exists (select 1 from pg_roles where rolname = 'swarm_worker_w_1') \gexec
-select 'create role swarm_worker_gpu_1 login password ' || quote_literal(:'gpu_1_pw')
- where not exists (select 1 from pg_roles where rolname = 'swarm_worker_gpu_1') \gexec
-
-alter role swarm_worker_w1    password :'w1_pw';
-alter role swarm_worker_w2    password :'w2_pw';
-alter role swarm_worker_w_1   password :'w_1_pw';
-alter role swarm_worker_gpu_1 password :'gpu_1_pw';
-
-grant swarm_worker to swarm_worker_w1;
-grant swarm_worker to swarm_worker_w2;
-grant swarm_worker to swarm_worker_w_1;
-grant swarm_worker to swarm_worker_gpu_1;
-]]></content>
-    </file>
-    <file path="step2b/test_roles_2b.DELIVERED_partial.py" lang="python" bytes="3477" lines="97" sha256="156146fb1bc1df3392c7b3bec215510db62dd7e4c910e8653c364a36a00d7a94" md5="6176c13bcba716db0b171c5ad4cbc5f6">
-      <content><![CDATA[
-"""Тесты идентификации воркера (roles_2b.sql).
-
-Запуск (БД с schema_v0.sql + roles.sql + roles_2b.sql):
-  ROLES_DB=swarm ROLES_HOST=127.0.0.1 ADMIN_PW=pw \
-  SWARM_PW_W1=pw_w1 SWARM_PW_W2=pw_w2 \
-  pytest -q step2b/test_roles_2b.py
-
-Правило: 42501 — недостаточно прав (роль); WK003 — несоответствие
-session_user и p_worker. Другие доменные ошибки (GRxxx, LS001) —
-доступ есть, дошли до логики функции.
-"""
-import json
-import os
-import uuid
-
-import psycopg2
-import pytest
-
-DB = os.environ.get("ROLES_DB", "swarm")
-HOST = os.environ.get("ROLES_HOST", "127.0.0.1")
-PORT = int(os.environ.get("ROLES_PORT", "5432"))
-ADMIN_PW = os.environ.get("ADMIN_PW", "pw")
-DENIED = "42501"
-MISMATCH = "WK003"
-U = "'00000000-0000-0000-0000-000000000001'"
-CONTRACT = json.dumps({"kind": "t", "checks": [{"type": "cmd"}], "budget": {"attempts": 3}})
-
-
-def connect(user, pw):
-    c = psycopg2.connect(host=HOST, port=PORT, dbname=DB, user=user, password=pw)
-    c.autocommit = True
-    return c
-
-
-def as_role(role):
-    suffix = role.split("_", 1)[1]
-    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
-
-
-def attempt(conn, sql):
-    """None если выполнено; иначе SQLSTATE."""
-    try:
-        conn.cursor().execute(sql)
-        return None
-    except psycopg2.Error as e:
-        return e.pgcode
-
-
-@pytest.fixture
-def admin():
-    c = connect("postgres", ADMIN_PW)
-    c.cursor().execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
-    yield c
-    c.close()
-
-
-# ---------- Позитивные: своя роль, своё имя ----------
-
-def test_w1_register_self(admin):
-    w = as_role("swarm_worker_w1")
-    assert attempt(w, "select register_worker('w1', '{\"ram_gb\":16}'::jsonb)") is None
-
-
-def test_w1_claim_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-    admin.cursor().execute("select promote_ready()")
-    w = as_role("swarm_worker_w1")
-    assert attempt(w, "select claim_task('w1', 60)") is None
-
-
-def test_w1_heartbeat_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-    admin.cursor().execute("select promote_ready()")
-    admin.cursor().execute("select claim_task('w1', 60)")
-    w = as_role("swarm_worker_w1")
-    # epoch после claim = 1
-    assert attempt(w, f"select heartbeat('{t}', 'w1', 1, 60)") is None
-
-
-def test_w1_save_artifact_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-    admin.cursor().execute("select promote_ready()")
-    admin.cursor().execute("select claim_task('w1', 60)")
-    w = as_role("swarm_worker_w1")
-    assert attempt(w, f"select save_artifact('{t}', 'w1', 1, 'sha256:a', '/p')") is None
-
-
-def test_w1_complete_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-]]></content>
-    </file>
-    <file path="step2b/test_roles_2b.py" lang="python" bytes="8859" lines="224" sha256="49670ce179dbd56db352527cf9699ae08a706a20a468c49d9a600e7ae46d2356" md5="fddca7ccf11bb6ae2728c4331471013b">
+    <file path="step2b/test_roles_2b.py" lang="python" bytes="9490" lines="238" sha256="af3b884701f47ffbbf39945f47790155a1b55716e1ede3965a345dd712795856" md5="cf56f2c8af949ef61d3171560dfc2fcb">
       <content><![CDATA[
 """Тесты идентификации воркера (roles_2b.sql). Полная версия.
 
@@ -2224,8 +3079,13 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
-    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+        env_name = "SWARM_PW_" + suffix.upper()
+    else:
+        suffix = role.split("_", 1)[1]
+        env_name = "SWARM_PW_" + suffix.upper()
+    return connect(role, os.environ.get(env_name, "pw_" + suffix))
 
 
 def attempt(conn, sql):
@@ -2375,10 +3235,16 @@ def test_15_watchdog_role_unaffected(admin):
     assert attempt(wd, "select reclaim_expired()") is None
 
 
-def test_16_common_worker_role_unchanged(admin):
-    """Общая роль swarm_worker не начинается с swarm_worker_ → проверка не срабатывает."""
-    w = as_role("swarm_worker")
-    assert attempt(w, "select register_worker('any-id', '{\"ram_gb\":16}'::jsonb)") is None
+def test_16_common_worker_role_cannot_login_or_call(admin):
+    """Общая роль -- NOLOGIN и не может быть worker identity."""
+    cur = admin.cursor()
+    cur.execute("select rolcanlogin from pg_roles where rolname = 'swarm_worker'")
+    assert cur.fetchone()[0] is False
+    cur.execute("select has_function_privilege('swarm_worker', 'claim_task(text, integer)', 'execute')")
+    assert cur.fetchone()[0] is True
+    with pytest.raises(psycopg2.Error) as exc:
+        connect("swarm_worker", os.environ.get("SWARM_PW_WORKER", "pw_worker"))
+    assert "is not permitted to log in" in str(exc.value)
 
 
 # ---------- Каталог ----------
@@ -2413,9 +3279,12 @@ def test_18_assert_worker_identity_not_granted_to_public(admin):
         select has_function_privilege('swarm_worker', 'assert_worker_identity(text)', 'execute')
     """)
     assert cur.fetchone()[0] is False
+
+    cur.execute("select has_function_privilege('public', 'normalize_worker_id(text)', 'execute')")
+    assert cur.fetchone()[0] is False
 ]]></content>
     </file>
-    <file path="tests/test_v0.py" lang="python" bytes="17483" lines="488" sha256="fa27fcb25b4ffa9d6ea37877f5e8441a2b00307ceba00ae569c5281e8952e53f" md5="e920b59abbd37db1861908a20f7ffe89">
+    <file path="tests/test_v0.py" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff">
       <content><![CDATA[
 """Тесты инвариантов schema_v0.sql на реальном Postgres 16.
 
@@ -2618,6 +3487,21 @@ def test_concurrent_claims_never_double_assign(db):
 
 
 # ---------------- аренды и fencing ----------------
+def test_lease_durations_must_be_positive(db):
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select claim_task('w1', 0)")
+    assert code(e) == "CT001"
+    db.rollback()
+    r = claim(db)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select heartbeat(%s,'w1',%s,0)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+
+
 def test_heartbeat_extends_and_cannot_revive(db):
     worker(db)
     t = new_task(db)
@@ -2712,6 +3596,22 @@ def test_budget_exhaustion_blocks_on_complete(db):
     r = claim(db)
     one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
     assert one(db, "select complete_task(%s,'w1',%s,'sha256:a',150)", t, r[2]) == "blocked"
+
+
+def test_complete_rejects_negative_tokens(db):
+    """P0-5: negative tokens must not refund/erase spent budget."""
+    worker(db)
+    t = new_task(db, cap=100)
+    ready(db, t)
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select complete_task(%s,'w1',%s,'sha256:a',-100)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+    # state and spent_tokens untouched
+    st, spent = rows(db, "select state, spent_tokens from tasks where id=%s", t)[0]
+    assert (st, spent) == ("leased", 0)
 
 
 # ---------------- ревью ----------------

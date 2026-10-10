@@ -126,8 +126,8 @@ def main() -> int:
     out.append(f"    <name>swarm-dispatcher</name>")
     out.append(f"    <root>{escape(str(REPO))}</root>")
     out.append(f"    <git is_git={quoteattr(gi['is_git'])}"
-               + (f" head={quoteattr(gi.get('head',''))} branch={quoteattr(gi.get('branch',''))} dirty={quoteattr(gi.get('dirty',''))}" if gi["is_git"] == "true" else ">")
-               + ("</git>" if gi["is_git"] == "true" else f"<note>{escape(gi.get('note',''))}</note></git>"))
+               + (f" head={quoteattr(gi.get('head',''))} branch={quoteattr(gi.get('branch',''))} dirty={quoteattr(gi.get('dirty',''))}/>" if gi["is_git"] == "true" else "")
+               + ("" if gi["is_git"] == "true" else f"><note>{escape(gi.get('note',''))}</note></git>"))
     out.append("  </project>")
     out.append("  <manifest>")
     out.append(f"    <files count=\"{len(entries)}\" total_bytes=\"{total_bytes}\"/>")
