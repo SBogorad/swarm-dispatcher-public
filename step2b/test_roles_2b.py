@@ -190,7 +190,14 @@ def test_15_watchdog_role_unaffected(admin):
 
 
 def test_16_common_worker_role_cannot_login_or_call(admin):
-    """Общая роль -- NOLOGIN и не может быть worker identity."""
+    """Общая роль swarm_worker не может быть worker identity (F3).
+
+    Две линии защиты, обе обязаны держаться:
+      1) NOLOGIN — вход под swarm_worker запрещён Postgres;
+      2) даже если бы вход состоялся (или через SET ROLE), session_user
+         ('swarm_worker') != 'swarm_worker_'||normalize(p_worker), поэтому
+         assert_worker_identity внутри обёрток вернул бы WK003.
+    """
     cur = admin.cursor()
     cur.execute("select rolcanlogin from pg_roles where rolname = 'swarm_worker'")
     assert cur.fetchone()[0] is False
@@ -199,6 +206,14 @@ def test_16_common_worker_role_cannot_login_or_call(admin):
     with pytest.raises(psycopg2.Error) as exc:
         connect("swarm_worker", os.environ.get("SWARM_PW_WORKER", "pw_worker"))
     assert "is not permitted to log in" in str(exc.value)
+    # F3: тело assert больше не завёрнуто в LIKE-гейт -> под общей ролью
+    # проверка активна (deny-by-default), а не молча пропускается.
+    cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
+    body = cur.fetchone()[0].lower()
+    assert "like 'swarm_worker_%'" not in body, (
+        "F3: assert_worker_identity всё ещё под LIKE-гейтом (bypass под общей ролью)"
+    )
+    assert "rolsuper" in body, "F3: единственный обход — явный rolsuper-lookup"
 
 
 # ---------- Каталог ----------

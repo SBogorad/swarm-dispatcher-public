@@ -26,13 +26,17 @@ create or replace function assert_worker_identity(p_worker text)
 returns void language plpgsql as $$
 declare v_expected text;
 begin
-  if session_user::text like 'swarm_worker_%' then
-    v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
-    if session_user::text <> v_expected then
-      raise exception 'worker_identity_mismatch: session_user=% expected=%',
-        session_user, v_expected using errcode = 'WK003';
-    end if;
-  end if;
+  -- F3: идентификация закрыта по умолчанию (deny-by-default).
+  -- Пропуск ТОЛЬКО при строгом совпадении session_user с ожидаемой
+  -- per-worker ролью либо для суперпользователя. Раньше проверка была
+  -- завёрнута в `if session_user like 'swarm_worker_%'`, поэтому под
+  -- общей ролью swarm_worker (единственной, кому выданы обёртки) она
+  -- молча ничего не проверяла — bypass. См. reference_fix_wave4.sql (F3).
+  v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
+  if session_user::text = v_expected then return; end if;
+  if (select rolsuper from pg_roles where rolname = session_user) then return; end if;
+  raise exception 'worker_identity_mismatch: session_user=% expected=%', session_user, v_expected
+    using errcode = 'WK003';
 end $$;
 
 alter function normalize_worker_id(text) owner to swarm_owner;
