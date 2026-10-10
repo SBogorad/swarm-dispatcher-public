@@ -1,0 +1,80 @@
+### wave4 FIND-04 preconditions (CLEAN initdb from repo HEAD)  |  2026-10-11T04:43:19+07:00
+### HEAD a836508fd7df3a354cf2e6692eebe87f5ee76c42
+### container=w4_precond_clean_1835036 port=32800 image=postgres:16-alpine pw=[REDACTED]
+### initdb applied: 01-schema.sql, 02-roles.sh, 03-roles-2b.sh, 04-role-patches.sh (planner+submit_review+tool_call)
+
+=== P2: functions exist on clean stack ===
+        proname         |                                     args                                     
+------------------------+------------------------------------------------------------------------------
+ append_event           | p_task uuid, p_event_id text, p_kind text, p_actor text, p_payload jsonb
+ assert_lease           | p_task uuid, p_worker text, p_epoch bigint
+ assert_worker_identity | p_worker text
+ record_tool_call       | p_task uuid, p_worker text, p_epoch bigint, p_event_id text, p_payload jsonb
+(4 rows)
+
+
+=== P2c: record_tool_call body — calls assert_worker_identity? (expect NO => bug) ===
+                                    prosrc                                    
+------------------------------------------------------------------------------
+                                                                             +
+ begin                                                                       +
+   -- Аренда жива и принадлежит этому воркеру? Иначе GR-ошибка.              +
+   perform assert_lease(p_task, p_worker, p_epoch);                          +
+   return append_event(p_task, p_event_id, 'tool_call', p_worker, p_payload);+
+ end 
+(1 row)
+
+
+=== P3: ACL on record_tool_call ===
+     proname      |                         proacl                         
+------------------+--------------------------------------------------------
+ record_tool_call | {swarm_owner=X/swarm_owner,swarm_worker=X/swarm_owner}
+(1 row)
+
+
+=== P4: worker roles canlogin + membership into swarm_worker ===
+      rolname       | rolcanlogin 
+--------------------+-------------
+ swarm_worker       | f
+ swarm_worker_gpu_1 | t
+ swarm_worker_w1    | t
+ swarm_worker_w2    | t
+ swarm_worker_w_1   | t
+(5 rows)
+
+ granted_role |      member      
+--------------+------------------
+ swarm_worker | swarm_worker_w1
+ swarm_worker | swarm_worker_w2
+ swarm_worker | swarm_worker_w_1
+(3 rows)
+
+
+=== P1: assert_worker_identity body (strict form) ===
+                                    prosrc                                    
+------------------------------------------------------------------------------
+                                                                             +
+ declare v_expected text;                                                    +
+ begin                                                                       +
+   if session_user::text like 'swarm_worker_%' then                          +
+     v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);         +
+     if session_user::text <> v_expected then                                +
+       raise exception 'worker_identity_mismatch: session_user=% expected=%',+
+         session_user, v_expected using errcode = 'WK003';                   +
+     end if;                                                                 +
+   end if;                                                                   +
+ end 
+(1 row)
+
+
+=== P3b: effective execute for swarm_worker_w1 (inherited) ===
+ w1_can_execute 
+----------------
+ t
+(1 row)
+
+ w2_can_execute 
+----------------
+ t
+(1 row)
+
