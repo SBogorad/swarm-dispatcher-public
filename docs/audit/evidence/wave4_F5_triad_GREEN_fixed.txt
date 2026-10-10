@@ -1,0 +1,7 @@
+### F5 triad — GREEN on fix  |  2026-10-11T06:09:43+07:00
+### fix: LeaseHealth fail-fast + start barrier + reconnect + dead-thread signal
+
+test f5_dead_heartbeat_fails_fast_without_llm ... ok
+test f5_healthy_heartbeat_completes_normally ... ok
+test f5_lease_revoked_mid_flight_fails_fast ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.46s

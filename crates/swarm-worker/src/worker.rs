@@ -9,10 +9,10 @@ use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
 use crate::storage::ArtifactStore;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use swarm_core::{Lease, SwarmDispatcher};
 use swarm_llm::{LlmClient, LlmError, LlmRequest};
 use tracing::{error, info, warn};
@@ -64,6 +64,36 @@ struct HeartbeatGuard {
     handle: Option<thread::JoinHandle<()>>,
 }
 
+/// F5: состояние фонового heartbeat, видимое главному потоку.
+/// Раньше потеря аренды/обрыв соединения только логировались внутри потока:
+/// главный поток продолжал считать, что аренда жива, и тратил LLM-вызов впустую
+/// (а при нестартовавшем потоке вообще терял аренду молча).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum LeaseHealth {
+    Ok = 0,
+    /// Postgres сообщил, что аренда потеряна (heartbeat вернул false).
+    Lost = 1,
+    /// Heartbeat-поток мёртв: не смог подключиться / не смог восстановиться.
+    Dead = 2,
+}
+
+impl LeaseHealth {
+    fn from_u8(v: u8) -> Self {
+        match v {
+            1 => LeaseHealth::Lost,
+            2 => LeaseHealth::Dead,
+            _ => LeaseHealth::Ok,
+        }
+    }
+    fn store(self, a: &AtomicU8) {
+        a.store(self as u8, Ordering::SeqCst);
+    }
+    fn load(a: &AtomicU8) -> Self {
+        Self::from_u8(a.load(Ordering::SeqCst))
+    }
+}
+
 impl Drop for HeartbeatGuard {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::SeqCst);
@@ -98,23 +128,34 @@ pub fn process_lease(
         return Ok(blocked_or_review(st, ref_, "budget_exhausted"));
     }
 
-    // Фоновый heartbeat.
+    // Фоновый heartbeat (F5). health — канал fail-fast в главный поток.
+    // started — поток подтвердил подключение (барьер против гонки:
+    // иначе главный поток мог бы проверить health до того, как поток упадёт
+    // при connect).
     let stop = Arc::new(AtomicBool::new(false));
+    let health = Arc::new(AtomicU8::new(LeaseHealth::Ok as u8));
+    let started = Arc::new(AtomicBool::new(false));
     let hb = heartbeat_conn.map(|dsn| {
         let stop = stop.clone();
+        let health = health.clone();
+        let started = started.clone();
         let task_id = lease.task_id;
         let epoch = lease.epoch;
         let worker_id = lease.worker_id.clone();
         let interval = Duration::from_secs((cfg.lease_sec / 3).max(1) as u64);
         let extend = cfg.lease_sec;
         thread::spawn(move || {
+            // F5: нестартовавший поток = мёртвая аренда. Сигналим главному потоку,
+            // что heartbeat не работает, чтобы он сделал fail-fast, а не молчал.
             let mut d = match SwarmDispatcher::connect(&dsn) {
                 Ok(d) => d,
                 Err(e) => {
-                    error!(error = %e, "heartbeat: connect failed");
+                    error!(error = %e, "heartbeat: connect failed (fail-fast)");
+                    LeaseHealth::Dead.store(&health);
                     return;
                 }
             };
+            started.store(true, Ordering::SeqCst);
             while !stop.load(Ordering::SeqCst) {
                 thread::sleep(interval);
                 if stop.load(Ordering::SeqCst) {
@@ -131,10 +172,27 @@ pub fn process_lease(
                 match d.heartbeat(&l, extend) {
                     Ok(true) => {}
                     Ok(false) => {
+                        // Постгрес говорит, что аренда потеряна: сигналим fail-fast
+                        // и прекращаем бесполезные heartbeat-циклы.
                         warn!(task_id = %task_id, "lease lost, stopping heartbeat");
+                        LeaseHealth::Lost.store(&health);
                         break;
                     }
-                    Err(e) => error!(error = %e, "heartbeat failed"),
+                    Err(e) => {
+                        // F5: транзиентный обрыв соединения — пробуем восстановиться.
+                        // Раньше ошибка только логировалась, и аренда тихо истекала.
+                        warn!(error = %e, "heartbeat failed, reconnecting");
+                        match SwarmDispatcher::connect(&dsn) {
+                            Ok(nd) => {
+                                d = nd;
+                            }
+                            Err(e2) => {
+                                error!(error = %e2, "heartbeat reconnect failed (fail-fast)");
+                                LeaseHealth::Dead.store(&health);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         })
@@ -144,8 +202,44 @@ pub fn process_lease(
         thread::sleep(Duration::from_secs(cfg.work_sec));
     }
 
+    // F5: барьер старта. Ждём, пока heartbeat-поток либо подтвердит подключение
+    // (started), либо умрёт (Dead). Без барьера проверка health могла пройти
+    // до того, как поток упал при connect — и воркер молча продолжал работу.
+    if hb.is_some() {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !started.load(Ordering::SeqCst)
+            && LeaseHealth::load(&health) == LeaseHealth::Ok
+            && Instant::now() < deadline
+        {
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    // F5: fail-fast — если heartbeat уже мёртв/потерян, не тратим LLM-вызов.
+    match LeaseHealth::load(&health) {
+        LeaseHealth::Ok => {}
+        LeaseHealth::Lost => {
+            warn!(task_id = %lease.task_id, "lease lost before LLM call; aborting");
+            drop(hb);
+            return Ok(Outcome::LeaseLost);
+        }
+        LeaseHealth::Dead => {
+            warn!(task_id = %lease.task_id, "heartbeat dead before LLM call; aborting");
+            drop(hb);
+            return Ok(Outcome::LeaseLost);
+        }
+    }
+
     // Вызов LLM с ретраями.
     let result = call_llm_with_retries(llm, &contract, cfg);
+
+    // F5: повторная проверка после LLM — если аренду потеряли во время работы,
+    // не пытаемся сохранять артефакт/завершать (это всё равно LS001).
+    if LeaseHealth::load(&health) != LeaseHealth::Ok {
+        warn!(task_id = %lease.task_id, "lease lost during LLM call; discarding result");
+        drop(hb);
+        return Ok(Outcome::LeaseLost);
+    }
 
     let heartbeat = HeartbeatGuard {
         stop: stop.clone(),

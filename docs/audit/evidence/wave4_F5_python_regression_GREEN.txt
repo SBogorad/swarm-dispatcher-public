@@ -1,0 +1,10 @@
+### F5 — Python regression (wave-4 arbiters + step2b) on F5-fixed build  |  2026-10-11T06:13:21+07:00
+### creds REDACTED
+
+--- wave-4 arbiters ---
+............................                                             [100%]
+28 passed in 1.87s
+
+--- step2b regression ---
+......................                                                   [100%]
+22 passed in 4.56s
