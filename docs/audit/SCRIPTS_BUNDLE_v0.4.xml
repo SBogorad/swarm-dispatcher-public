@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-10T20:00:23+07:00" generator="scripts/build_audit_bundle.py">
+<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-10T20:44:08+07:00" generator="scripts/build_audit_bundle.py">
   <project>
     <name>swarm-dispatcher</name>
     <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-    <git is_git="true" head="024e2a483a02209490fd81f10599dbd6c8f8f761" branch="feature/v0.6-distributed-worker-mvp" dirty="true"/>
+    <git is_git="true" head="c7739a8080b7abcfa435f9672f29fe971de871dc" branch="feature/v0.6-distributed-worker-mvp" dirty="false"/>
   </project>
   <manifest>
-    <files count="16" total_bytes="101617"/>
+    <files count="16" total_bytes="106443"/>
     <excluded>
       <file path=".env" reason="secrets"/>
       <file path=".env.bak.*" reason="secrets"/>
@@ -17,17 +17,17 @@
       <entry path="scripts/02-roles.sh" role="init" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-roles-2b.sh" role="init" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
       <entry path="scripts/03-role-patches.sh" role="init" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
-      <entry path="schema/schema_v0.sql" role="schema" lang="sql" bytes="22717" lines="467" sha256="051734edeca4fb30c6d9a9b8063898dfb9f1d72b47b80a0a30a6b68a03c42e20" md5="988908125bc24c5ab7edfbde367cda80"/>
+      <entry path="schema/schema_v0.sql" role="schema" lang="sql" bytes="23179" lines="479" sha256="4f9ea6398fbd7f9671a3b3d3fd280252c12615304ba9cd4247e3f64b2bcd7482" md5="01813aa838cdb12cc459ffd369cf51a7"/>
       <entry path="step2/roles.sql" role="roles" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720"/>
       <entry path="step2/roles_patch_planner_status.sql" role="roles-patch" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
       <entry path="step2/roles_patch_tool_call_audit.sql" role="roles-patch" lang="sql" bytes="2630" lines="38" sha256="c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a" md5="bb9915c1806053d510028c5b0aedc5a7"/>
-      <entry path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="10640" lines="207" sha256="36eeb36b0a29994eae86d05cb6eb038c08b0d8c7304d0a88386552eb301c4e3c" md5="7c315403484248c554fe40c6200a9de4"/>
+      <entry path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="12338" lines="232" sha256="177fb6183080898d52159e1fb506b0334ad2e0dd3e12477ae739687a23567afd" md5="0dfe745c65efd0a62298c8843e6f70b1"/>
       <entry path="Dockerfile" role="container" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8"/>
       <entry path="sandbox/Dockerfile" role="container" lang="dockerfile" bytes="2171" lines="45" sha256="ba734449566e19a9e925843690fe2ad2bd81c3c360ba45e446679fae5a78f85b" md5="67172e86a9f7b19137d345d847da54d6"/>
       <entry path="docker-compose.yml" role="container" lang="yaml" bytes="5478" lines="141" sha256="73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5" md5="a834e621209f0a2917dc2989d21577a6"/>
       <entry path="tests/test_v0.py" role="test" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff"/>
       <entry path="step2/test_roles.py" role="test" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726"/>
-      <entry path="step2b/test_roles_2b.py" role="test" lang="python" bytes="9490" lines="238" sha256="af3b884701f47ffbbf39945f47790155a1b55716e1ede3965a345dd712795856" md5="cf56f2c8af949ef61d3171560dfc2fcb"/>
+      <entry path="step2b/test_roles_2b.py" role="test" lang="python" bytes="12156" lines="303" sha256="1d4887b4544cde1fbd7547791a120e752c8181e3c3413102f0d938cf479f8bc7" md5="e09f23f333ada151fcea185128884d41"/>
       <entry path=".env.example" role="config" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077"/>
       <entry path="rust_fixes/dispatcher.rs" role="patch" lang="rust" bytes="7030" lines="161" sha256="672cb96dde154bdefd7576a84d8a0ffdd4fe849e76985c02c9e5a3684f05d9e2" md5="0e095b8e92951a36facaafbd49025a04"/>
     </index>
@@ -115,7 +115,7 @@ for patch in /sql/roles_patch_*.sql; do
 done
 ]]></content>
     </file>
-    <file path="schema/schema_v0.sql" role="schema" lang="sql" bytes="22717" lines="467" sha256="051734edeca4fb30c6d9a9b8063898dfb9f1d72b47b80a0a30a6b68a03c42e20" md5="988908125bc24c5ab7edfbde367cda80">
+    <file path="schema/schema_v0.sql" role="schema" lang="sql" bytes="23179" lines="479" sha256="4f9ea6398fbd7f9671a3b3d3fd280252c12615304ba9cd4247e3f64b2bcd7482" md5="01813aa838cdb12cc459ffd369cf51a7">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -487,10 +487,22 @@ begin
   select created_by into v_creator from artifacts where task_id = p_task and ref = p_ref;
   if v_creator = p_reviewer then raise exception 'self_review' using errcode = 'RV002'; end if;
   if p_verdict = 'approved' then
-    if jsonb_typeof(p_checks) <> 'array'
-       or jsonb_array_length(p_checks) < jsonb_array_length(t.contract->'checks')
-       or exists (select 1 from jsonb_array_elements(p_checks) e
-                  where e->>'status' is distinct from 'pass') then
+    if jsonb_typeof(p_checks) <> 'array' then
+      raise exception 'checks_failed' using errcode = 'RV003';
+    end if;
+    -- Строгий review-gate (G4): каждый required check из contract должен
+    -- иметь хотя бы один pass с тем же type. Проверка по длине больше не
+    -- принимается: `[{"status":"pass"},{"status":"pass"}]` обходил её.
+    if exists (
+      select 1
+      from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+      where not exists (
+        select 1
+        from jsonb_array_elements(p_checks) p
+        where p->>'type' = c->>'type'
+          and p->>'status' = 'pass'
+      )
+    ) then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
   end if;
@@ -728,7 +740,7 @@ revoke all on function record_tool_call(uuid, text, bigint, text, jsonb) from pu
 grant execute on function record_tool_call(uuid, text, bigint, text, jsonb) to swarm_worker;
 ]]></content>
     </file>
-    <file path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="10640" lines="207" sha256="36eeb36b0a29994eae86d05cb6eb038c08b0d8c7304d0a88386552eb301c4e3c" md5="7c315403484248c554fe40c6200a9de4">
+    <file path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="12338" lines="232" sha256="177fb6183080898d52159e1fb506b0334ad2e0dd3e12477ae739687a23567afd" md5="0dfe745c65efd0a62298c8843e6f70b1">
       <content><![CDATA[
 -- swarm roles 2b v0.2: идентификация воркера.
 -- Запуск ПОСЛЕ schema_v0.sql и roles.sql (суперпользователем):
@@ -937,6 +949,31 @@ grant swarm_worker to swarm_worker_w1;
 grant swarm_worker to swarm_worker_w2;
 grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
+
+-- ============================================================
+-- 3b. Defense-in-depth: каждой per-worker роли запрещён SET на
+--     чужую роль (включая саму общую swarm_worker).
+--
+--     Без этого PG16 по умолчанию выдаёт set_option = true при
+--     grant, и компрометация одной роли позволяет SET ROLE на
+--     другую. Защита identity и так держится на session_user
+--     (см. assert_worker_identity), но мы убираем и сам механизм.
+--
+--     Синтаксис проверен на PostgreSQL 16.15:
+--       revoke set option for <role> from <role>
+--     (не "REVOKE SET ON ROLE" — такого варианта в PG16 нет).
+-- ============================================================
+revoke set option for swarm_worker from swarm_worker_w1;
+revoke set option for swarm_worker from swarm_worker_w2;
+revoke set option for swarm_worker from swarm_worker_w_1;
+revoke set option for swarm_worker from swarm_worker_gpu_1;
+
+-- Перекрёстный запрет: ни одна worker-роль не имеет SET на любую
+-- другую worker-роль (матрица N x N, включая саму себя).
+revoke set option for swarm_worker_w1    from swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w2    from swarm_worker_w1, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w_1   from swarm_worker_w1, swarm_worker_w2, swarm_worker_gpu_1;
+revoke set option for swarm_worker_gpu_1 from swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1;
 ]]></content>
     </file>
     <file path="Dockerfile" role="container" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8">
@@ -1940,7 +1977,7 @@ def test_task_status_shows_state_but_not_contract(admin):
     assert cols[:3] == ["id", "root_id", "state"]
 ]]></content>
     </file>
-    <file path="step2b/test_roles_2b.py" role="test" lang="python" bytes="9490" lines="238" sha256="af3b884701f47ffbbf39945f47790155a1b55716e1ede3965a345dd712795856" md5="cf56f2c8af949ef61d3171560dfc2fcb">
+    <file path="step2b/test_roles_2b.py" role="test" lang="python" bytes="12156" lines="303" sha256="1d4887b4544cde1fbd7547791a120e752c8181e3c3413102f0d938cf479f8bc7" md5="e09f23f333ada151fcea185128884d41">
       <content><![CDATA[
 """Тесты идентификации воркера (roles_2b.sql). Полная версия.
 
@@ -2180,6 +2217,71 @@ def test_18_assert_worker_identity_not_granted_to_public(admin):
 
     cur.execute("select has_function_privilege('public', 'normalize_worker_id(text)', 'execute')")
     assert cur.fetchone()[0] is False
+
+
+# ---------- Defense-in-depth: SET ROLE на чужую роль запрещён ----------
+
+ALL_WORKER_ROLES = [
+    "swarm_worker_w1",
+    "swarm_worker_w2",
+    "swarm_worker_w_1",
+    "swarm_worker_gpu_1",
+]
+
+
+def test_19_no_set_option_on_shared_worker_role(admin):
+    """G3: PG16 по умолчанию ставит set_option=true при grant.
+
+    roles_2b.sql явно делает REVOKE SET OPTION FOR swarm_worker FROM
+    каждой per-worker роли. Проверяем по каталогу pg_auth_members, что
+    set_option == false — иначе компрометация одной роли позволила бы
+    SET ROLE на общую worker-роль.
+    """
+    cur = admin.cursor()
+    for role in ALL_WORKER_ROLES:
+        cur.execute(
+            """
+            select am.set_option
+              from pg_auth_members am
+              join pg_roles m on m.oid = am.member
+              join pg_roles r on r.oid = am.roleid
+             where m.rolname = %s and r.rolname = 'swarm_worker'
+            """,
+            (role,),
+        )
+        row = cur.fetchone()
+        assert row is not None, f"{role}: нет membership на swarm_worker"
+        assert row[0] is False, f"{role}: set_option на swarm_worker должен быть false (G3)"
+
+
+def test_20_no_cross_worker_set_option(admin):
+    """G3: ни одна worker-роль не имеет SET на любую другую worker-роль."""
+    cur = admin.cursor()
+    for member in ALL_WORKER_ROLES:
+        others = [r for r in ALL_WORKER_ROLES if r != member]
+        for target in others:
+            cur.execute(
+                """
+                select coalesce(max(case when am.set_option then 1 else 0 end), 0)
+                  from pg_auth_members am
+                  join pg_roles m on m.oid = am.member
+                  join pg_roles r on r.oid = am.roleid
+                 where m.rolname = %s and r.rolname = %s
+                """,
+                (member, target),
+            )
+            assert cur.fetchone()[0] == 0, f"{member}: set_option на {target} должен отсутствовать"
+
+
+def test_21_set_role_spoofing_is_denied(admin):
+    """G3 end-to-end: SET ROLE на чужую worker-роль реально отбит Postgres.
+
+    Без set_option попытка SET ROLE завершается ошибкой прав (42501),
+    а не только перехватывается session_user-проверкой внутри функции.
+    """
+    w = as_role("swarm_worker_w1")
+    assert attempt(w, "set role swarm_worker_w2") == DENIED
+    assert attempt(w, "set role swarm_worker") == DENIED
 ]]></content>
     </file>
     <file path=".env.example" role="config" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077">
