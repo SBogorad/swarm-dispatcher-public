@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T19:38:22+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T19:52:56+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="a7ea4ca2a7506cc4ea64394596a80341ec0b2175"/>
+  <git is_git="true" head="f2588ea4e5589d23dc876e6835f49fa30556611e"/>
   <manifest>
-    <files count="26" total_bytes="157998"/>
+    <files count="26" total_bytes="158077"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -23,11 +23,11 @@
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
-      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1226" lines="39" sha256="e31c8bd5994a2c8748f4e41f46783bb532a2fc400ac78aae0c67fd9c76295624" md5="8fdea34c4cc43c0d14e943de6dac6f4b"/>
+      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1317" lines="42" sha256="0dd86cc2075343760d394c69f799ea73e1d47385d066ff17fdf5aa2747de6c54" md5="0af0a47933bd792aa9a15c07e2c13b4c"/>
       <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7"/>
       <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92"/>
-      <entry path="scripts/build_audit_index.py" lang="python" bytes="5567" lines="128" sha256="d528b9dd103f1e2f03ea8ec5ff74090d190d9e198fd710acf7a351031d7ded7a" md5="de716adce3e6ef69a4cd4da50dc44548"/>
-      <entry path="scripts/build_audit_report.py" lang="python" bytes="7393" lines="162" sha256="ba87780d987945f3fb45ad036f16bd37f06c0ab02f7cce152d65771823c26c8c" md5="dc4a03a98c9cc34e12a4c3ca2189c5e1"/>
+      <entry path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8"/>
+      <entry path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4"/>
       <entry path="scripts/build_project_bundle.py" lang="python" bytes="8478" lines="197" sha256="039bc85c67845940f7b31fe4c378ea57d08481c840cf38f5b5bf5755d5622936" md5="1550f05ea0977470ab219079b609e766"/>
       <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170"/>
       <entry path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720"/>
@@ -871,7 +871,7 @@ psql -v ON_ERROR_STOP=1 \
      -f /sql/roles_2b.sql
 ]]></content>
     </file>
-    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="1226" lines="39" sha256="e31c8bd5994a2c8748f4e41f46783bb532a2fc400ac78aae0c67fd9c76295624" md5="8fdea34c4cc43c0d14e943de6dac6f4b">
+    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="1317" lines="42" sha256="0dd86cc2075343760d394c69f799ea73e1d47385d066ff17fdf5aa2747de6c54" md5="0af0a47933bd792aa9a15c07e2c13b4c">
       <content><![CDATA[
 # Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
 # One rule per line: exact path, or `prefix/*` for a directory subtree.
@@ -909,6 +909,9 @@ crates/swarm-watchdog/src/*
 crates/swarm-worker/examples/*
 crates/swarm-worker/src/*
 scripts/build_audit_bundle.py
+scripts/build_audit_report.py
+scripts/build_audit_index.py
+scripts/build_project_bundle.py
 
 # Audit evidence produced for this wave.
 docs/audit/*
@@ -1565,7 +1568,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
       </content>
     </file>
-    <file path="scripts/build_audit_index.py" lang="python" bytes="5567" lines="128" sha256="d528b9dd103f1e2f03ea8ec5ff74090d190d9e198fd710acf7a351031d7ded7a" md5="de716adce3e6ef69a4cd4da50dc44548">
+    <file path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8">
       <content><![CDATA[
 #!/usr/bin/env python3
 """Индекс аудит-пакета: читает три тома XML и строит сводный MD + checksums.txt.
@@ -1619,8 +1622,8 @@ def main() -> int:
     L = []
     L.append("# Аудит-пакет проекта `swarm-dispatcher` — индекс")
     L.append("")
-    L.append(f"**Сгенерировано:** {now}  ")
-    L.append("**Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`  ")
+    L.append(f"**Сгенерировано:** {now}")
+    L.append("**Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`")
     L.append("**Схема:** `swarm-dispatcher.audit-bundle.v2`")
     L.append("")
     L.append("Предназначено для передачи **внешнему аудитору (LLM)**: полный исходный код, "
@@ -1697,7 +1700,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ]]></content>
     </file>
-    <file path="scripts/build_audit_report.py" lang="python" bytes="7393" lines="162" sha256="ba87780d987945f3fb45ad036f16bd37f06c0ab02f7cce152d65771823c26c8c" md5="dc4a03a98c9cc34e12a4c3ca2189c5e1">
+    <file path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4">
       <content><![CDATA[
 #!/usr/bin/env python3
 """Генерирует MD-отчёт по XML-бандлу аудита из самого бандла (хеши гарантированно совпадают).
@@ -1750,10 +1753,10 @@ def main() -> int:
     L: list[str] = []
     L.append("# Аудит-бандл скриптов — отчёт")
     L.append("")
-    L.append("**Проект:** `swarm-dispatcher`  ")
-    L.append("**Версия бандла:** v0.4  ")
-    L.append(f"**Сгенерировано:** {gen}  ")
-    L.append("**Генератор:** `scripts/build_audit_bundle.py`  ")
+    L.append("**Проект:** `swarm-dispatcher`")
+    L.append("**Версия бандла:** v0.4")
+    L.append(f"**Сгенерировано:** {gen}")
+    L.append("**Генератор:** `scripts/build_audit_bundle.py`")
     L.append("**Артефакт:** `docs/audit/SCRIPTS_BUNDLE_v0.4.xml`")
     L.append("")
     L.append("---")

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T19:38:22+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T19:52:56+07:00" generator="scripts/build_project_bundle.py">
   <title>Код проекта (Rust + тесты + манифесты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="a7ea4ca2a7506cc4ea64394596a80341ec0b2175"/>
+  <git is_git="true" head="f2588ea4e5589d23dc876e6835f49fa30556611e"/>
   <manifest>
     <files count="45" total_bytes="375134"/>
     <excluded>

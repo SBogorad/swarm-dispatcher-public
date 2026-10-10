@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-10T19:40:47+07:00
+**Сгенерировано:** 2026-10-10T19:53:22+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -11,36 +11,36 @@
 | Том | Содержание | Файлов | Строк | Исходники, байт | XML, байт |
 |-----|------------|-------:|------:|----------------:|----------:|
 | `CODE` | Код проекта (Rust + тесты + манифесты) | 45 | 11799 | 375134 | 396691 |
-| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3680 | 157998 | 170745 |
+| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 26 | 3683 | 158077 | 170824 |
 | `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 27 | 5655 | 277741 | 290829 |
 | `DOCS` | Документация и отчёты (без писем history/inbound) | 47 | 10186 | 614671 | 636966 |
-| **Итого** | | **145** | | **1425544** | **1495231** |
+| **Итого** | | **145** | | **1425623** | **1495310** |
 
 ## Хеши томов (для передачи аудитору)
 
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
 - Размер: 396691 байт
-- `sha256`: `7045fb0e033196731dd40c0f1eb92e137ce957cdb1945d070cdc1d4988aded38`
-- `md5`: `0cde58fc27f9cd084daa9d0ab819d0ed`
+- `sha256`: `dcd5618b899caf52d6e642e1c0f17035fcfb4f82171b477f22644799ea931555`
+- `md5`: `e7eee5b7511b6649bf34df4158e68546`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
-- Размер: 170745 байт
-- `sha256`: `f522c4a4766d25014373d72e49476bf1dc406d97c79419b5cc16b4d947559313`
-- `md5`: `c80def12ab915348e1e36b36118e063c`
+- Размер: 170824 байт
+- `sha256`: `9e5e65b58c4206252a57d4707da4774e453ebe6a73ed2ead94516ad84951317b`
+- `md5`: `baadecdefab32eef1ae259f073fa4d99`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
 - Размер: 290829 байт
-- `sha256`: `2e7dc168e314f0668659e48a04daaa58fe21b220c4de11e910e3cc2b932950c6`
-- `md5`: `78c7e89057585b3e204d5ae7d6c58022`
+- `sha256`: `d0d541d0a2e37d63f14ff6a998f782751e59cbdd2919d2358dda7c6cdbdde56a`
+- `md5`: `dbc5ddba0fe8321158b28b7f6d11cd2d`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
 - Размер: 636966 байт
-- `sha256`: `49c2104c415ce4fc5ba333ae0ea53fcef533b3d10005483493fd400247549c14`
-- `md5`: `573fc622562fd3ea7faee56c5d01de70`
+- `sha256`: `5437ffdea67ede6695f81f30ee705e75016a2081441a22d40e66963506462681`
+- `md5`: `9caf9fc7e798a37c3d46ff962e4d796a`
 
 ## Исключено сознательно
 
@@ -117,11 +117,11 @@
 | 8 | `scripts/02-roles.sh` | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` |
 | 9 | `scripts/03-role-patches.sh` | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` |
 | 10 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
-| 11 | `scripts/acceptance_allowlist.txt` | text | 1226 | 39 | `e31c8bd5994a2c8748f4e41f46783bb532a2fc400ac78aae0c67fd9c76295624` |
+| 11 | `scripts/acceptance_allowlist.txt` | text | 1317 | 42 | `0dd86cc2075343760d394c69f799ea73e1d47385d066ff17fdf5aa2747de6c54` |
 | 12 | `scripts/acceptance_harness.sh` | bash | 18792 | 460 | `0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b` |
 | 13 | `scripts/build_audit_bundle.py` | python | 6990 | 183 | `b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054` |
-| 14 | `scripts/build_audit_index.py` | python | 5567 | 128 | `d528b9dd103f1e2f03ea8ec5ff74090d190d9e198fd710acf7a351031d7ded7a` |
-| 15 | `scripts/build_audit_report.py` | python | 7393 | 162 | `ba87780d987945f3fb45ad036f16bd37f06c0ab02f7cce152d65771823c26c8c` |
+| 14 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
+| 15 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
 | 16 | `scripts/build_project_bundle.py` | python | 8478 | 197 | `039bc85c67845940f7b31fe4c378ea57d08481c840cf38f5b5bf5755d5622936` |
 | 17 | `scripts/run_mutations_v04.sh` | bash | 6630 | 155 | `b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a` |
 | 18 | `step2/roles.sql` | sql | 5275 | 80 | `bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6` |
