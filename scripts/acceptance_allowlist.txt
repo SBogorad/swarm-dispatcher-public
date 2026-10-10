@@ -10,6 +10,11 @@ scripts/acceptance_allowlist.txt
 step2/roles_patch_submit_review.sql
 step2/test_review_gate.py
 
+# P0 state-machine integrity: base schema, per-worker roles, state invariants.
+schema/schema_v0.sql
+step2b/roles_2b.sql
+tests/test_v0.py
+
 # P0 Rust hardening: allowlist and agent-loop path validation (+ tests).
 crates/swarm-worker/src/*
 
