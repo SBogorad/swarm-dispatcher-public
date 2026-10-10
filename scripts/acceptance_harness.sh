@@ -358,6 +358,7 @@ review_gate_acceptance() {
     "step2/test_roles.py|RBAC role separation + catalog invariants (P0 #3/#4)"
     "step2b/test_roles_2b.py|worker identity, SET ROLE, id collisions (P0 #4)"
     "step2/test_review_gate.py|review-gate negative tests (P0 #5)"
+    "tests/test_v0.py|state machine: lease/epoch, add_dep, reopen cascade (P0 #6/#7)"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
@@ -376,11 +377,13 @@ review_gate_acceptance() {
   export SWARM_PW_W1=c2_w1 SWARM_PW_W2=c2_w2 SWARM_PW_W_1=c2_w_1 SWARM_PW_GPU_1=c2_gpu_1
   export SWARM_PW_WORKER=c2_worker SWARM_PW_WATCHDOG=c2_watchdog SWARM_PW_PLANNER=c2_planner
   export SWARM_PW_REVIEWER=c2_reviewer SWARM_PW_OPERATOR=c2_operator SWARM_PW_CLI=c2_cli
+  # tests/test_v0.py speaks PGDSN (superuser): reuse the disposable DSN.
+  export PGDSN="dbname=c2_swarm user=postgres host=127.0.0.1 port=$TEST_DB_PORT password=$DB_PASSWORD"
   for suite in "${suites[@]}"; do
     run_worktree_step "${suite##*|} on patched c2_ database" \
       "$py" -m pytest -q "${suite%%|*}"
   done
-  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW
+  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW PGDSN
   unset SWARM_PW_W1 SWARM_PW_W2 SWARM_PW_W_1 SWARM_PW_GPU_1 SWARM_PW_WORKER SWARM_PW_WATCHDOG
   unset SWARM_PW_PLANNER SWARM_PW_REVIEWER SWARM_PW_OPERATOR SWARM_PW_CLI
   ((FAILURES == failures_before))
