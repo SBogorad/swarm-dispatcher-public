@@ -561,8 +561,17 @@ if ((FULL_WORKSPACE_TEST)); then
   if ((DB_READY == 1)); then
     export TEST_DATABASE_URL
     export DATABASE_URL="$TEST_DATABASE_URL"
-    # FIND-01: shell-tools тесты требуют feature; бинарь собирается без неё в shell_tools_ban.
-    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --features swarm-worker/shell-tools --locked -- --test-threads=1
+    # Волна 5.2: два шага вместо одного — релизный гейт должен реально ВИДЕТЬ
+    # интеграцию. Раньше `cargo test --workspace` без `--ignored` молча
+    # игнорировал 21 интеграционный тест (все Docker/PG-тесты), т.е.
+    # --full-workspace-test завышал уверенность (найдено ночным прогоном).
+    # FIND-01: shell-tools тесты требуют feature; бинарь без неё собирается в shell_tools_ban.
+    run_worktree_step "required full workspace test with disposable c2_ database" \
+      cargo test --workspace --features swarm-worker/shell-tools --locked -- --test-threads=1
+    # Интеграция: `--ignored` при поднятой БД (требует TEST_DATABASE_URL).
+    # Тесты сами падают (FIND-08), если DSN не задан — не молчаливый skip.
+    run_worktree_step "required integration tests (--ignored) on disposable c2_ database" \
+      cargo test --workspace --features swarm-worker/shell-tools --locked -- --test-threads=1 --ignored
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi

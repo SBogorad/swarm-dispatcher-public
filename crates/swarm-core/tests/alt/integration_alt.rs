@@ -4,7 +4,8 @@
 //! формулировки тех же сценариев. Запуск:
 //!
 //!   TEST_DATABASE_URL=postgres://... \
-//!     cargo test -p swarm-core --test integration_alt -- --ignored --test-threads=1
+//!     TEST_DATABASE_URL=... TEST_ALLOW_IGNORED=1 \
+//!     cargo test -p swarm-core --test integration_alt -- --test-threads=1
 
 use swarm_core::{Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict};
 use uuid::Uuid;
@@ -87,7 +88,6 @@ fn ready_task(d: &mut SwarmDispatcher) -> Uuid {
 }
 
 #[test]
-#[ignore]
 fn full_cycle_claim_save_complete_review() {
     let dsn = require_dsn();
     reset(&dsn);
@@ -112,7 +112,6 @@ fn full_cycle_claim_save_complete_review() {
 }
 
 #[test]
-#[ignore]
 fn sqlstate_mapping() {
     let dsn = require_dsn();
     reset(&dsn);
@@ -174,7 +173,6 @@ fn sqlstate_mapping() {
 }
 
 #[test]
-#[ignore]
 fn zombie_is_fenced_and_heartbeat_false() {
     let dsn = require_dsn();
     reset(&dsn);

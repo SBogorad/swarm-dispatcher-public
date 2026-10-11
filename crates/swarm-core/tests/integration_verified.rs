@@ -320,3 +320,108 @@ fn with_transaction_commits_whole_graph_atomically() {
     assert_eq!(n, 1); // готов только корень
     assert_eq!(count(&ids), 4);
 }
+
+// ---------------------------------------------------------------------------
+// Волна 5.2: перенесены 5 тестов из устаревшего `integration.rs`.
+//
+// `integration.rs` был ранней копией этого файла; после F15 (строгая форма
+// checks) он устарел, но его уникальные проверки оставались нужны и при этом
+// были спрятаны за `#[ignore]` — т.е. НЕ выполнялись ни harness, ни мутациями
+// (найдено ночным прогоном). Уникальные тесты перенесены сюда БЕЗ `#[ignore]`;
+// устаревшие дубли (contract_*_strand, concurrent_claims, with_transaction_*)
+// в этом файле уже есть в актуальной форме.
+// ---------------------------------------------------------------------------
+
+/// add_task создаёт задачу в pending и list_tasks её возвращает.
+#[test]
+fn add_task_and_list() {
+    reset();
+    let mut d = d();
+    let id = Uuid::new_v4();
+    d.add_task(id, &contract(), None, 1000, 5).unwrap();
+    let rows = d.list_tasks(None, 10).unwrap();
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].id, id);
+    assert_eq!(rows[0].state, "pending");
+    assert_eq!(rows[0].priority, 5);
+}
+
+/// Цикл в зависимостях отклоняется (GR00x).
+#[test]
+fn add_dep_cycle_rejected() {
+    reset();
+    let mut d = d();
+    let a = Uuid::new_v4();
+    let b = Uuid::new_v4();
+    d.add_task(a, &contract(), None, 1000, 0).unwrap();
+    d.add_task(b, &contract(), Some(a), 1000, 0).unwrap();
+    d.add_dep(b, a).unwrap();
+    let err = d.add_dep(a, b).unwrap_err();
+    assert!(
+        matches!(err, DispatcherError::CycleDetected),
+        "got: {err:?}"
+    );
+}
+
+/// claim выдаёт lease с epoch=1, повторный claim пуст, артефакт с чужим epoch
+/// отклоняется (fencing).
+#[test]
+fn claim_and_fencing() {
+    reset();
+    let mut d = d();
+    worker(&mut d, "w1");
+    let id = ready_task(&mut d);
+
+    let lease = d.claim("w1", 300).unwrap().expect("lease");
+    assert_eq!(lease.task_id, id);
+    assert_eq!(lease.epoch, 1);
+    assert!(d.claim("w1", 300).unwrap().is_none(), "задача уже занята");
+
+    d.save_artifact(&lease, "sha256:aaa", "/tmp/a", None, None)
+        .unwrap();
+
+    let mut stale = lease.clone();
+    stale.epoch = 0;
+    let err = d
+        .save_artifact(&stale, "sha256:bbb", "/tmp/b", None, None)
+        .unwrap_err();
+    assert!(matches!(err, DispatcherError::LeaseLost));
+}
+
+/// self-review отклоняется (RV00x), сторонний рецензент переводит в done.
+#[test]
+fn complete_and_review_self_rejected() {
+    reset();
+    let mut d = d();
+    worker(&mut d, "w1");
+    let id = ready_task(&mut d);
+    let lease = d.claim("w1", 300).unwrap().unwrap();
+    d.save_artifact(&lease, "sha256:x", "/tmp/x", None, None)
+        .unwrap();
+    assert_eq!(d.complete(&lease, "sha256:x", 10).unwrap(), "review");
+
+    let checks = json!([{"type": "cmd", "run": "true", "status": "pass"}]);
+    let err = d
+        .submit_review(id, "sha256:x", "w1", Verdict::Approved, &checks)
+        .unwrap_err();
+    assert!(matches!(err, DispatcherError::SelfReview));
+
+    let state = d
+        .submit_review(id, "sha256:x", "reviewer", Verdict::Approved, &checks)
+        .unwrap();
+    assert_eq!(state, "done");
+}
+
+/// Хеш-цепочка остаётся валидной после полного цикла операций.
+#[test]
+fn verify_chain_after_operations() {
+    reset();
+    let mut d = d();
+    worker(&mut d, "w1");
+    let id = ready_task(&mut d);
+    let lease = d.claim("w1", 300).unwrap().unwrap();
+    d.save_artifact(&lease, "sha256:x", "/tmp/x", None, None)
+        .unwrap();
+    d.complete(&lease, "sha256:x", 10).unwrap();
+    assert!(d.verify_chain(id).unwrap());
+}
