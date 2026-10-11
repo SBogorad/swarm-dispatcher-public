@@ -64,3 +64,4 @@ docs/KNOWN_LIMITATIONS.md
 
 # Волна 5.2: socket-proxy конфиг и документация (не включается по умолчанию).
 ops/*
+docs/PROJECT_STATE.md
