@@ -5,7 +5,7 @@
 //! (`LeaseLost`, `CycleDetected`, …) в общий `Database`, и маппинг SQLSTATE
 //! будет обойдён. Любой `?` на ошибке postgres обязан идти явно:
 //!
-//! ```ignore
+//! ```text
 //! self.client.query_one(...).map_err(DispatcherError::from_pg)?;
 //! Client::connect(dsn, NoTls).map_err(DispatcherError::from_pg)?;
 //! ```
