@@ -193,6 +193,15 @@
   команд в Docker-контейнере реализован (`allowlist.rs`, `sandbox.rs`,
   `agent_loop.rs`), проверен 35 unit + 9 integration тестами, мутации M1–M6
   ловятся 6 из 6.
+- **Компиляционный бан (FIND-01, 2026-10-11):** модули `agent_loop`,
+  `sandbox`, `allowlist`, `audit` (+ agent-промпты, `parse_step`, shell-tools
+  варианты `WorkerError`) скрыты за feature **`shell-tools`**, выключенной по
+  умолчанию. Бинарь `swarm-worker` её **не** включает, поэтому shell-tools
+  физически **не компилируются** в бинарь воркера — бан в КОДЕ, а не в
+  переписке. Проверяется арбитром в `scripts/acceptance_harness.sh`
+  (`shell_tools_ban`): строит бинарь без feature и убеждается, что символы
+  `AllowlistRejected` / `agent_system_prompt` / `run_shell` и т.п. отсутствуют.
+  Включить для тестов/примеров: `--features swarm-worker/shell-tools`.
 - **Что НЕ включено по умолчанию:** `WORKER_SHELL_TOOLS=0`. Чтобы воркер мог
   создавать sandbox-контейнеры, ему нужен доступ к Docker-демону.
 - **Почему это риск:** единственный способ дать воркеру Docker — смонтировать

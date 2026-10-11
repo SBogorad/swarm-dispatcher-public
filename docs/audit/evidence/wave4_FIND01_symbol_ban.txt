@@ -1,0 +1,16 @@
+### FIND-01 — cfg/feature ban доказан механически | 2026-10-11T07:53:06+07:00
+
+=== Сборка БЕЗ feature (default) ===
+swarm-worker binary (no shell-tools): banned markers = 0
+  AllowlistRejected: 0
+  agent_system_prompt: 0
+  agent_user_prompt: 0
+  run_shell: 0
+  WORKER_SHELL_TOOLS: 0
+  WORKER_ALLOWED_COMMANDS: 0
+  SandboxConfig: 0
+
+=== Сборка С feature (positive control) ===
+agent_system_prompt present => модуль компилируется только под feature
+
+=== Итог: модули agent_loop/sandbox/allowlist/audit физически не входят в бинарь воркера.

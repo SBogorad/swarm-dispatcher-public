@@ -240,6 +240,36 @@ shell_checks() {
   fi
 }
 
+# FIND-01: shell-tools (agent_loop/sandbox/allowlist/audit) НЕ должны попадать
+# в бинарь воркера. Бан — в КОДЕ: модули за feature `shell-tools` (off by
+# default), бинарь её не включает. Проверяем механически: собираем бинарь без
+# feature и убеждаемся, что запрещённых символов/строк нет.
+shell_tools_ban() {
+  local bin="$WORKTREE/target/release/swarm-worker"
+  if ! (cd "$WORKTREE" && cargo build --release -p swarm-worker --bin swarm-worker --locked >/dev/null 2>&1); then
+    status FAIL "FIND-01: cargo build swarm-worker (no shell-tools) failed" 1 "cargo build --release -p swarm-worker --bin swarm-worker"
+    return 0
+  fi
+  if [ ! -f "$bin" ]; then
+    status FAIL "FIND-01: swarm-worker binary missing after build" 1 "ls $bin"
+    return 0
+  fi
+  local sym hit=0
+  # Только НАШИ уникальные маркеры (без generic-слов, которые могут встретиться
+  # в символах зависимостей: напр. kMaxIterations из aws).
+  for sym in AllowlistRejected agent_system_prompt agent_user_prompt run_shell WORKER_SHELL_TOOLS WORKER_ALLOWED_COMMANDS swarm_worker::sandbox swarm_worker::agent_loop SandboxConfig; do
+    if strings "$bin" | grep -q "$sym"; then
+      hit=1
+      printf 'FIND-01 BAN VIOLATION: symbol/string %%s found in swarm-worker binary\n' "$sym"
+    fi
+  done
+  if ((hit == 0)); then
+    status PASS "FIND-01: shell-tools symbols absent from swarm-worker binary" 0 "strings swarm-worker | grep -E '<banned>'"
+  else
+    status FAIL "FIND-01: shell-tools leaked into swarm-worker binary" 1 "strings swarm-worker | grep -E '<banned>'"
+  fi
+}
+
 compose_check() {
   local env_file rendered
   env_file="$(mktemp)"
@@ -438,6 +468,7 @@ else
 fi
 if command -v cargo >/dev/null 2>&1; then
   run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked -- --test-threads=1
+  run_step "FIND-01 shell-tools symbol ban (worker binary)" shell_tools_ban
 else
   status BLOCKED "cargo unavailable: Rust unit tests not run"
 fi
@@ -445,7 +476,8 @@ if ((FULL_WORKSPACE_TEST)); then
   if ((DB_READY == 1)); then
     export TEST_DATABASE_URL
     export DATABASE_URL="$TEST_DATABASE_URL"
-    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked -- --test-threads=1
+    # FIND-01: shell-tools тесты требуют feature; бинарь собирается без неё в shell_tools_ban.
+    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --features swarm-worker/shell-tools --locked -- --test-threads=1
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi
