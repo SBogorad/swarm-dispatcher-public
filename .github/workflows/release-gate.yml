@@ -85,7 +85,7 @@ jobs:
           retention-days: 7
 
   mutations:
-    name: mutation testing (M1-M6)
+    name: mutation testing (Rust M1-M6 + SQL S1-S5)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     # Волна 5.2: мутационный прогон ОБЯЗАН быть в CI. Инцидент: скрипт
@@ -127,11 +127,24 @@ jobs:
           docker exec -i mut_pg psql -U swarm -d postgres -c 'create database v0sandbox'
           docker exec -i mut_pg psql -U swarm -d v0sandbox < schema/schema_v0.sql
 
-      - name: Run mutation testing (M1-M6, fail on survivors)
+      - name: Run mutation testing (M1-M6 Rust, fail on survivors)
         env:
           TEST_DATABASE_URL: host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox
           SANDBOX_IMAGE: agent-sandbox:1.85
         run: bash scripts/run_mutations_v04.sh
+
+      # Волна 5.2: SQL-мутации ядра (S1-S5) — отдельный прогон, чтобы выживший
+      # SQL-мутант валил CI так же, как Rust-мутант.
+      - name: Run SQL mutation testing (S1-S5, fail on survivors)
+        env:
+          TEST_DATABASE_URL: host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox
+          PGDSN: host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox
+          W4_ADMIN_DSN: host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox
+          W4_W1_PW: c2_w1
+          W4_W2_PW: c2_w2
+        run: |
+          # SQL-арбитры требуют только схему (функции), роли не нужны.
+          bash scripts/run_mutations_sql.sh
 
       - name: Cleanup mutation database
         if: always()
