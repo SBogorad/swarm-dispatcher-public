@@ -130,10 +130,11 @@ impl Sandbox {
             &cfg.docker_bin,
             &["rm", "-f", &name],
             Duration::from_secs(30),
+            1 << 20,
         );
 
         let args = Self::build_run_args(cfg, &name);
-        let out = run_cmd_owned(&cfg.docker_bin, &args, Duration::from_secs(120))?;
+        let out = run_cmd_owned(&cfg.docker_bin, &args, Duration::from_secs(120), cfg.max_output_bytes)?;
         if !out.success() {
             return Err(WorkerError::Sandbox(format!(
                 "docker run failed ({}): {}",
@@ -170,7 +171,7 @@ impl Sandbox {
         let started = Instant::now();
         // Внешний wall-clock: страховка на случай, если подвиснет сам docker.
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer)?;
+        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer, self.cfg.max_output_bytes)?;
         let duration_ms = started.elapsed().as_millis();
 
         if out.timed_out {
@@ -219,7 +220,7 @@ impl Sandbox {
         ];
         let started = Instant::now();
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_stdin(&self.cfg.docker_bin, &args, outer, content)?;
+        let out = run_cmd_stdin(&self.cfg.docker_bin, &args, outer, content, self.cfg.max_output_bytes)?;
         let duration_ms = started.elapsed().as_millis();
         if out.timed_out {
             return Err(WorkerError::CommandTimeout {
@@ -249,7 +250,7 @@ impl Sandbox {
         ];
         let started = Instant::now();
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer)?;
+        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer, self.cfg.max_output_bytes)?;
         if out.timed_out {
             return Err(WorkerError::CommandTimeout {
                 command: format!("read_file {path}"),
@@ -275,6 +276,7 @@ impl Sandbox {
             &self.cfg.docker_bin,
             &["rm", "-f", &self.name],
             Duration::from_secs(30),
+            self.cfg.max_output_bytes,
         )?;
         if !out.success() && !out.stderr.contains("No such container") {
             return Err(WorkerError::Sandbox(format!(
@@ -301,6 +303,7 @@ pub fn cleanup_stale(cfg: &SandboxConfig, keep: &[String]) -> Result<usize> {
             "{{.Names}}",
         ],
         Duration::from_secs(30),
+        cfg.max_output_bytes,
     )?;
     if !out.success() {
         return Err(WorkerError::Sandbox(format!(
@@ -317,6 +320,7 @@ pub fn cleanup_stale(cfg: &SandboxConfig, keep: &[String]) -> Result<usize> {
             &cfg.docker_bin,
             &["rm", "-f", name],
             Duration::from_secs(30),
+            1 << 20,
         )?;
         if rm.success() {
             removed += 1;
@@ -366,13 +370,13 @@ impl RawOut {
 }
 
 /// Запустить процесс с wall-clock таймаутом (kill при превышении).
-fn run_cmd(bin: &str, args: &[&str], timeout: Duration) -> Result<RawOut> {
+fn run_cmd(bin: &str, args: &[&str], timeout: Duration, max_bytes: usize) -> Result<RawOut> {
     let owned: Vec<String> = args.iter().map(|s| s.to_string()).collect();
-    run_cmd_owned(bin, &owned, timeout)
+    run_cmd_owned(bin, &owned, timeout, max_bytes)
 }
 
-fn run_cmd_owned(bin: &str, args: &[String], timeout: Duration) -> Result<RawOut> {
-    run_cmd_owned_inner(bin, args, timeout, None)
+fn run_cmd_owned(bin: &str, args: &[String], timeout: Duration, max_bytes: usize) -> Result<RawOut> {
+    run_cmd_owned_inner(bin, args, timeout, None, max_bytes)
 }
 
 /// Запустить процесс, записав `stdin_data` в stdin (для `write_file`).
@@ -381,8 +385,9 @@ fn run_cmd_stdin(
     args: &[String],
     timeout: Duration,
     stdin_data: &str,
+    max_bytes: usize,
 ) -> Result<RawOut> {
-    run_cmd_owned_inner(bin, args, timeout, Some(stdin_data.to_string()))
+    run_cmd_owned_inner(bin, args, timeout, Some(stdin_data.to_string()), max_bytes)
 }
 
 fn run_cmd_owned_inner(
@@ -390,8 +395,9 @@ fn run_cmd_owned_inner(
     args: &[String],
     timeout: Duration,
     stdin_data: Option<String>,
+    max_bytes: usize,
 ) -> Result<RawOut> {
-    use std::io::{Read, Write};
+    use std::io::Write;
 
     let mut child = Command::new(bin)
         .args(args)
@@ -420,17 +426,50 @@ fn run_cmd_owned_inner(
     // reading would then let the wall-clock watchdog kill a healthy command
     // and lose its output. Independent reader threads keep the pipes moving
     // while the loop below only tracks liveness and the deadline.
+    // FIND-05: чтение с ЖЁСТКИМ лимитом. Раньше `read_to_end` копил вывод в
+    // неограниченный Vec: команда, пишущая гигабайты, валила воркер по OOM ещё
+    // ДО `truncate_output`. Читаем не более `max_bytes` (+ небольшой запас), но
+    // продолжаем дренировать трубу (потребляем и отбрасываем), чтобы ребёнок не
+    // встал на write.
+    let cap = max_bytes.saturating_add(64 * 1024);
     let stdout_reader = child.stdout.take().map(|mut p| {
         std::thread::spawn(move || {
-            let mut buf = Vec::new();
-            let _ = p.read_to_end(&mut buf);
+            let mut buf = Vec::with_capacity(cap.min(1 << 20));
+            {
+                use std::io::Read;
+                let mut limited = (&mut p).take(cap as u64);
+                let _ = limited.read_to_end(&mut buf);
+            }
+            // Дочитать и выбросить остаток (дренаж трубы).
+            {
+                use std::io::Read;
+                let mut sink = [0u8; 8192];
+                while let Ok(n) = p.read(&mut sink) {
+                    if n == 0 {
+                        break;
+                    }
+                }
+            }
             buf
         })
     });
     let stderr_reader = child.stderr.take().map(|mut p| {
         std::thread::spawn(move || {
-            let mut buf = Vec::new();
-            let _ = p.read_to_end(&mut buf);
+            let mut buf = Vec::with_capacity(cap.min(1 << 20));
+            {
+                use std::io::Read;
+                let mut limited = (&mut p).take(cap as u64);
+                let _ = limited.read_to_end(&mut buf);
+            }
+            {
+                use std::io::Read;
+                let mut sink = [0u8; 8192];
+                while let Ok(n) = p.read(&mut sink) {
+                    if n == 0 {
+                        break;
+                    }
+                }
+            }
             buf
         })
     });
@@ -576,6 +615,7 @@ mod tests {
             "bash",
             &["-c", "yes 0123456789abcdef | head -n 20000"],
             Duration::from_secs(15),
+            1 << 20,
         )
         .expect("run_cmd");
         assert!(
@@ -587,6 +627,28 @@ mod tests {
             out.stdout.len(),
             17 * 20_000,
             "full stdout must be captured, not truncated by a stall"
+        );
+    }
+
+    // FIND-05: вывод ограничен при ЧТЕНИИ, а не только после (иначе OOM).
+    #[test]
+    fn find05_output_read_is_bounded() {
+        // Пишем ~10 MiB, но читаем с лимитом 64 KiB: буфер не растёт до 10 MiB,
+        // а процесс всё равно доходит до конца (остаток отбрасывается).
+        let out = run_cmd(
+            "bash",
+            &["-c", "yes 0123456789abcdef | head -n 600000"], // ~10.2 MiB
+            Duration::from_secs(30),
+            64 * 1024,
+        )
+        .expect("run_cmd");
+        assert!(!out.timed_out, "bounded read must not deadlock");
+        assert_eq!(out.exit_code, 0);
+        // Прочитано не больше, чем cap (64 KiB + запас), а не все ~10 MiB.
+        assert!(
+            out.stdout.len() <= 64 * 1024 + 64 * 1024,
+            "bounded read must cap memory (got {} bytes)",
+            out.stdout.len()
         );
     }
 }

@@ -4,13 +4,27 @@
 //!   TEST_DATABASE_URL=postgres://swarm:pw@localhost:5432/swarm \
 //!     cargo test -p swarm-core --test integration -- --ignored --test-threads=1
 //!
-//! Без `TEST_DATABASE_URL` тесты пропускаются.
+//! Без `TEST_DATABASE_URL` тесты падают (FIND-08: не молчаливый пропуск).
 
 use swarm_core::{Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict};
 use uuid::Uuid;
 
 fn dsn() -> Option<String> {
     std::env::var("TEST_DATABASE_URL").ok()
+}
+
+/// FIND-08: отсутствие DSN — это ОШИБКА (тест не должен "проходить" молча).
+/// Раньше было `let dsn = require_dsn();` — провал pre-condition
+/// давал ложный PASS. Теперь — panic (FAIL) с явным сообщением. Запускать эти
+/// тесты надо с `--ignored` и заданным TEST_DATABASE_URL.
+fn require_dsn() -> String {
+    dsn().unwrap_or_else(|| {
+        panic!(
+            "BLOCKED/FAIL: TEST_DATABASE_URL не задан; integration-тесты требуют \
+             живую тестовую БД (prefix test_/v0/c2_). Запуск: \
+             TEST_DATABASE_URL=... cargo test -- --ignored"
+        )
+    })
 }
 
 /// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
@@ -65,7 +79,7 @@ fn contract(kind: &str) -> TaskContract {
 #[test]
 #[ignore]
 fn add_task_and_list() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -82,7 +96,7 @@ fn add_task_and_list() {
 #[test]
 #[ignore]
 fn add_dep_cycle_rejected() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -102,7 +116,7 @@ fn add_dep_cycle_rejected() {
 #[test]
 #[ignore]
 fn claim_and_fencing() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -140,7 +154,7 @@ fn claim_and_fencing() {
 #[test]
 #[ignore]
 fn complete_and_review_self_rejected() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -173,7 +187,7 @@ fn complete_and_review_self_rejected() {
 #[test]
 #[ignore]
 fn verify_chain_after_operations() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -215,7 +229,7 @@ fn count(dsn: &str, ids: &[Uuid]) -> i64 {
 #[test]
 #[ignore]
 fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
@@ -247,7 +261,7 @@ fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
 #[test]
 #[ignore]
 fn concurrent_claims_are_disjoint() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     for i in 0..8 {
@@ -288,7 +302,7 @@ fn concurrent_claims_are_disjoint() {
 #[test]
 #[ignore]
 fn with_transaction_rolls_back_on_error() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
@@ -312,7 +326,7 @@ fn with_transaction_rolls_back_on_error() {
 #[test]
 #[ignore]
 fn with_transaction_rolls_back_on_sql_error_midway() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
@@ -331,7 +345,7 @@ fn with_transaction_rolls_back_on_sql_error_midway() {
 #[test]
 #[ignore]
 fn with_transaction_commits_whole_graph_atomically() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let ids: Vec<Uuid> = (0..4).map(|_| Uuid::new_v4()).collect();

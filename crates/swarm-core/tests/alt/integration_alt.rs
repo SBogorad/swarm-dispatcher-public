@@ -13,6 +13,16 @@ fn dsn() -> Option<String> {
     std::env::var("TEST_DATABASE_URL").ok()
 }
 
+/// FIND-08: без TEST_DATABASE_URL — panic (FAIL), не молчаливый return.
+fn require_dsn() -> String {
+    dsn().unwrap_or_else(|| {
+        panic!(
+            "BLOCKED/FAIL: TEST_DATABASE_URL не задан; integration-тесты требуют \
+             живую тестовую БД (prefix test_/v0/c2_)"
+        )
+    })
+}
+
 fn raw(dsn: &str) -> postgres::Client {
     postgres::Client::connect(dsn, postgres::NoTls).unwrap()
 }
@@ -79,7 +89,7 @@ fn ready_task(d: &mut SwarmDispatcher) -> Uuid {
 #[test]
 #[ignore]
 fn full_cycle_claim_save_complete_review() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     reset(&dsn);
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     worker(&mut d, "w1");
@@ -104,7 +114,7 @@ fn full_cycle_claim_save_complete_review() {
 #[test]
 #[ignore]
 fn sqlstate_mapping() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     reset(&dsn);
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     worker(&mut d, "w1");
@@ -166,7 +176,7 @@ fn sqlstate_mapping() {
 #[test]
 #[ignore]
 fn zombie_is_fenced_and_heartbeat_false() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     reset(&dsn);
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     worker(&mut d, "w1");
