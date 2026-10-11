@@ -319,8 +319,15 @@ shell_tools_ban() {
 
   # 1) ПОЛОЖИТЕЛЬНЫЙ КОНТРОЛЬ (главный): runtime-гейт вкомпилирован.
   # Именно эта строка — актуальная защита вместо compile-гейта.
+  #
+  # ВАЖНО (Волна 5.2): НЕ используем `strings | grep -q` — при `set -o pipefail`
+  # `grep -q` выходит на первом совпадении, `strings` получает SIGPIPE, и пайп
+  # возвращает ненулевой код даже при успешном grep (ложный FAIL). Сначала
+  # сбрасываем вывод strings в переменную, потом грепаем ПО ПЕРЕМЕННОЙ.
   local gate_string='shell-tools disabled (set WORKER_SHELL_TOOLS=1 to enable)'
-  if ! strings "$bin" | grep -qF "$gate_string"; then
+  local bin_strings
+  bin_strings="$(strings "$bin")"
+  if ! grep -qF "$gate_string" <<<"$bin_strings"; then
     status FAIL "FIND-01: runtime-gate string absent in binary (gate NOT compiled in)" 1 \
       "strings swarm-worker | grep -F '$gate_string'"
     return 0
@@ -332,7 +339,7 @@ shell_tools_ban() {
   # реально порождает rustc (а не `::`, где grep всегда давал 0).
   local hit=0 sym
   for sym in swarm_worker9agent_loop swarm_worker9allowlist agent_system_prompt run_shell WORKER_ALLOWED_COMMANDS; do
-    if strings "$bin" | grep -q "$sym"; then
+    if grep -q "$sym" <<<"$bin_strings"; then
       hit=1
       printf 'FIND-01 BAN VIOLATION: %s found in swarm-worker binary\n' "$sym"
     fi
