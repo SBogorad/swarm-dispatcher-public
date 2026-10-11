@@ -136,6 +136,9 @@ run_worktree_step() {
       printf '### %s\n' "$label"
       grep -E '^test .+ \.\.\. (ok|FAILED|ignored)$' "$out_file" \
         | sed -E 's/^test //; s/ \.\.\. .*$//' || true
+      # pytest с -rA печатает строки вида `PASSED path::test` / `FAILED path::test`
+      # в короткой сводке. Забираем и полные идентификаторы `path::test`.
+      grep -E '^(PASSED|FAILED|ERROR) .+::' "$out_file" || true
       grep -E '^(PASSED|FAILED|ERROR) ' "$out_file" || true
     } >>"$TEST_NAMES_FILE"
   fi
@@ -531,7 +534,7 @@ review_gate_acceptance() {
   export PGDSN="dbname=c2_swarm user=postgres host=127.0.0.1 port=$TEST_DB_PORT password=$DB_PASSWORD"
   for suite in "${suites[@]}"; do
     run_worktree_step "${suite##*|} on patched c2_ database" \
-      "$py" -m pytest -q "${suite%%|*}"
+      "$py" -m pytest -q -rA "${suite%%|*}"
   done
   unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW PGDSN
   unset SWARM_PW_W1 SWARM_PW_W2 SWARM_PW_W_1 SWARM_PW_GPU_1 SWARM_PW_WORKER SWARM_PW_WATCHDOG
