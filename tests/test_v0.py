@@ -334,8 +334,8 @@ def to_review(db, t, wid="w1"):
     db.commit()
 
 
-PASS = json.dumps([{"type": "cmd", "status": "pass", "exit_code": 0}])
-FAIL = json.dumps([{"type": "cmd", "status": "fail", "exit_code": 1}])
+PASS = json.dumps([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}])
+FAIL = json.dumps([{"type": "cmd", "run": "true", "status": "fail", "exit_code": 1}])
 
 
 def test_review_rules(db):

@@ -1,0 +1,19 @@
+### FIND-11 (v0 test fixtures vs F2 review-gate) | 2026-10-11T10:18:20+07:00
+
+Симптом: test_v0.py на финальном стеке даёт 2 красных.
+Причина: фикстуры PASS/FAIL подавали отчёт о проверке БЕЗ поля 'run',
+  PASS = [{"type":"cmd","status":"pass",...}]  -> ключ 'cmd|'
+  контракт contract() = [{"type":"cmd","run":"true"}] -> ключ 'cmd|true'
+  Строгий гейт F2 (коалесc(id,type||'|'||run)) требует count(pass)>=req.n по ключу;
+  ключи не совпадали -> RV003 (checks_failed). Это НЕ дефект прода,
+  а рассинхрон тестовых фикстур с ужесточённым гейтом.
+
+Фикс (без ослабления гейта): в фикстуры добавлено 'run':'true' — как в контракте.
+
+=== Триада (pytest tests/test_v0.py, PG 16.15) ===
+[RED до фикса]   2 failed, 26 passed
+  FAILED test_review_rules - checks_failed
+  FAILED test_done_promotes_dependents_and_promote_is_idempotent
+[GREEN после]    28 passed
+[RED при откате] 2 failed, 26 passed
+[GREEN повторно] 28 passed
