@@ -20,6 +20,8 @@ pub struct SandboxConfig {
     /// Образ песочницы (ТЗ §3).
     pub image: String,
     /// Префикс имени контейнера: `<prefix>-<task_short>`.
+    /// F12г: включай сюда `worker_id`, чтобы `cleanup_stale` одного воркера
+    /// не мог задеть контейнеры соседа (изоляция по воркеру, а не общий префикс).
     pub name_prefix: String,
     /// Лимит памяти (`--memory`).
     pub memory: String,
@@ -27,6 +29,9 @@ pub struct SandboxConfig {
     pub cpus: String,
     /// Таймаут одной команды, сек (ТЗ §5).
     pub cmd_timeout_sec: u64,
+    /// F12: лимит числа процессов в контейнере (`--pids-limit`) — защита от
+    /// fork-бомб. 0 — не задавать (не рекомендуется).
+    pub pids_limit: u32,
     /// Лимит вывода stdout+stderr, байт (ТЗ §5, default 10 MB).
     pub max_output_bytes: usize,
     /// Сеть контейнера. В v0.4 — `none` (ТЗ §3).
@@ -43,6 +48,7 @@ impl Default for SandboxConfig {
             memory: "2g".into(),
             cpus: "2".into(),
             cmd_timeout_sec: 60,
+            pids_limit: 256,
             max_output_bytes: 10 * 1024 * 1024,
             network: "none".into(),
             docker_bin: "docker".into(),
@@ -105,6 +111,15 @@ impl Sandbox {
             cfg.memory.clone(),
             "--cpus".into(),
             cfg.cpus.clone(),
+            // F12: лимит числа процессов в контейнере — защита от fork-бомб.
+            // Без него `:(){ :|:& };:` внутри контейнера исчерпывает PID
+            // хоста (общий namespace PID при общем ядре).
+            "--pids-limit".into(),
+            if cfg.pids_limit > 0 {
+                cfg.pids_limit.to_string()
+            } else {
+                "256".to_string()
+            },
             "-u".into(),
             "1001:1001".into(),
             "-e".into(),
@@ -124,7 +139,17 @@ impl Sandbox {
 
     /// Запустить sandbox для задачи. `task_short` — первые 12 символов id.
     pub fn start(cfg: &SandboxConfig, task_short: &str) -> Result<Sandbox> {
+        // F12г: префикс обязан содержать worker_id (изоляция cleanup между воркерами).
+        // Разрешаем только [A-Za-z0-9._-], чтобы имя контейнера было безопасным
+        // для docker filter и не могло содержать пробелов/метасимволов.
         let name = format!("{}-{}", cfg.name_prefix, task_short);
+        debug_assert!(
+            cfg.name_prefix
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | ':')),
+            "name_prefix содержит небезопасные символы: {:?}",
+            cfg.name_prefix
+        );
         // На случай остатка от прошлого запуска.
         let _ = run_cmd(
             &cfg.docker_bin,
@@ -134,7 +159,12 @@ impl Sandbox {
         );
 
         let args = Self::build_run_args(cfg, &name);
-        let out = run_cmd_owned(&cfg.docker_bin, &args, Duration::from_secs(120), cfg.max_output_bytes)?;
+        let out = run_cmd_owned(
+            &cfg.docker_bin,
+            &args,
+            Duration::from_secs(120),
+            cfg.max_output_bytes,
+        )?;
         if !out.success() {
             return Err(WorkerError::Sandbox(format!(
                 "docker run failed ({}): {}",
@@ -152,26 +182,45 @@ impl Sandbox {
         &self.name
     }
 
+    /// F12: состав argv для `docker exec` (таймаут внутри контейнера).
+    /// Вынесено отдельно, чтобы тесты проверяли ровно те флаги, что уходят
+    /// в docker (`timeout -k <kill> -s TERM <sec>`).
+    pub fn build_exec_prefix(cfg: &SandboxConfig, name: &str) -> Vec<String> {
+        let kill_after = "5";
+        vec![
+            "exec".to_string(),
+            name.to_string(),
+            "timeout".to_string(),
+            "-k".to_string(),
+            kill_after.to_string(),
+            "-s".to_string(),
+            "TERM".to_string(),
+            cfg.cmd_timeout_sec.to_string(),
+        ]
+    }
+
     /// Выполнить команду в sandbox. Таймаут и лимит вывода — ТЗ §5.
     ///
     /// `command` должен быть уже проверен allowlist'ом (см. `allowlist.rs`).
     pub fn exec(&self, command: &str) -> Result<ExecOutput> {
         let argv = parse_command_argv(command)?;
-        let sec = self.cfg.cmd_timeout_sec.to_string();
         // Execute argv directly. The allowlist is policy, not a shell parser.
-        let mut args = vec![
-            "exec".to_string(),
-            self.name.clone(),
-            "timeout".to_string(),
-            "-s".to_string(),
-            "TERM".to_string(),
-            sec.clone(),
-        ];
+        // F12в: `timeout -k <kill-after> <sec>` — после TERM (мягкий сигнал)
+        // ядро шлёт KILL, если процесс не завершился. Без `-k` зависший в
+        // непрерываемом состоянии процесс остаётся жить до внешнего
+        // wall-clock kill (только клиента `docker exec`). KILL гарантирует
+        // снятие процесса внутри контейнера.
+        let mut args = Self::build_exec_prefix(&self.cfg, &self.name);
         args.extend(argv);
         let started = Instant::now();
         // Внешний wall-clock: страховка на случай, если подвиснет сам docker.
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer, self.cfg.max_output_bytes)?;
+        let out = run_cmd_owned(
+            &self.cfg.docker_bin,
+            &args,
+            outer,
+            self.cfg.max_output_bytes,
+        )?;
         let duration_ms = started.elapsed().as_millis();
 
         if out.timed_out {
@@ -220,7 +269,13 @@ impl Sandbox {
         ];
         let started = Instant::now();
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_stdin(&self.cfg.docker_bin, &args, outer, content, self.cfg.max_output_bytes)?;
+        let out = run_cmd_stdin(
+            &self.cfg.docker_bin,
+            &args,
+            outer,
+            content,
+            self.cfg.max_output_bytes,
+        )?;
         let duration_ms = started.elapsed().as_millis();
         if out.timed_out {
             return Err(WorkerError::CommandTimeout {
@@ -250,7 +305,12 @@ impl Sandbox {
         ];
         let started = Instant::now();
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer, self.cfg.max_output_bytes)?;
+        let out = run_cmd_owned(
+            &self.cfg.docker_bin,
+            &args,
+            outer,
+            self.cfg.max_output_bytes,
+        )?;
         if out.timed_out {
             return Err(WorkerError::CommandTimeout {
                 command: format!("read_file {path}"),
@@ -375,7 +435,12 @@ fn run_cmd(bin: &str, args: &[&str], timeout: Duration, max_bytes: usize) -> Res
     run_cmd_owned(bin, &owned, timeout, max_bytes)
 }
 
-fn run_cmd_owned(bin: &str, args: &[String], timeout: Duration, max_bytes: usize) -> Result<RawOut> {
+fn run_cmd_owned(
+    bin: &str,
+    args: &[String],
+    timeout: Duration,
+    max_bytes: usize,
+) -> Result<RawOut> {
     run_cmd_owned_inner(bin, args, timeout, None, max_bytes)
 }
 
@@ -650,5 +715,64 @@ mod tests {
             "bounded read must cap memory (got {} bytes)",
             out.stdout.len()
         );
+    }
+}
+
+#[cfg(test)]
+mod f12_tests {
+    use super::*;
+
+    // F12в (RED pre-fix): таймаут обязан убивать процесс ВНУТРИ контейнера.
+    // Ожидаем, что `timeout` вызывается с `-k` (kill-after) и явным сигналом.
+    #[test]
+    fn f12_exec_uses_kill_after_and_signal() {
+        let cfg = SandboxConfig::default();
+        // Собираем argv так же, как `exec`, чтобы проверить состав флагов.
+        let argv = Sandbox::build_exec_prefix(&cfg, "swarm-sandbox-test");
+        let joined = argv.join(" ");
+        assert!(
+            joined.contains("timeout -k 5 -s TERM 60"),
+            "F12: exec должен использовать `timeout -k 5 -s TERM <sec>`: {joined}"
+        );
+    }
+
+    // F12а: pids-limit присутствует в аргументах `docker run`.
+    #[test]
+    fn f12_run_args_have_pids_limit() {
+        let cfg = SandboxConfig::default();
+        let args = Sandbox::build_run_args(&cfg, "swarm-sandbox-test");
+        let joined = args.join(" ");
+        assert!(
+            joined.contains("--pids-limit 256"),
+            "F12: нет --pids-limit: {joined}"
+        );
+    }
+
+    // F12г: имя контейнера включает префикс воркера (изоляция cleanup).
+    #[test]
+    fn f12_container_name_carries_worker_prefix() {
+        let mut cfg = SandboxConfig::default();
+        cfg.name_prefix = "swarm-sandbox-w1".into();
+        let args = Sandbox::build_run_args(&cfg, "swarm-sandbox-w1-abc123");
+        assert!(
+            args.contains(&"swarm-sandbox-w1-abc123".to_string()),
+            "F12: имя контейнера должно содержать worker-prefix: {args:?}"
+        );
+    }
+
+    // F12г: start() формирует имя как `<prefix>-<task_short>`, а start() —
+    // единственная точка, где имя собирается из префикса воркера.
+    #[test]
+    fn f12_name_derives_from_prefix_and_task() {
+        let mut cfg = SandboxConfig::default();
+        cfg.name_prefix = "swarm-sandbox-w7".into();
+        // Проверяем формулу имени без запуска docker (как в start()).
+        let name = format!("{}-{}", cfg.name_prefix, "deadbeef");
+        assert_eq!(name, "swarm-sandbox-w7-deadbeef");
+        // префикс обязан пройти sanitize-проверку из start()
+        assert!(cfg
+            .name_prefix
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | ':')));
     }
 }

@@ -1,0 +1,28 @@
+=== F12 триада: sandbox limits (pids-limit, timeout -k, per-worker prefix) ===
+Дата: 2026-10-11T12:43:54+07:00
+Коммит GREEN: 17e3986
+
+--- RED pre-fix: откатываем F12-правки во временной копии ---
+--- RED pre-fix (ожидаем 2-3 FAILED) ---
+test sandbox::f12_tests::f12_name_derives_from_prefix_and_task ... ok
+test sandbox::f12_tests::f12_container_name_carries_worker_prefix ... ok
+test sandbox::f12_tests::f12_exec_uses_kill_after_and_signal ... FAILED
+test sandbox::f12_tests::f12_run_args_have_pids_limit ... FAILED
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 62 filtered out; finished in 0.00s
+
+--- GREEN: файл восстановлен из снимка ---
+test sandbox::f12_tests::f12_container_name_carries_worker_prefix ... ok
+test sandbox::f12_tests::f12_name_derives_from_prefix_and_task ... ok
+test sandbox::f12_tests::f12_run_args_have_pids_limit ... ok
+test sandbox::f12_tests::f12_exec_uses_kill_after_and_signal ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 62 filtered out; finished in 0.00s
+
+--- RED after revert: снова откатываем (проверяем не-хрупкость теста) ---
+test sandbox::f12_tests::f12_container_name_carries_worker_prefix ... ok
+test sandbox::f12_tests::f12_name_derives_from_prefix_and_task ... ok
+test sandbox::f12_tests::f12_exec_uses_kill_after_and_signal ... FAILED
+test sandbox::f12_tests::f12_run_args_have_pids_limit ... FAILED
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 62 filtered out; finished in 0.00s
+
+--- восстановлено GREEN (коммит 17e3986) ---
+Финальное состояние: 4 passed

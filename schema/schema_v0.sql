@@ -167,6 +167,36 @@ begin
       raise exception 'contract_invalid: budget.% must be number', k using errcode = 'CT001';
     end if;
   end loop;
+  -- F7: диапазоны. Тип-проверки выше пропускают абсурдные значения
+  -- (attempts: 1000000, min_ram_gb: 1000000). Ограничиваем жёстко.
+  if jsonb_exists(c->'budget', 'attempts')
+     and ((c->'budget'->>'attempts')::numeric < 1
+          or (c->'budget'->>'attempts')::numeric > 100) then
+    raise exception 'contract_invalid: budget.attempts out of range 1..100' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_rework')
+     and (c->'budget'->>'max_rework')::numeric > 50 then
+    raise exception 'contract_invalid: budget.max_rework out of range 0..50' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'needs', 'min_ram_gb')
+     and ((c->'needs'->>'min_ram_gb')::numeric < 0
+          or (c->'needs'->>'min_ram_gb')::numeric > 1024) then
+    raise exception 'contract_invalid: needs.min_ram_gb out of range 0..1024' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'needs', 'coder_class')
+     and ((c->'needs'->>'coder_class')::numeric < 0
+          or (c->'needs'->>'coder_class')::numeric > 100) then
+    raise exception 'contract_invalid: needs.coder_class out of range 0..100' using errcode = 'CT001';
+  end if;
+  -- F7: реестр допустимых типов проверок и предел их числа.
+  if jsonb_array_length(c->'checks') > 32 then
+    raise exception 'contract_invalid: too many checks (max 32)' using errcode = 'CT001';
+  end if;
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if lower(btrim(e->>'type')) not in ('cmd','test','lint','manual') then
+      raise exception 'contract_invalid: disallowed check type %', e->>'type' using errcode = 'CT001';
+    end if;
+  end loop;
 end $$;
 
 -- ---------- воркеры ----------

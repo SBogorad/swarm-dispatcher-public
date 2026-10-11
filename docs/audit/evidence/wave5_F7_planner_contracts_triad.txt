@@ -1,0 +1,31 @@
+### F7 — контроль контрактов планировщика (Волна 5) | 2026-10-11T11:02:22+07:00
+
+Дефект: validate_graph (Rust) не смотрел внутрь checks/needs/budget;
+validate_contract (SQL) проверял только ТИПЫ, но не диапазоны.
+Модель могла: назначить фиктивный тип проверки, раздуть attempts до 1e9,
+поставить недостижимый min_ram_gb: 1000000.
+
+Фикс в двух слоях (SQL — источник истины):
+- Rust planner/parse.rs: реестр ALLOWED_CHECK_TYPES={cmd,test,lint,manual};
+  clamping: attempts 1..=100, max_rework<=50, min_ram_gb 0..=1024,
+  coder_class 0..=100, checks<=32.
+- SQL validate_contract: range-проверки budget/needs + реестр типов + предел 32.
+
+=== Rust unit (tests) ===
+test parse::tests::f7_accepts_reasonable_contract ... ok
+test parse::tests::f7_rejects_absurd_attempts ... ok
+test parse::tests::f7_rejects_check_without_type ... ok
+test parse::tests::f7_rejects_disallowed_check_type ... ok
+test parse::tests::f7_rejects_unreachable_min_ram ... ok
+test parse::tests::f7_rejects_too_many_checks ... ok
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+=== SQL arbiter (PG 16.15, live) ===
+NOTICE:  OK: case 1 rejected CT001   (attempts=1000000000)
+NOTICE:  OK: case 2 rejected CT001   (min_ram_gb=1000000)
+NOTICE:  OK: case 3 rejected CT001   (type=exec)
+NOTICE:  OK: case 4 rejected CT001   (check без type)
+NOTICE:  OK: case 5 rejected CT001   (coder_class=99999)
+NOTICE:  OK: reasonable contract accepted
+
+Триада: RED (pre-fix: всё принималось) -> GREEN (перечислено выше) -> RED (revert SQL: cases принимаются).

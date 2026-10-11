@@ -1,0 +1,25 @@
+### F11 — allowlist подкоманд git/cargo (Волна 5) | 2026-10-11T11:22:24+07:00
+
+Дефект: allowlist проверял только первое слово команды. Опции конфигурации
+позволяли исполнить произвольный код в обход deny-списка и allowlist:
+  git -c alias.x='!rm -rf /' x        (config alias -> shell)
+  git --exec-path=/tmp status         (подмена git-хелперов)
+  cargo --config build.rustc-wrapper=sh build  (подмена rustc wrapper)
+  cargo -Z ...                        (нестабильные флаги)
+
+Фикс: check_vcs_tool_options() — для git/cargo режет опасные опции
+(DENIED_GIT_OPTS: -c/--config/--exec-path/--upload-pack/--receive-pack;
+ DENIED_CARGO_OPTS: --config/-Z/--rustc/--wrapper). Учитывает формы
+'--opt=value' и короткие '-Zfoo'; сравнение без учёта регистра.
+Обычные git/cargo не задеваются. Гейт allowlist остаётся deny-by-default.
+
+=== Rust unit (cargo test -p swarm-worker --lib --features shell-tools) ===
+test allowlist::tests::f11_rejects_git_exec_path ... ok
+test allowlist::tests::f11_allows_plain_git_and_cargo ... ok
+test allowlist::tests::f11_rejects_git_config_option ... ok
+test allowlist::tests::f11_rejects_cargo_config_option ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 58 filtered out; finished in 0.00s
+
+[RED pre-fix]  без проверки опций: 'git -c alias.x=!rm -rf / x' -> Ok (обход)
+[GREEN fixed]  4 passed: -c/--config/--exec-path/-Z отклонены; git/cargo обычные ok
+[RED after revert] снятие check_vcs_tool_options -> f11_rejects_* падают

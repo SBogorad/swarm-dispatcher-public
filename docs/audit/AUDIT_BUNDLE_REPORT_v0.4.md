@@ -2,7 +2,7 @@
 
 **Проект:** `swarm-dispatcher`
 **Версия бандла:** v0.4
-**Сгенерировано:** 2026-10-11T10:18:46+07:00
+**Сгенерировано:** 2026-10-11T15:39:40+07:00
 **Генератор:** `scripts/build_audit_bundle.py`
 **Артефакт:** `docs/audit/SCRIPTS_BUNDLE_v0.4.xml`
 
@@ -15,18 +15,18 @@
 ## 2. Сводка
 
 - Файлов в бандле: **17**
-- Суммарный объём исходников: **117228 байт** (~114.5 КиБ)
-- Суммарно строк: **2527**
-- Размер XML-бандла: **125997 байт**
-- `sha256` бандла: `8e61754bf540b62ca55d0ed1d2c6d875c0efa1b1897aa86208c58b1e341f3148`
-- `md5` бандла: `9435d573026ce07eed6cadae65af95e0`
+- Суммарный объём исходников: **118973 байт** (~116.2 КиБ)
+- Суммарно строк: **2557**
+- Размер XML-бандла: **127725 байт**
+- `sha256` бандла: `55b1a2be02a2bd841c188273476a5334d696e4c8ef58a45651c60dddf3faae95`
+- `md5` бандла: `5505562d03e5d41ce045aabaf64dc58d`
 
 ## 3. Состав по ролям
 
 | Роль | Файлов | Байт |
 |------|-------:|-----:|
 | Тесты | 3 | 43273 |
-| Схема БД | 1 | 27083 |
+| Схема БД | 1 | 28828 |
 | Роли и гранты | 2 | 19126 |
 | Контейнеризация | 3 | 11354 |
 | Вспомогательные патчи | 1 | 7030 |
@@ -42,7 +42,7 @@
 | 1 | `scripts/02-roles.sh` | init | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` | `222f2961a86f5beb870842a67892823f` |
 | 2 | `scripts/03-roles-2b.sh` | init | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` | `7641d32f6d09c4e07ae237a90945a7a5` |
 | 3 | `scripts/03-role-patches.sh` | init | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` | `fb95baf99f0113e70b2be398967fad25` |
-| 4 | `schema/schema_v0.sql` | schema | sql | 27083 | 533 | `0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087` | `62111662feb99c19d69b21428c674e0a` |
+| 4 | `schema/schema_v0.sql` | schema | sql | 28828 | 563 | `d79340c663d053771c68d357ce590a1c5971e97e06db58079a1a94befd495782` | `a09750fc4dd9dbde1ccdd1f8816abe74` |
 | 5 | `step2/roles.sql` | roles | sql | 5678 | 84 | `aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f` | `bb765c87a97b51a88488848d60055d9e` |
 | 6 | `step2/roles_patch_planner_status.sql` | roles-patch | sql | 766 | 12 | `59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f` | `7ceb6fae8e556e3ee8d80d08ff3f7b41` |
 | 7 | `step2/roles_patch_tool_call_audit.sql` | roles-patch | sql | 2908 | 41 | `78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8` | `b6fd69f62ed097ed5cc6c29c1f8bf1fa` |
@@ -72,7 +72,7 @@
 
    ```bash
    sha256sum docs/audit/SCRIPTS_BUNDLE_v0.4.xml
-   # ожидается: 8e61754bf540b62ca55d0ed1d2c6d875c0efa1b1897aa86208c58b1e341f3148
+   # ожидается: 55b1a2be02a2bd841c188273476a5334d696e4c8ef58a45651c60dddf3faae95
    ```
 
 2. Извлечь файлы и сверить хеши (пример для одного файла):
