@@ -20,6 +20,17 @@ cd "$(dirname "$0")/.." || exit 1
 SCHEMA="schema/schema_v0.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
+# Fail-fast: схема должна быть в git-чистом состоянии. Если предыдущий прогон был
+# прерван (SIGKILL/OOM) и не успел восстановить файл, trap — best-effort; не
+# запускаем мутации на уже-мутированной схеме (иначе baseline/CAUGHT неверны).
+if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
+  if ! git diff --quiet -- "$SCHEMA"; then
+    echo "BLOCKED: $SCHEMA has uncommitted changes (leftover mutation?); restore it first" >&2
+    echo "  hint: git checkout -- $SCHEMA" >&2
+    exit 2
+  fi
+fi
+
 # Разбор DSN в psql-совместимый набор переменных.
 pg_psql() {
   # $@ — аргументы psql; DSN берём из окружения.
