@@ -33,6 +33,17 @@ const FORBIDDEN_OPERATORS: &[&str] = &["|", ">", "<", ";", "&", "`", "$(", "${",
 /// Оболочки, для которых делается рекурсивная проверка `-c`.
 const SHELLS: &[&str] = &["bash", "sh", "dash", "zsh"];
 
+/// F11: флаги/опции, которыми `git`/`cargo` можно заставить выполнить
+/// произвольный код в обход deny-списка и allowlist.
+///
+/// `git -c alias.x='!rm -rf /' x`, `git --exec-path=/tmp ...`,
+/// `cargo --config build.rustc-wrapper=sh ...`, `cargo -Z...`. Даже при
+/// наличии `git`/`cargo` в allowlist такие опции открывают RCE.
+const DENIED_GIT_OPTS: &[&str] = &[
+    "-c", "--config", "--exec-path", "--upload-pack", "--receive-pack",
+];
+const DENIED_CARGO_OPTS: &[&str] = &["--config", "-Z", "--rustc", "--wrapper"];
+
 /// Максимальная глубина рекурсии для `bash -c "..."`.
 const MAX_SHELL_DEPTH: usize = 3;
 
@@ -172,8 +183,48 @@ impl Allowlist {
             return self.check_depth(&inner, depth + 1);
         }
 
+        // 6. F11: конфигурационные опции git/cargo, позволяющие исполнить
+        //    произвольный код в обход deny-списка.
+        check_vcs_tool_options(&base, &tokens, command)?;
+
         Ok(())
     }
+}
+
+/// F11: запрет опасных опций `git`/`cargo` (config/exec-path/-Z/...).
+///
+/// Такие опции позволяют выполнить произвольный код (`git -c alias.x=!sh`,
+/// `cargo --config build.rustc-wrapper=...`), обходя deny-список команд.
+/// Проверяем и точное совпадение опции, и форму `--opt=value`, и `-cvalue`.
+fn check_vcs_tool_options(base: &str, tokens: &[String], command: &str) -> Result<()> {
+    let denied: &[&str] = match base {
+        "git" => DENIED_GIT_OPTS,
+        "cargo" => DENIED_CARGO_OPTS,
+        _ => return Ok(()),
+    };
+    // Первый токен — сама команда; смотрим остальные.
+    for t in tokens.iter().skip(1) {
+        // Опции сравниваем без учёта регистра С ДВУХ СТОРОН: и токен, и
+        // константу приводим к нижнему регистру (иначе `-Z` в списке не
+        // совпадёт с `-z` из токена).
+        let opt = t.split('=').next().unwrap_or(t).to_ascii_lowercase();
+        for d in denied {
+            let d_lc = d.to_ascii_lowercase();
+            let exact = opt == d_lc;
+            // короткие флаги вида -zfoo / -cfoo (без '=')
+            let short_prefixed = d_lc.len() == 2
+                && d_lc.starts_with('-')
+                && !d_lc.starts_with("--")
+                && opt.starts_with(&d_lc);
+            if exact || short_prefixed {
+                return Err(WorkerError::AllowlistRejected {
+                    command: command.to_string(),
+                    reason: format!("запрещённая опция {base} '{t}'"),
+                });
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Единый argv-парсер команд (G2).
@@ -421,7 +472,6 @@ mod tests {
     // видел, что `echo "hello world"` — это один токен; теперь видит.
     #[test]
     fn single_argv_parser_shared_with_sandbox() {
-        // Тот же парсер, что вызывает sandbox.exec (через Allows.
         assert_eq!(
             parse_command_argv("echo 'hello world'").unwrap(),
             vec!["echo".to_string(), "hello world".to_string()]
@@ -433,4 +483,44 @@ mod tests {
         assert!(al().check("echo 'a; rm -rf /'").is_err());
         assert!(al().check("echo `id`").is_err());
     }
+
+    // ---------- F11: конфигурационные опции git/cargo ----------
+
+    #[test]
+    fn f11_rejects_git_config_option() {
+        // git -c alias.x=!rm -rf / x  -> RCE обход
+        assert!(
+            al().check("git -c alias.x=!rm -rf / x").is_err(),
+            "git -c должен быть отклонён"
+        );
+        assert!(al().check("git --config core.pager=sh status").is_err());
+    }
+
+    #[test]
+    fn f11_rejects_git_exec_path() {
+        assert!(al().check("git --exec-path=/tmp status").is_err());
+        assert!(al().check("git --upload-pack=/tmp/evil fetch").is_err());
+    }
+
+    #[test]
+    fn f11_rejects_cargo_config_option() {
+        // cargo --config build.rustc-wrapper=sh build -> RCE
+        assert!(
+            al().check("cargo --config build.rustc-wrapper=sh build").is_err(),
+            "cargo --config должен быть отклонён"
+        );
+        assert!(al().check("cargo -Z build-std build").is_err());
+    }
+
+    #[test]
+    fn f11_allows_plain_git_and_cargo() {
+        assert!(al().check("git status").is_ok());
+        assert!(al().check("git commit -m 'x'").is_ok());
+        assert!(al().check("cargo test").is_ok());
+        assert!(al().check("cargo build --release").is_ok());
+        // обычные флаги не задеваются
+        assert!(al().check("git log --oneline -5").is_ok());
+        assert!(al().check("cargo test --features shell-tools").is_ok());
+    }
 }
+
