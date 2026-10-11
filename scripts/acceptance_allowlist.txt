@@ -74,3 +74,6 @@ outbox/*
 crates/swarm-cli/tests/*
 crates/swarm-watchdog/tests/*
 scripts/run_mutations_sql.sh
+
+# Волна 5.2: пример окружения приведён к реальным именам переменных.
+.env.example
