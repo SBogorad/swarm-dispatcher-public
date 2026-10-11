@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-11T09:14:41+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-11T10:18:46+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="7eb8617ec1a48434ebd76787913a29ec9c55adb8"/>
+  <git is_git="true" head="b9ea4d0c2b47ee1edaa2c4e92a4750a6c72e2a06"/>
   <manifest>
-    <files count="33" total_bytes="208931"/>
+    <files count="33" total_bytes="208985"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -26,7 +26,7 @@
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
       <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1457" lines="50" sha256="807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e" md5="f31b96b6094d6eae208abd7ad3619a07"/>
       <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="20677" lines="490" sha256="f4b26a49b2c7284e2f0f028ed12f7bcd32480e5cfdb6f80b0fa0e3e5423e449d" md5="379f66d198ceb73f8f04ed47c702b926"/>
-      <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92"/>
+      <entry path="scripts/build_audit_bundle.py" lang="python" bytes="7014" lines="183" sha256="ec6147bb3c3feb8a8f54313032217b276661530e552acad44690e96fabd8ad98" md5="7210663bf528f39b33d54877f75ced8e"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8"/>
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4"/>
       <entry path="scripts/build_project_bundle.py" lang="python" bytes="8632" lines="200" sha256="967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906" md5="84ba54580f877b77f42a47d4dc3888d0"/>
@@ -44,7 +44,7 @@
       <entry path="tests/test_find04_record_tool_call_identity.py" lang="python" bytes="8165" lines="212" sha256="57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180" md5="8f9e22bc652a1b4c06cc0a1e57ea4788"/>
       <entry path="tests/test_review_gate_f2.py" lang="python" bytes="6018" lines="172" sha256="327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8" md5="38e174878dfa45c7d749207db145fb04"/>
       <entry path="tests/test_review_gate_wave4.py" lang="python" bytes="5016" lines="143" sha256="0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65" md5="4dc75a10fc13e996fdb952fedbfcb7e9"/>
-      <entry path="tests/test_v0.py" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff"/>
+      <entry path="tests/test_v0.py" lang="python" bytes="18567" lines="519" sha256="2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09" md5="f4cca84f63ec2615869e4364e76897b1"/>
       <entry path="tests/test_worker_identity_f3.py" lang="python" bytes="5272" lines="142" sha256="e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a" md5="8105e7e7d1a0a45c1a4879f64fda274c"/>
     </index>
   </manifest>
@@ -1613,7 +1613,7 @@ if command -v docker >/dev/null 2>&1; then
 fi
 ]]></content>
     </file>
-    <file path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92">
+    <file path="scripts/build_audit_bundle.py" lang="python" bytes="7014" lines="183" sha256="ec6147bb3c3feb8a8f54313032217b276661530e552acad44690e96fabd8ad98" md5="7210663bf528f39b33d54877f75ced8e">
       <content encoding="xml-escaped">
 #!/usr/bin/env python3
 """Собирает XML-бандл всех скриптов репозитория для аудита.
@@ -1647,7 +1647,7 @@ FILES = [
     ("step2/roles_patch_planner_status.sql", "roles-patch", "sql"),
     ("step2/roles_patch_tool_call_audit.sql", "roles-patch", "sql"),
     ("step2b/roles_2b.sql", "roles", "sql"),
-    ("step2b/roles_2b_patch_section3.sql", "roles-patch", "sql"),
+    ("docs/history/obsolete/roles_2b_patch_section3.sql", "roles-patch-obsolete", "sql"),
     # --- контейнеризация ---
     ("Dockerfile", "container", "dockerfile"),
     ("sandbox/Dockerfile", "container", "dockerfile"),
@@ -4398,7 +4398,7 @@ def test_f15_contract_rejects_malformed_checks(conn, bad_checks):
     conn.rollback()
 ]]></content>
     </file>
-    <file path="tests/test_v0.py" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff">
+    <file path="tests/test_v0.py" lang="python" bytes="18567" lines="519" sha256="2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09" md5="f4cca84f63ec2615869e4364e76897b1">
       <content><![CDATA[
 """Тесты инвариантов schema_v0.sql на реальном Postgres 16.
 
@@ -4736,8 +4736,8 @@ def to_review(db, t, wid="w1"):
     db.commit()
 
 
-PASS = json.dumps([{"type": "cmd", "status": "pass", "exit_code": 0}])
-FAIL = json.dumps([{"type": "cmd", "status": "fail", "exit_code": 1}])
+PASS = json.dumps([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}])
+FAIL = json.dumps([{"type": "cmd", "run": "true", "status": "fail", "exit_code": 1}])
 
 
 def test_review_rules(db):

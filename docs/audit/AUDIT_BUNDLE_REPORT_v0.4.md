@@ -2,7 +2,7 @@
 
 **Проект:** `swarm-dispatcher`
 **Версия бандла:** v0.4
-**Сгенерировано:** 2026-10-11T09:15:47+07:00
+**Сгенерировано:** 2026-10-11T10:18:46+07:00
 **Генератор:** `scripts/build_audit_bundle.py`
 **Артефакт:** `docs/audit/SCRIPTS_BUNDLE_v0.4.xml`
 
@@ -15,17 +15,17 @@
 ## 2. Сводка
 
 - Файлов в бандле: **17**
-- Суммарный объём исходников: **117198 байт** (~114.5 КиБ)
+- Суммарный объём исходников: **117228 байт** (~114.5 КиБ)
 - Суммарно строк: **2527**
-- Размер XML-бандла: **125967 байт**
-- `sha256` бандла: `1a875d44f7fde6480d352689d6b308e729645796529c64e6bc47034a559bb32e`
-- `md5` бандла: `bfac32672c6b627d065c7e7bcae56367`
+- Размер XML-бандла: **125997 байт**
+- `sha256` бандла: `8e61754bf540b62ca55d0ed1d2c6d875c0efa1b1897aa86208c58b1e341f3148`
+- `md5` бандла: `9435d573026ce07eed6cadae65af95e0`
 
 ## 3. Состав по ролям
 
 | Роль | Файлов | Байт |
 |------|-------:|-----:|
-| Тесты | 3 | 43243 |
+| Тесты | 3 | 43273 |
 | Схема БД | 1 | 27083 |
 | Роли и гранты | 2 | 19126 |
 | Контейнеризация | 3 | 11354 |
@@ -51,7 +51,7 @@
 | 10 | `Dockerfile` | container | dockerfile | 2303 | 45 | `52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e` | `466b8862c94cac583e18d7c1cd59ee42` |
 | 11 | `sandbox/Dockerfile` | container | dockerfile | 2171 | 45 | `ba734449566e19a9e925843690fe2ad2bd81c3c360ba45e446679fae5a78f85b` | `67172e86a9f7b19137d345d847da54d6` |
 | 12 | `docker-compose.yml` | container | yaml | 6880 | 163 | `5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d` | `c13969907289a8dc7f0125fecbafffee` |
-| 13 | `tests/test_v0.py` | test | python | 18537 | 519 | `88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95` | `e8fd8c4af59d65b97f1da340209d46ff` |
+| 13 | `tests/test_v0.py` | test | python | 18567 | 519 | `2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09` | `f4cca84f63ec2615869e4364e76897b1` |
 | 14 | `step2/test_roles.py` | test | python | 11297 | 241 | `3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d` | `29a8dc8db9673dfd867ca6e31d870726` |
 | 15 | `step2b/test_roles_2b.py` | test | python | 13409 | 319 | `9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645` | `d8b6a10a9be420a1dd6c90343dfdba51` |
 | 16 | `.env.example` | config | dotenv | 1175 | 26 | `2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416` | `99cc1efa120aa2ef52209a9e3b90f077` |
@@ -72,7 +72,7 @@
 
    ```bash
    sha256sum docs/audit/SCRIPTS_BUNDLE_v0.4.xml
-   # ожидается: 1a875d44f7fde6480d352689d6b308e729645796529c64e6bc47034a559bb32e
+   # ожидается: 8e61754bf540b62ca55d0ed1d2c6d875c0efa1b1897aa86208c58b1e341f3148
    ```
 
 2. Извлечь файлы и сверить хеши (пример для одного файла):

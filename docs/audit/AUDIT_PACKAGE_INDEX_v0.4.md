@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-11T09:15:47+07:00
+**Сгенерировано:** 2026-10-11T10:18:46+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -11,36 +11,36 @@
 | Том | Содержание | Файлов | Строк | Исходники, байт | XML, байт |
 |-----|------------|-------:|------:|----------------:|----------:|
 | `CODE` | Код проекта (Rust + тесты + манифесты) | 46 | 12328 | 398650 | 420702 |
-| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 33 | 4887 | 208931 | 224882 |
+| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 33 | 4887 | 208985 | 224936 |
 | `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 29 | 5972 | 295106 | 309211 |
 | `DOCS` | Документация и отчёты (без писем history/inbound) | 49 | 10430 | 638684 | 661877 |
-| **Итого** | | **157** | | **1541371** | **1616672** |
+| **Итого** | | **157** | | **1541425** | **1616726** |
 
 ## Хеши томов (для передачи аудитору)
 
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
 - Размер: 420702 байт
-- `sha256`: `3c38771de6015194c50673222a7596625751d0eba65ec3f2589e0958f3d70cdf`
-- `md5`: `a6389ab538efed72cd967f2f92e171ea`
+- `sha256`: `3c3584ce3b05c65281fb0cd54186796202286fcc0328137ad159e003c1248266`
+- `md5`: `ae04eb513f99c2519402137ba6edaa53`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
-- Размер: 224882 байт
-- `sha256`: `ab5b7bc20a64fff6e5c447cb3cdfce013702773b1a1290acaf2cc6cd83714fce`
-- `md5`: `992c331209c1d307cebcfcf7c92e9115`
+- Размер: 224936 байт
+- `sha256`: `20635cae7c1bf9850f9e14769084ef928f4653f84b0d842f3efe9b6e08d9b29e`
+- `md5`: `4b7483c836e2cad771005c649935f2de`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
 - Размер: 309211 байт
-- `sha256`: `36603a71f7e71fdfbfcf04d644012d91dc3fd051547f9714f087c625c315f84f`
-- `md5`: `1736bb019b0b541e1ede17834e63ca4f`
+- `sha256`: `d399c4f9ab1bd243dd65f838b8de92c19516e8aa83a7cc5ef2f648b9bf2c5d35`
+- `md5`: `9b063e345f897eddafbf7e3767eb0727`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
 - Размер: 661877 байт
-- `sha256`: `27ad8ecee5e390db9d232029420f046cf473ec9a0201376651e71d8a02b3c6ba`
-- `md5`: `e5fc738f9f8f245bf116d36b6273a704`
+- `sha256`: `2761e794c25863efa1cfe23086eed908442c150c5f056e0f5f00c43d7e67d5fe`
+- `md5`: `cdac769992422388bcc3a54aed11f60a`
 
 ## Исключено сознательно
 
@@ -121,7 +121,7 @@
 | 11 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
 | 12 | `scripts/acceptance_allowlist.txt` | text | 1457 | 50 | `807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e` |
 | 13 | `scripts/acceptance_harness.sh` | bash | 20677 | 490 | `f4b26a49b2c7284e2f0f028ed12f7bcd32480e5cfdb6f80b0fa0e3e5423e449d` |
-| 14 | `scripts/build_audit_bundle.py` | python | 6990 | 183 | `b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054` |
+| 14 | `scripts/build_audit_bundle.py` | python | 7014 | 183 | `ec6147bb3c3feb8a8f54313032217b276661530e552acad44690e96fabd8ad98` |
 | 15 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
 | 16 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
 | 17 | `scripts/build_project_bundle.py` | python | 8632 | 200 | `967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906` |
@@ -139,7 +139,7 @@
 | 29 | `tests/test_find04_record_tool_call_identity.py` | python | 8165 | 212 | `57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180` |
 | 30 | `tests/test_review_gate_f2.py` | python | 6018 | 172 | `327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8` |
 | 31 | `tests/test_review_gate_wave4.py` | python | 5016 | 143 | `0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65` |
-| 32 | `tests/test_v0.py` | python | 18537 | 519 | `88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95` |
+| 32 | `tests/test_v0.py` | python | 18567 | 519 | `2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09` |
 | 33 | `tests/test_worker_identity_f3.py` | python | 5272 | 142 | `e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a` |
 
 ### DOCS_CORE (29 файлов)

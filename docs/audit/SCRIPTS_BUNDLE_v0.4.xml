@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-11T09:15:47+07:00" generator="scripts/build_audit_bundle.py">
+<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-11T10:18:46+07:00" generator="scripts/build_audit_bundle.py">
   <project>
     <name>swarm-dispatcher</name>
     <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-    <git is_git="true" head="7eb8617ec1a48434ebd76787913a29ec9c55adb8" branch="feature/v0.6-distributed-worker-mvp" dirty="true"/>
+    <git is_git="true" head="b9ea4d0c2b47ee1edaa2c4e92a4750a6c72e2a06" branch="feature/v0.6-distributed-worker-mvp" dirty="true"/>
   </project>
   <manifest>
-    <files count="17" total_bytes="117198"/>
+    <files count="17" total_bytes="117228"/>
     <excluded>
       <file path=".env" reason="secrets"/>
       <file path=".env.bak.*" reason="secrets"/>
@@ -26,7 +26,7 @@
       <entry path="Dockerfile" role="container" lang="dockerfile" bytes="2303" lines="45" sha256="52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e" md5="466b8862c94cac583e18d7c1cd59ee42"/>
       <entry path="sandbox/Dockerfile" role="container" lang="dockerfile" bytes="2171" lines="45" sha256="ba734449566e19a9e925843690fe2ad2bd81c3c360ba45e446679fae5a78f85b" md5="67172e86a9f7b19137d345d847da54d6"/>
       <entry path="docker-compose.yml" role="container" lang="yaml" bytes="6880" lines="163" sha256="5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d" md5="c13969907289a8dc7f0125fecbafffee"/>
-      <entry path="tests/test_v0.py" role="test" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff"/>
+      <entry path="tests/test_v0.py" role="test" lang="python" bytes="18567" lines="519" sha256="2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09" md5="f4cca84f63ec2615869e4364e76897b1"/>
       <entry path="step2/test_roles.py" role="test" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726"/>
       <entry path="step2b/test_roles_2b.py" role="test" lang="python" bytes="13409" lines="319" sha256="9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645" md5="d8b6a10a9be420a1dd6c90343dfdba51"/>
       <entry path=".env.example" role="config" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077"/>
@@ -1343,7 +1343,7 @@ volumes:
   swarm-artifacts:
 ]]></content>
     </file>
-    <file path="tests/test_v0.py" role="test" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff">
+    <file path="tests/test_v0.py" role="test" lang="python" bytes="18567" lines="519" sha256="2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09" md5="f4cca84f63ec2615869e4364e76897b1">
       <content><![CDATA[
 """Тесты инвариантов schema_v0.sql на реальном Postgres 16.
 
@@ -1681,8 +1681,8 @@ def to_review(db, t, wid="w1"):
     db.commit()
 
 
-PASS = json.dumps([{"type": "cmd", "status": "pass", "exit_code": 0}])
-FAIL = json.dumps([{"type": "cmd", "status": "fail", "exit_code": 1}])
+PASS = json.dumps([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}])
+FAIL = json.dumps([{"type": "cmd", "run": "true", "status": "fail", "exit_code": 1}])
 
 
 def test_review_rules(db):
