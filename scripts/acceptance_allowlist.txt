@@ -73,3 +73,4 @@ outbox/*
 # Волна 5.2: CLI/watcher интеграционные тесты (exit-коды).
 crates/swarm-cli/tests/*
 crates/swarm-watchdog/tests/*
+scripts/run_mutations_sql.sh

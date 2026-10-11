@@ -517,3 +517,49 @@ def test_tampering_breaks_chain(db):
     db.cursor().execute("update events set payload='{\"x\":1}' where task_id=%s and event_id='e1'", (t,))
     db.commit()
     assert one(db, "select verify_chain(%s)", t) is False
+
+
+def test_chain_detects_deleted_middle_event(db):
+    """Волна 5.2: изоляция слоя «связь prev_hash» детектора цепочки.
+
+    Существующий test_tampering_breaks_chain правит payload — его ловит второй
+    слой (пересчёт hash). Слой «prev_hash следующего события указывает на
+    предыдущее» не проверялся: SQL-мутация S5 (снять проверку связи) его
+    переживала. Удаление СРЕДНЕГО события рвёт именно связь: хеши уцелевших
+    событий остаются верными, но prev_hash третьего указывает на удалённое.
+    """
+    t = new_task(db)
+    for eid in ("e1", "e2", "e3"):
+        one(db, "select append_event(%s,%s,'claimed','x')", t, eid)
+    db.commit()
+    assert one(db, "select verify_chain(%s)", t) is True
+    # Удаляем среднее событие: собственная hash каждого уцелевшего верна,
+    # но связь e3.prev_hash -> e2 (удалён) нарушена.
+    db.cursor().execute("delete from events where task_id=%s and event_id='e2'", (t,))
+    db.commit()
+    assert one(db, "select verify_chain(%s)", t) is False, (
+        "удаление среднего события обязано ломать цепочку (слой prev_hash)"
+    )
+
+
+def test_chain_detects_corrupted_prev_hash(db):
+    """Волна 5.2: изоляция слоя «e.prev_hash vs ожидаемый prev».
+
+    Слой пересчёта hash ловит изменение payload/hash/удаление/порядок. Слой
+    сравнения `e.prev_hash` с ожидаемым предыдущим хешем ловит СВОЙ класс:
+    подмену только поля prev_hash при сохранённой (корректной) event_hash.
+    SQL-мутация S5 (снять именно эту проверку) выживала без такого кейса. """
+    t = new_task(db)
+    for eid in ("e1", "e2"):
+        one(db, "select append_event(%s,%s,'claimed','x')", t, eid)
+    db.commit()
+    assert one(db, "select verify_chain(%s)", t) is True
+    # Портим ТОЛЬКО prev_hash второго события. Его собственная hash верна и
+    # воспроизводится слоем 2, поэтому детектирует именно слой связи.
+    db.cursor().execute(
+        "update events set prev_hash='\\x00' where task_id=%s and event_id='e2'", (t,)
+    )
+    db.commit()
+    assert one(db, "select verify_chain(%s)", t) is False, (
+        "подмена prev_hash обязана ломать цепочку (слой связи)"
+    )
