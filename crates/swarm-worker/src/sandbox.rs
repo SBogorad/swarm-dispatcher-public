@@ -40,6 +40,18 @@ pub struct SandboxConfig {
     pub docker_bin: String,
 }
 
+/// Включены ли shell-tools в runtime.
+///
+/// FIND-01 / Волна 5.1: компиляционный бан снят, когда F6/F7/F11/F12 были
+/// закрыты (см. lib.rs). Единственная оставшаяся защита — явное согласие
+/// оператора: строго `WORKER_SHELL_TOOLS=1`. Любое другое значение (в т.ч. `0`,
+/// пусто, `true`, `yes`) — запрет.
+pub fn shell_tools_enabled() -> bool {
+    std::env::var("WORKER_SHELL_TOOLS")
+        .map(|v| v == "1")
+        .unwrap_or(false)
+}
+
 impl Default for SandboxConfig {
     fn default() -> Self {
         Self {
@@ -139,9 +151,22 @@ impl Sandbox {
 
     /// Запустить sandbox для задачи. `task_short` — первые 12 символов id.
     pub fn start(cfg: &SandboxConfig, task_short: &str) -> Result<Sandbox> {
+        // FIND-01 (Волна 5.1): runtime-гейт shell-tools. Компиляционный бан снят,
+        // когда F6/F7/F11/F12 были закрыты, поэтому единственной защитой остаётся
+        // явное согласие оператора. Без `WORKER_SHELL_TOOLS=1` (строго «1»)
+        // запуск контейнера запрещён: это делает включение осознанным действием,
+        // а не побочным эффектом наличия смонтированного docker.sock.
+        if !shell_tools_enabled() {
+            return Err(WorkerError::Sandbox(
+                "shell-tools disabled: set WORKER_SHELL_TOOLS=1 to allow sandbox execution \
+                 (requires docker.sock in the worker; see docs/KNOWN_LIMITATIONS.md §5.6)"
+                    .into(),
+            ));
+        }
         // F12г: префикс обязан содержать worker_id (изоляция cleanup между воркерами).
-        // Разрешаем только [A-Za-z0-9._-], чтобы имя контейнера было безопасным
-        // для docker filter и не могло содержать пробелов/метасимволов.
+        // N3: проверка не только на charset — пустой/дефолтный префикс без
+        // worker-идентификатора отклоняется, иначе `cleanup_stale` одного воркера
+        // мог бы задеть контейнеры соседа (изоляция была лишь документирована).
         let name = format!("{}-{}", cfg.name_prefix, task_short);
         debug_assert!(
             cfg.name_prefix
@@ -150,6 +175,13 @@ impl Sandbox {
             "name_prefix содержит небезопасные символы: {:?}",
             cfg.name_prefix
         );
+        if cfg.name_prefix == SandboxConfig::default().name_prefix {
+            return Err(WorkerError::Sandbox(
+                "name_prefix равен дефолтному (без worker_id): изоляция cleanup_stale \
+                 между воркерами не гарантирована; включите worker_id в префикс"
+                    .into(),
+            ));
+        }
         // На случай остатка от прошлого запуска.
         let _ = run_cmd(
             &cfg.docker_bin,

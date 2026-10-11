@@ -257,10 +257,16 @@ shell_tools_ban() {
   local sym hit=0
   # Только НАШИ уникальные маркеры (без generic-слов, которые могут встретиться
   # в символах зависимостей: напр. kMaxIterations из aws).
-  for sym in AllowlistRejected agent_system_prompt agent_user_prompt run_shell WORKER_SHELL_TOOLS WORKER_ALLOWED_COMMANDS swarm_worker::sandbox swarm_worker::agent_loop SandboxConfig; do
+  #
+  # Волна 5.1: `WORKER_SHELL_TOOLS` ИСКЛЮЧЁН из banned-списка. После перевода
+  # shell-tools на runtime-гейт строка живёт в бинаре ПО ЗАМЫСЛУ: воркер обязан
+  # читать этот флаг, чтобы решать, разрешён ли запуск sandbox. Настоящие
+  # маркеры утечки shell-tools — символы модулей (`swarm_worker::sandbox`,
+  # `SandboxConfig`, `run_shell`, `agent_system_prompt`) — остаются под запретом.
+  for sym in AllowlistRejected agent_system_prompt agent_user_prompt run_shell WORKER_ALLOWED_COMMANDS swarm_worker::sandbox swarm_worker::agent_loop SandboxConfig; do
     if strings "$bin" | grep -q "$sym"; then
       hit=1
-      printf 'FIND-01 BAN VIOLATION: symbol/string %%s found in swarm-worker binary\n' "$sym"
+      printf 'FIND-01 BAN VIOLATION: symbol/string %s found in swarm-worker binary\n' "$sym"
     fi
   done
   if ((hit == 0)); then

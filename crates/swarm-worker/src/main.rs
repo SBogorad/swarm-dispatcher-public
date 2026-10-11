@@ -99,6 +99,18 @@ fn main() {
     }
     info!(worker_id, "worker registered");
 
+    // FIND-01 / Волна 5.1: явный след согласия в логах. Без WORKER_SHELL_TOOLS=1
+    // sandbox-контейнеры запускать запрещено; фиксируем состояние громко, чтобы
+    // включение было видно в аудите, а не было молчаливым дефолтом.
+    if swarm_worker::shell_tools_enabled() {
+        warn!(
+            worker_id,
+            "WORKER_SHELL_TOOLS=1: shell-tools ENABLED (sandbox execution allowed)"
+        );
+    } else {
+        info!(worker_id, "shell-tools disabled (set WORKER_SHELL_TOOLS=1 to enable)");
+    }
+
     let mut consecutive_errors = 0u32;
     while !shutdown.load(Ordering::SeqCst) {
         match d.claim(&worker_id, lease_sec) {

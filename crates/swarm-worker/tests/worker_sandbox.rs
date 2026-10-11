@@ -38,8 +38,18 @@ fn sb_cfg(timeout_sec: u64) -> SandboxConfig {
     SandboxConfig {
         image: image(),
         cmd_timeout_sec: timeout_sec,
+        // FIND-01/Волна 5.1 + N3: префикс с worker-идентификатором обязателен
+        // для изоляции cleanup_stale и для снятия runtime-гейта.
+        name_prefix: "swarm-sandbox-test".into(),
         ..Default::default()
     }
+}
+
+/// Включить shell-tools для тестов (иначе `Sandbox::start` откажет).
+///
+/// SAFETY: тесты идут с `--test-threads=1` (см. докстринг файла).
+fn enable_shell_tools() {
+    std::env::set_var("WORKER_SHELL_TOOLS", "1");
 }
 
 /// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
@@ -171,7 +181,9 @@ fn task_contract() -> serde_json::Value {
 
 // 1. sandbox_starts_and_stops (+ M5: корень read-only)
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn sandbox_starts_and_stops() {
+    enable_shell_tools();
     let cfg = sb_cfg(60);
     let tag = short();
     let mut sb = Sandbox::start(&cfg, &tag).expect("start");
@@ -191,7 +203,9 @@ fn sandbox_starts_and_stops() {
 
 // 2. worker_runs_cargo_test
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn worker_runs_cargo_test() {
+    enable_shell_tools();
     let cfg = sb_cfg(120);
     let sb = Sandbox::start(&cfg, &short()).expect("start");
     let init = sb.exec("cargo init --lib --name demo").expect("exec init");
@@ -213,7 +227,9 @@ fn worker_runs_cargo_test() {
 
 // 3. worker_rm_rejected
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn worker_rm_rejected() {
+    enable_shell_tools();
     let al = Allowlist::default();
     let e = al.check("rm -rf /").unwrap_err();
     match e {
@@ -250,7 +266,9 @@ fn worker_rm_rejected() {
 
 // 4. worker_timeout_handled
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn worker_timeout_handled() {
+    enable_shell_tools();
     let cfg = sb_cfg(1);
     let sb = Sandbox::start(&cfg, &short()).expect("start");
     let e = sb.exec("sleep 100").unwrap_err();
@@ -262,7 +280,9 @@ fn worker_timeout_handled() {
 
 // 5. worker_network_isolated
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn worker_network_isolated() {
+    enable_shell_tools();
     let cfg = sb_cfg(30);
     let sb = Sandbox::start(&cfg, &short()).expect("start");
     // git есть в образе и в allowlist; без сети ls-remote обязан провалиться.
@@ -278,7 +298,9 @@ fn worker_network_isolated() {
 
 // 6. agent_loop_iterates
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn agent_loop_iterates() {
+    enable_shell_tools();
     let cfg = AgentLoopConfig {
         sandbox: sb_cfg(120),
         ..Default::default()
@@ -307,7 +329,9 @@ fn agent_loop_iterates() {
 
 // 7. agent_loop_executes_dsml_calls (DeepSeek native format)
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn agent_loop_executes_dsml_calls() {
+    enable_shell_tools();
     let cfg = AgentLoopConfig {
         sandbox: sb_cfg(30),
         ..Default::default()
@@ -334,7 +358,9 @@ fn agent_loop_executes_dsml_calls() {
 
 // 8. Batch stops at first policy rejection; later calls are not executed.
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn agent_loop_stops_batch_after_reject() {
+    enable_shell_tools();
     let cfg = AgentLoopConfig {
         sandbox: sb_cfg(30),
         ..Default::default()
@@ -381,7 +407,9 @@ fn agent_loop_stops_batch_after_reject() {
 
 // 9. agent_loop_max_iterations
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn agent_loop_max_iterations() {
+    enable_shell_tools();
     let cfg = AgentLoopConfig {
         max_iterations: 3,
         sandbox: sb_cfg(30),
@@ -407,7 +435,9 @@ fn agent_loop_max_iterations() {
 
 // 8. tool_call_events_logged
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn tool_call_events_logged() {
+    enable_shell_tools();
     let mut d = admin();
     d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
         .unwrap();
@@ -454,7 +484,9 @@ fn tool_call_events_logged() {
 
 // 9. sandbox_cleaned_after_crash
 #[test]
+#[ignore = "требует живых Docker + PostgreSQL; см. докстринг файла"]
 fn sandbox_cleaned_after_crash() {
+    enable_shell_tools();
     let cfg = sb_cfg(30);
     let tag = short();
     let sb = Sandbox::start(&cfg, &tag).expect("start");

@@ -18,6 +18,10 @@ tests/test_v0.py
 # P0 Rust hardening: allowlist and agent-loop path validation (+ tests).
 crates/swarm-worker/src/*
 
+# Волна 5: снятие feature-gate shell-tools потребовало правки манифеста
+# (удалены required-features у теста и примера).
+crates/swarm-worker/Cargo.toml
+
 # Wave 3 (test honesty): CLI exit codes / no fabricated checks, disabled-DB
 # guards in the integration suites, fail-closed mutation pre-checks.
 crates/swarm-cli/src/main.rs

@@ -25,5 +25,5 @@ pub use allowlist::Allowlist;
 pub use audit::PgAuditSink;
 pub use error::{Result, WorkerError};
 pub use retry::RetryPolicy;
-pub use sandbox::{ExecOutput, Sandbox, SandboxConfig};
+pub use sandbox::{shell_tools_enabled, ExecOutput, Sandbox, SandboxConfig};
 pub use worker::{process_lease, Outcome, WorkerConfig};

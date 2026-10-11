@@ -208,19 +208,21 @@ fn check_vcs_tool_options(base: &str, tokens: &[String], command: &str) -> Resul
     };
     // Первый токен — сама команда; смотрим остальные.
     for t in tokens.iter().skip(1) {
-        // Опции сравниваем без учёта регистра С ДВУХ СТОРОН: и токен, и
-        // константу приводим к нижнему регистру (иначе `-Z` в списке не
-        // совпадёт с `-z` из токена).
-        let opt = t.split('=').next().unwrap_or(t).to_ascii_lowercase();
+        // Длинные опции сравниваем без учёта регистра (у них регистр незначим).
+        // КОРОТКИЕ флаги — С УЧЁТОМ РЕГИСТРА (N1): иначе `git -C <dir>`
+        // (сменить каталог, легитимно) ложно совпадал с запрещённым `-c`
+        // после приведения к нижнему регистру и отклонялся.
+        let raw_opt = t.split('=').next().unwrap_or(t);
+        let opt = raw_opt.to_ascii_lowercase();
         for d in denied {
-            let d_lc = d.to_ascii_lowercase();
-            let exact = opt == d_lc;
-            // короткие флаги вида -zfoo / -cfoo (без '=')
-            let short_prefixed = d_lc.len() == 2
-                && d_lc.starts_with('-')
-                && !d_lc.starts_with("--")
-                && opt.starts_with(&d_lc);
-            if exact || short_prefixed {
+            let is_short = d.len() == 2 && d.starts_with('-') && !d.starts_with("--");
+            let matched = if is_short {
+                // `-c` запрещён, но `-C` разрешён; `-cfoo` (слитная форма) запрещён.
+                raw_opt == *d || (raw_opt.starts_with(d) && raw_opt.len() > d.len())
+            } else {
+                opt == d.to_ascii_lowercase()
+            };
+            if matched {
                 return Err(WorkerError::AllowlistRejected {
                     command: command.to_string(),
                     reason: format!("запрещённая опция {base} '{t}'"),

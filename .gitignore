@@ -22,3 +22,6 @@ docker-compose.yml.orig
 .pytest_cache/
 docs/history/inbound/
 
+
+# Пакеты аудита и релизные архивы — не версионируются.
+outbox/
