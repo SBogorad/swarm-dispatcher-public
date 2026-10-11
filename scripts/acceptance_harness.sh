@@ -387,8 +387,10 @@ backup_restore_check() {
     status FAIL "backup/restore: dump failed" 1 "ops/db_backup.sh dump"
     rm -rf "$tmp"; return 0
   fi
-  local dump
-  dump="$(ls -t "$tmp"/*.dump 2>/dev/null | head -1)"
+  local dump="" f
+  for f in "$tmp"/*.dump; do
+    [[ -e "$f" ]] && dump="$f"
+  done
   if [[ -z "$dump" ]]; then
     status FAIL "backup/restore: no dump produced" 1 "ops/db_backup.sh dump"
     rm -rf "$tmp"; return 0
