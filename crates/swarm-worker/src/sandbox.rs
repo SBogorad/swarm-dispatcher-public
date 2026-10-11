@@ -60,11 +60,71 @@ impl Default for SandboxConfig {
             memory: "2g".into(),
             cpus: "2".into(),
             cmd_timeout_sec: 60,
+            // N4: 256 процессов может быть мало для cargo build с параллельными
+            // rustc/линковщиками на крупных воркспейсах.
             pids_limit: 256,
             max_output_bytes: 10 * 1024 * 1024,
             network: "none".into(),
             docker_bin: "docker".into(),
         }
+    }
+}
+
+impl SandboxConfig {
+    /// Конфиг из окружения с дефолтами (N4: лимиты переопределяемы).
+    ///
+    /// Переменные: `WORKER_SANDBOX_IMAGE`, `WORKER_SANDBOX_MEMORY`,
+    /// `WORKER_SANDBOX_CPUS`, `WORKER_SANDBOX_PIDS_LIMIT`,
+    /// `WORKER_SANDBOX_CMD_TIMEOUT_SEC`, `WORKER_SANDBOX_MAX_OUTPUT_BYTES`,
+    /// `WORKER_SANDBOX_NETWORK`, `DOCKER_BIN`.
+    /// Невалидные числа игнорируются (берётся дефолт) — конфиг не должен
+    /// падать из-за опечатки в env.
+    pub fn from_env() -> Self {
+        let mut c = Self::default();
+        if let Ok(v) = std::env::var("WORKER_SANDBOX_IMAGE") {
+            if !v.trim().is_empty() {
+                c.image = v;
+            }
+        }
+        if let Ok(v) = std::env::var("WORKER_SANDBOX_MEMORY") {
+            if !v.trim().is_empty() {
+                c.memory = v;
+            }
+        }
+        if let Ok(v) = std::env::var("WORKER_SANDBOX_CPUS") {
+            if !v.trim().is_empty() {
+                c.cpus = v;
+            }
+        }
+        if let Ok(v) = std::env::var("WORKER_SANDBOX_NETWORK") {
+            if !v.trim().is_empty() {
+                c.network = v;
+            }
+        }
+        if let Some(n) = std::env::var("WORKER_SANDBOX_PIDS_LIMIT")
+            .ok()
+            .and_then(|v| v.trim().parse::<u32>().ok())
+        {
+            c.pids_limit = n;
+        }
+        if let Some(n) = std::env::var("WORKER_SANDBOX_CMD_TIMEOUT_SEC")
+            .ok()
+            .and_then(|v| v.trim().parse::<u64>().ok())
+        {
+            c.cmd_timeout_sec = n;
+        }
+        if let Some(n) = std::env::var("WORKER_SANDBOX_MAX_OUTPUT_BYTES")
+            .ok()
+            .and_then(|v| v.trim().parse::<usize>().ok())
+        {
+            c.max_output_bytes = n;
+        }
+        if let Ok(v) = std::env::var("DOCKER_BIN") {
+            if !v.trim().is_empty() {
+                c.docker_bin = v;
+            }
+        }
+        c
     }
 }
 
@@ -872,6 +932,41 @@ mod f12_tests {
         // голый config.toml тоже перекрывает сборку (CARGO_HOME=/workspace)
         assert!(cargo_config_write_reason("config.toml").is_some());
         assert!(cargo_config_write_reason("config").is_some());
+    }
+
+    // ---------- N4: конфиг sandbox из окружения ----------
+
+    #[test]
+    fn sandbox_config_from_env_overrides_and_defaults() {
+        // Дефолты без env.
+        for k in [
+            "WORKER_SANDBOX_PIDS_LIMIT",
+            "WORKER_SANDBOX_CMD_TIMEOUT_SEC",
+            "WORKER_SANDBOX_MEMORY",
+            "WORKER_SANDBOX_CPUS",
+            "WORKER_SANDBOX_IMAGE",
+        ] {
+            std::env::remove_var(k);
+        }
+        let d = SandboxConfig::from_env();
+        assert_eq!(d.pids_limit, 256);
+        assert_eq!(d.cmd_timeout_sec, 60);
+        assert_eq!(d.memory, "2g");
+
+        // Переопределение pids_limit (главный кейс N4: крупные сборки).
+        std::env::set_var("WORKER_SANDBOX_PIDS_LIMIT", "1024");
+        std::env::set_var("WORKER_SANDBOX_MEMORY", "4g");
+        let c = SandboxConfig::from_env();
+        assert_eq!(c.pids_limit, 1024, "N4: pids_limit должен переопределяться");
+        assert_eq!(c.memory, "4g");
+
+        // Невалидное число -> дефолт, без паники.
+        std::env::set_var("WORKER_SANDBOX_PIDS_LIMIT", "not-a-number");
+        assert_eq!(SandboxConfig::from_env().pids_limit, 256);
+
+        for k in ["WORKER_SANDBOX_PIDS_LIMIT", "WORKER_SANDBOX_MEMORY"] {
+            std::env::remove_var(k);
+        }
     }
 
     #[test]
