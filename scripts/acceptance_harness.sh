@@ -552,11 +552,24 @@ review_gate_acceptance() {
   export SWARM_PW_REVIEWER=c2_reviewer SWARM_PW_OPERATOR=c2_operator SWARM_PW_CLI=c2_cli
   # tests/test_v0.py speaks PGDSN (superuser): reuse the disposable DSN.
   export PGDSN="dbname=c2_swarm user=postgres host=127.0.0.1 port=$TEST_DB_PORT password=$DB_PASSWORD"
+  # Волна 5.2: арбитры волны 4 (F15/F4/FIND-04/F2) требуют W4_*-окружения.
+  # Без него conftest их блокировал (BLOCKED), и 38 тестов НИКОГДА не
+  # исполнялись ни harness, ни ручным прогоном (найдено ночной сессией).
+  export W4_ADMIN_DSN="host=127.0.0.1 port=$TEST_DB_PORT user=postgres password=$DB_PASSWORD dbname=c2_swarm"
+  export W4_W1_PW=c2_w1 W4_W2_PW=c2_w2
   for suite in "${suites[@]}"; do
     run_worktree_step "${suite##*|} on patched c2_ database" \
       "$py" -m pytest -q -rA "${suite%%|*}"
   done
-  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW PGDSN
+  # Волна 5.2: волна-4 арбитры — отдельным шагом с W4_*-окружением.
+  if [[ -f "$WORKTREE/tests/test_contract_form_f15.py" ]]; then
+    run_worktree_step "wave-4 PG arbiters (F15/F4/FIND-04/F2) on patched c2_ database" \
+      "$py" -m pytest -q -rA \
+        tests/test_contract_form_f15.py tests/test_fail_unblock_f4.py \
+        tests/test_find04_record_tool_call_identity.py tests/test_worker_identity_f3.py \
+        tests/test_review_gate_f2.py tests/test_review_gate_wave4.py
+  fi
+  unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW PGDSN W4_ADMIN_DSN W4_W1_PW W4_W2_PW
   unset SWARM_PW_W1 SWARM_PW_W2 SWARM_PW_W_1 SWARM_PW_GPU_1 SWARM_PW_WORKER SWARM_PW_WATCHDOG
   unset SWARM_PW_PLANNER SWARM_PW_REVIEWER SWARM_PW_OPERATOR SWARM_PW_CLI
   ((FAILURES == failures_before))
