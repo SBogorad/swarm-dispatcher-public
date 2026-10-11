@@ -52,6 +52,39 @@ impl Default for Limits {
     }
 }
 
+/// F7: жёсткие пределы контрактов от LLM (clamping).
+///
+/// Модель не должна произвольно раздувать `attempts` / ставить недостижимые
+/// `min_ram_gb` / `coder_class`. Верхние границы выбраны с запасом к разумным
+/// значениям, но жёстко ограничивают абсурд (`attempts: 1_000_000_000`).
+pub mod contract_limits {
+    /// Максимальное число попыток на задачу.
+    pub const MAX_ATTEMPTS: u32 = 100;
+    /// Максимальное число доработок (max_rework).
+    pub const MAX_REWORK: u32 = 50;
+    /// Максимальный требуемый RAM (GiB) — выше этого значения задачу никто
+    /// не возьмёт, значит это либо ошибка, либо DoS-попытка.
+    pub const MAX_MIN_RAM_GB: f64 = 1024.0;
+    /// Максимальный coder_class (класс модели исполнителя).
+    pub const MAX_CODER_CLASS: f64 = 100.0;
+    /// Максимальное число проверок в контракте одной задачи.
+    pub const MAX_CHECKS_PER_TASK: usize = 32;
+}
+
+/// F7: реестр допустимых типов проверок (`checks[].type`).
+///
+/// Модель не может назначить произвольный/фиктивный тип проверки. Любой тип
+/// вне реестра отклоняется на валидации контракта (CT001), а не молча
+/// принимается. `cmd` — единственный исполняемый тип в текущей модели угроз;
+/// остальные — будущие (тесты/лint/ручные), но список закрыт.
+pub const ALLOWED_CHECK_TYPES: &[&str] = &["cmd", "test", "lint", "manual"];
+
+/// F7: является ли тип проверки допустимым (регистронезависимо, с trim).
+pub fn is_allowed_check_type(t: &str) -> bool {
+    let t = t.trim().to_ascii_lowercase();
+    ALLOWED_CHECK_TYPES.iter().any(|a| *a == t)
+}
+
 /// sha256-хекс текста задачи.
 pub fn sha256_hex(text: &str) -> String {
     let mut h = Sha256::new();
@@ -147,13 +180,86 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
         }
     }
 
-    // h. непустой checks у каждой задачи
+    // h. непустой checks у каждой задачи + F7: реестр допустимых типов и предел числа проверок
     for t in &graph.tasks {
         if t.checks.is_empty() {
             return Err(PlannerError::Validation(format!(
                 "task {} has empty checks",
                 t.id
             )));
+        }
+        if t.checks.len() > contract_limits::MAX_CHECKS_PER_TASK {
+            return Err(PlannerError::Validation(format!(
+                "task {} has {} checks > max {}",
+                t.id,
+                t.checks.len(),
+                contract_limits::MAX_CHECKS_PER_TASK
+            )));
+        }
+        // F7: каждый элемент checks — объект с допустимым типом из реестра.
+        for c in &t.checks {
+            let ty = c
+                .get("type")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| {
+                    PlannerError::Validation(format!(
+                        "task {} has check without string type",
+                        t.id
+                    ))
+                })?;
+            if !is_allowed_check_type(ty) {
+                return Err(PlannerError::Validation(format!(
+                    "task {} has disallowed check type {:?} (allowed: {:?})",
+                    t.id,
+                    ty,
+                    ALLOWED_CHECK_TYPES
+                )));
+            }
+        }
+    }
+
+    // F7: диапазоны budget/needs — модель не должна раздувать attempts до
+    // миллиарда или ставить недостижимый min_ram_gb.
+    for t in &graph.tasks {
+        if let Some(a) = t.budget.get("attempts").and_then(|v| v.as_u64()) {
+            if a == 0 || a > contract_limits::MAX_ATTEMPTS as u64 {
+                return Err(PlannerError::Validation(format!(
+                    "task {} budget.attempts {} out of range 1..={}",
+                    t.id,
+                    a,
+                    contract_limits::MAX_ATTEMPTS
+                )));
+            }
+        }
+        if let Some(r) = t.budget.get("max_rework").and_then(|v| v.as_u64()) {
+            if r > contract_limits::MAX_REWORK as u64 {
+                return Err(PlannerError::Validation(format!(
+                    "task {} budget.max_rework {} > {}",
+                    t.id,
+                    r,
+                    contract_limits::MAX_REWORK
+                )));
+            }
+        }
+        if let Some(ram) = t.needs.get("min_ram_gb").and_then(|v| v.as_f64()) {
+            if !ram.is_finite() || ram < 0.0 || ram > contract_limits::MAX_MIN_RAM_GB {
+                return Err(PlannerError::Validation(format!(
+                    "task {} needs.min_ram_gb {} out of range 0..={}",
+                    t.id,
+                    ram,
+                    contract_limits::MAX_MIN_RAM_GB
+                )));
+            }
+        }
+        if let Some(cc) = t.needs.get("coder_class").and_then(|v| v.as_f64()) {
+            if !cc.is_finite() || cc < 0.0 || cc > contract_limits::MAX_CODER_CLASS {
+                return Err(PlannerError::Validation(format!(
+                    "task {} needs.coder_class {} out of range 0..={}",
+                    t.id,
+                    cc,
+                    contract_limits::MAX_CODER_CLASS
+                )));
+            }
         }
     }
 
@@ -365,5 +471,75 @@ mod tests {
         let a = deterministic_root_id("Рефакторинг auth");
         let b = deterministic_root_id("Рефакторинг db");
         assert_ne!(a, b);
+    }
+
+    // ---------- F7: контроль контрактов планировщика ----------
+
+    fn task_with(id: &str, checks: serde_json::Value, needs: serde_json::Value, budget: serde_json::Value) -> serde_json::Value {
+        serde_json::json!({
+            "id": id, "kind": "code.refactor", "description": "d",
+            "checks": checks, "needs": needs, "budget": budget, "depends_on": []
+        })
+    }
+
+    #[test]
+    fn f7_rejects_disallowed_check_type() {
+        let gr = g(serde_json::json!([
+            task_with("t1", serde_json::json!([{"type":"exec","run":"rm -rf /"}]),
+                      serde_json::json!({}), serde_json::json!({"attempts":3}))
+        ]));
+        let e = validate_graph(&gr, &Limits::default());
+        assert!(matches!(e, Err(PlannerError::Validation(_))), "фиктивный тип должен быть отклонён: {e:?}");
+    }
+
+    #[test]
+    fn f7_rejects_check_without_type() {
+        let gr = g(serde_json::json!([
+            task_with("t1", serde_json::json!([{"run":"cargo test"}]),
+                      serde_json::json!({}), serde_json::json!({"attempts":3}))
+        ]));
+        assert!(validate_graph(&gr, &Limits::default()).is_err());
+    }
+
+    #[test]
+    fn f7_rejects_absurd_attempts() {
+        let gr = g(serde_json::json!([
+            task_with("t1", serde_json::json!([{"type":"cmd","run":"true"}]),
+                      serde_json::json!({}), serde_json::json!({"attempts": 1_000_000_000u64}))
+        ]));
+        let e = validate_graph(&gr, &Limits::default());
+        assert!(matches!(e, Err(PlannerError::Validation(_))), "attempts 1e9 должен быть отклонён: {e:?}");
+    }
+
+    #[test]
+    fn f7_rejects_unreachable_min_ram() {
+        let gr = g(serde_json::json!([
+            task_with("t1", serde_json::json!([{"type":"cmd","run":"true"}]),
+                      serde_json::json!({"min_ram_gb": 1_000_000}), serde_json::json!({"attempts":3}))
+        ]));
+        let e = validate_graph(&gr, &Limits::default());
+        assert!(matches!(e, Err(PlannerError::Validation(_))), "min_ram_gb 1e6 должен быть отклонён: {e:?}");
+    }
+
+    #[test]
+    fn f7_accepts_reasonable_contract() {
+        let gr = g(serde_json::json!([
+            task_with("t1", serde_json::json!([{"type":"cmd","run":"cargo test"}]),
+                      serde_json::json!({"min_ram_gb": 8.0, "coder_class": 2.0}),
+                      serde_json::json!({"attempts":3,"max_rework":2}))
+        ]));
+        assert!(validate_graph(&gr, &Limits::default()).is_ok());
+    }
+
+    #[test]
+    fn f7_rejects_too_many_checks() {
+        let checks: Vec<serde_json::Value> = (0..40)
+            .map(|_| serde_json::json!({"type":"cmd","run":"true"}))
+            .collect();
+        let gr = g(serde_json::json!([
+            task_with("t1", serde_json::Value::Array(checks),
+                      serde_json::json!({}), serde_json::json!({"attempts":3}))
+        ]));
+        assert!(validate_graph(&gr, &Limits::default()).is_err());
     }
 }
