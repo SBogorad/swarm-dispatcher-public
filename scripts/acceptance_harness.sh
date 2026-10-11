@@ -17,6 +17,7 @@ LOG_FILE=""
 SEALED_LOG_FILE=""
 ATTESTATION_FILE=""
 EVENT_FILE=""
+TEST_NAMES_FILE=""
 ALLOWLIST_FILE=""
 FAILURES=0
 BLOCKED_COUNT=0
@@ -74,7 +75,11 @@ LOG_FILE="$LOG_DIR/harness-$(date -u +%Y%m%dT%H%M%SZ)-$$.log"
 SEALED_LOG_FILE="${LOG_FILE%.log}.sealed.log"
 ATTESTATION_FILE="${LOG_FILE%.log}.attestation.json"
 EVENT_FILE="${LOG_FILE%.log}.events.tsv"
+# Волна 5.2: отдельный артефакт с КОНКРЕТНЫМИ именами тестов (cargo/pytest),
+# иначе в аттестации были лишь названия шагов (замечание Claude).
+TEST_NAMES_FILE="${LOG_FILE%.log}.tests.txt"
 touch "$EVENT_FILE"
+touch "$TEST_NAMES_FILE"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 status() {
@@ -116,10 +121,25 @@ run_worktree_step() {
   local command_text
   command_text="(cd $(printf '%q' "$WORKTREE") && $(printf '%q ' "$@"))"
   printf 'COMMAND %s\n' "$command_text"
+  local out_file rc
+  out_file="$(mktemp)"
   set +e
-  (cd "$WORKTREE" && "$@")
-  local rc=$?
+  # tee: вывод остаётся виден в логе прогона И сохраняется для извлечения имён тестов.
+  (cd "$WORKTREE" && "$@") 2>&1 | tee "$out_file"
+  rc=${PIPESTATUS[0]}
   set -e
+  # Волна 5.2: в артефакт аттестации добавляем КОНКРЕТНЫЕ имена тестов, а не
+  # только название шага. Berём строки cargo (`test <name> ... ok/FAILED`)
+  # и pytest (`<file>::<test>`, сводку). Пустые/служебные отфильтровываем.
+  if [[ -n "$TEST_NAMES_FILE" ]]; then
+    {
+      printf '### %s\n' "$label"
+      grep -E '^test .+ \.\.\. (ok|FAILED|ignored)$' "$out_file" \
+        | sed -E 's/^test //; s/ \.\.\. .*$//' || true
+      grep -E '^(PASSED|FAILED|ERROR) ' "$out_file" || true
+    } >>"$TEST_NAMES_FILE"
+  fi
+  rm -f "$out_file"
   if ((rc == 0)); then
     status PASS "$label" "$rc" "$command_text"
   else
@@ -141,14 +161,48 @@ write_attestation() {
   image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref" 2>/dev/null || printf 'UNAVAILABLE')"
   log_sha="$(sha256sum "$SEALED_LOG_FILE" | awk '{print $1}')"
   release_gate="$( ((ALLOW_BLOCKED == 1)) && printf 'CONDITIONAL' || printf 'STRICT' )"
-  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER SANITIZED_TEST_DATABASE_URL CREDENTIALS_REDACTED EVENT_FILE SEALED_LOG_FILE
+  export ATTESTATION_FILE base_sha head_sha branch_name timestamp rustc cargo pg_version image_ref image_digest log_sha release_gate BLOCKED_COUNT FULL_WORKSPACE_TEST TEST_DB_HOST TEST_DB_PORT TEST_DB_NAME TEST_DB_USER SANITIZED_TEST_DATABASE_URL CREDENTIALS_REDACTED EVENT_FILE SEALED_LOG_FILE TEST_NAMES_FILE
   python3 - <<'PY'
 import json, os
+
+def read_tests(path):
+    """Список «шаг -> имена тестов» из TEST_NAMES_FILE (Волна 5.2)."""
+    suites, cur = [], None
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.rstrip("\n")
+                if line.startswith("### "):
+                    cur = {"label": line[4:], "tests": []}
+                    suites.append(cur)
+                elif cur is not None and line:
+                    cur["tests"].append(line)
+    except FileNotFoundError:
+        pass
+    return suites
+
+def sha256_of(path):
+    """Хеш файла или None, если его нет."""
+    try:
+        import hashlib
+        h = hashlib.sha256()
+        with open(path, "rb") as fh:
+            for chunk in iter(lambda: fh.read(65536), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    except FileNotFoundError:
+        return None
+
 events = []
 with open(os.environ["EVENT_FILE"], encoding="utf-8") as f:
     for line in f:
         state, code, label, command = line.rstrip("\n").split("\t", 3)
         events.append({"status": state, "exit_code": int(code), "label": label, "command": command})
+test_suites = read_tests(os.environ.get("TEST_NAMES_FILE", ""))
+artifacts = [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}]
+tests_path = os.environ.get("TEST_NAMES_FILE", "")
+if tests_path and sha256_of(tests_path):
+    artifacts.append({"path": tests_path, "sha256": sha256_of(tests_path)})
 with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
     json.dump({
         "format": "swarm-dispatcher-acceptance-attestation/v1",
@@ -162,8 +216,9 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "test_database": {"dsn": os.environ.get("SANITIZED_TEST_DATABASE_URL", "UNAVAILABLE"), "host": os.environ.get("TEST_DB_HOST", "UNAVAILABLE"), "port": os.environ.get("TEST_DB_PORT", "UNAVAILABLE"), "db": os.environ.get("TEST_DB_NAME", "UNAVAILABLE"), "user": os.environ.get("TEST_DB_USER", "UNAVAILABLE")},
         "credentials_redacted": bool(int(os.environ["CREDENTIALS_REDACTED"])),
         "statuses": events,
+        "test_names": test_suites,
         "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
-        "artifacts": [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}],
+        "artifacts": artifacts,
     }, f, indent=2, sort_keys=True)
     f.write("\n")
 PY
