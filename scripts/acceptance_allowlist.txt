@@ -55,3 +55,4 @@ Cargo.lock
 
 # Волна 5.1: пакеты аудита/релизов не версионируются (outbox/ исключён).
 .gitignore
+tests/conftest.py
