@@ -226,8 +226,48 @@ impl HttpLlmClient {
             .mock_file
             .as_deref()
             .ok_or_else(|| LlmError::Config("mock requires MOCK_RESPONSE_FILE".into()))?;
+        // Волна 5.2: поддержка ПОСЛЕДОВАТЕЛЬНОСТИ ответов.
+        // Если MOCK_RESPONSE_FILE — шаблон со звёздочкой (`dir/case*.json`),
+        // мок выдаёт файлы по порядку сортировки при каждом вызове, сохраняя
+        // счётчик в файле `dir/.mock_cursor`. Позволяет честно тестировать
+        // retry (первый ответ невалиден, второй — валиден), чего одиночный
+        // файл не давал (тест `planner_retries_on_invalid_json` был вакуумным).
+        if let Some(dir) = path.strip_suffix("*") {
+            return self.mock_sequence(dir);
+        }
         let text = std::fs::read_to_string(path)
             .map_err(|e| LlmError::Transport(format!("mock file {path}: {e}")))?;
+        Ok(LlmResponse {
+            text,
+            tokens_in: 0,
+            tokens_out: 0,
+            model: "mock".into(),
+        })
+    }
+
+    /// Выдать следующий файл из последовательности `dir*` по счётчику.
+    fn mock_sequence(&self, dir: &str) -> Result<LlmResponse, LlmError> {
+        let dir = dir.trim_end_matches('/').to_string();
+        let mut files: Vec<String> = std::fs::read_dir(&dir)
+            .map_err(|e| LlmError::Transport(format!("mock seq dir {dir}: {e}")))?
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".json"))
+            .collect();
+        files.sort();
+        if files.is_empty() {
+            return Err(LlmError::Config(format!("mock seq dir {dir}: no *.json")));
+        }
+        let cursor_path = format!("{dir}/.mock_cursor");
+        let n: usize = std::fs::read_to_string(&cursor_path)
+            .ok()
+            .and_then(|s| s.trim().parse().ok())
+            .unwrap_or(0);
+        let idx = n.min(files.len() - 1); // после конца — последний ответ
+        std::fs::write(&cursor_path, (idx + 1).to_string())
+            .map_err(|e| LlmError::Transport(format!("mock cursor {cursor_path}: {e}")))?;
+        let text = std::fs::read_to_string(format!("{dir}/{}", files[idx]))
+            .map_err(|e| LlmError::Transport(format!("mock seq file: {e}")))?;
         Ok(LlmResponse {
             text,
             tokens_in: 0,
@@ -407,6 +447,39 @@ mod tests {
             .unwrap();
         assert_eq!(r.text, "hello-from-mock");
         let _ = std::fs::remove_file(&p);
+    }
+
+    #[test]
+    fn mock_sequence_advances_per_call() {
+        let dir = std::env::temp_dir().join(format!("swarm_llm_seq_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("001_invalid.json"), "not json").unwrap();
+        std::fs::write(dir.join("002_valid.json"), "{\"ok\":true}").unwrap();
+        let cfg = LlmConfig {
+            provider: "mock".into(),
+            api_key: None,
+            model: "mock".into(),
+            base_url: None,
+            max_retries: 0,
+            max_tokens: 16,
+            mock_file: Some(format!("{}*", dir.display())),
+            timeout_sec: 5,
+        };
+        let c = HttpLlmClient::new(cfg).unwrap();
+        let req = LlmRequest {
+            system: "s".into(),
+            user: "u".into(),
+            max_tokens: None,
+            temperature: None,
+        };
+        let r1 = c.complete(&req).unwrap();
+        assert_eq!(r1.text, "not json", "первый ответ — невалидный");
+        let r2 = c.complete(&req).unwrap();
+        assert_eq!(r2.text, "{\"ok\":true}", "второй ответ — валидный");
+        let r3 = c.complete(&req).unwrap();
+        assert_eq!(r3.text, "{\"ok\":true}", "после конца — последний");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

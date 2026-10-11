@@ -202,10 +202,41 @@ fn planner_respects_max_tasks() {
 //    (полноценный retry на битом JSON — в unit-тестах parse/validate).
 #[test]
 fn planner_retries_on_invalid_json() {
+    // Волна 5.2: тест был ВАКУУМНЫМ — использовал planner_ok.json (валидный),
+    // т.е. retry не срабатывал вообще. Теперь мок выдаёт ПОСЛЕДОВАТЕЛЬНОСТЬ:
+    // 001_broken.json (невалидный) -> 002_ok.json (валидный). Планировщик обязан
+    // пережить первый отказ и вернуть валидный граф со ВТОРОЙ попытки.
     let mut d = admin();
-    let p = planner("planner_ok.json", 50);
+    let seq_dir = {
+        let mut p = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        p.push("tests/fixtures/retry_seq");
+        p
+    };
+    // Чистим курсор мока, чтобы последовательность начиналась с 001_broken.
+    let _ = std::fs::remove_file(seq_dir.join(".mock_cursor"));
+    let cfg = PlannerConfig {
+        limits: swarm_planner::Limits {
+            max_tasks: 50,
+            max_depth: 5,
+            max_children: 10,
+        },
+    };
+    let mut llm_cfg = mock_cfg("planner_ok.json");
+    llm_cfg.max_retries = 2;
+    llm_cfg.mock_file = Some(format!("{}*", seq_dir.display()));
+    let p = Planner::new(cfg, LlmClient::new(llm_cfg).unwrap());
     let out = p.plan(&mut d, "задача-6").unwrap();
-    assert_eq!(out.tasks_created, 3);
+    assert_eq!(
+        out.tasks_created, 3,
+        "должен восстановиться со второй попытки"
+    );
+    // Курсор продвинулся => был >1 вызов (иначе retry не проверялся).
+    let cursor: u32 = std::fs::read_to_string(seq_dir.join(".mock_cursor"))
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    assert!(cursor >= 2, "ожидалось >=2 вызова LLM, было {cursor}");
 }
 
 // 7. e2e: Planner → worker выполняет → review.
