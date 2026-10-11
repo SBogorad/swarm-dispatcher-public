@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS" generated="2026-10-10T21:40:41+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS" generated="2026-10-11T09:14:41+07:00" generator="scripts/build_project_bundle.py">
   <title>Документация и отчёты (без писем history/inbound)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="1909116437eab45cb8998dfe6b15ea49c49cd3c7"/>
+  <git is_git="true" head="7eb8617ec1a48434ebd76787913a29ec9c55adb8"/>
   <manifest>
-    <files count="48" total_bytes="620630"/>
+    <files count="49" total_bytes="638684"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -15,7 +15,7 @@
     <index>
       <entry path="CHANGELOG.md" lang="markdown" bytes="8511" lines="162" sha256="dbd85bcc16c20143a273745c3b4e9b9a7f99074a240bf92104c022863a53f3dd" md5="adc511a2797fd984584b95630585c4be"/>
       <entry path="MANIFEST.md" lang="markdown" bytes="6283" lines="139" sha256="6ccc2c3293c26aed8831fd4f917358e9cc5268db80cbb4f2b8dfb12daf070798" md5="8e61d821b12508b7a1177cebd086ad05"/>
-      <entry path="README.md" lang="markdown" bytes="8581" lines="229" sha256="a7213f0200526dda80ba2855c4338483f8a67e0d82d1c1138f7ac537d4e3977b" md5="c86bda8466dd186c5e6299d1cf276ff6"/>
+      <entry path="README.md" lang="markdown" bytes="8652" lines="230" sha256="d6720eb91f036660fef87152baa4ec133daf041f4e0b0ba56c05cd45762a5af5" md5="08355192b57973cacd0100ad1baf113d"/>
       <entry path="REPORT_docker_gap_closed.md" lang="markdown" bytes="10675" lines="143" sha256="8f6ba2f8366312e844ae755c939e28873ce941a66a78a2a74bdb05ab5de10760" md5="8525f65aba6f500d1319018bef8ed3c2"/>
       <entry path="REPORT_v0.2_step1.md" lang="markdown" bytes="9901" lines="163" sha256="75d5b685e7b18f45d606d7a1e66dbe3943d1aa774990915574ac4f406dd0376a" md5="ea4ae0776193e1ea4a2a6429d6286e83"/>
       <entry path="REPORT_v0.2_step2_native_verify.md" lang="markdown" bytes="5669" lines="112" sha256="cc098a99af0b02a2c6144d7d8b44da9c69238b6e3924834ccbee1dd0c90036bf" md5="9d9f4d6b11083bdafd27e1308b27f597"/>
@@ -30,7 +30,7 @@
       <entry path="RESUME.md" lang="markdown" bytes="16782" lines="355" sha256="097dac9b7b545570b2929b92fd047f3b98cc9187073ab06d5d4f04b04d273359" md5="752cbbf3b39f16db88bc4c8fe74e962a"/>
       <entry path="docs/ARCHITECTURE.md" lang="markdown" bytes="12226" lines="381" sha256="4c800238c5ce8398b72f182c8fbb6ca81310d30b3461886d55421ca0b63caa31" md5="9af85db97ba09c8ce5c36dc2ae5bc553"/>
       <entry path="docs/DISTRIBUTED_WORKER_MVP.md" lang="markdown" bytes="9203" lines="126" sha256="7e046a39fa49669ed7f20e59878b681825bec5d3361bca56b3978ccb0467006d" md5="62ab3171071d56b1545173bb2f8d96fb"/>
-      <entry path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="13880" lines="254" sha256="9a9bad5f7389f70663892837b0f6402f9d05a304fee027660219fd193bba51d3" md5="cef00e41087af09f218072c963dcbe83"/>
+      <entry path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="18817" lines="305" sha256="ad63b03b956216115b1f0a9a53ada04d256eae9bc889f94b5057da24b6a2a425" md5="7db2a30f626758cba9559ed14ac7d546"/>
       <entry path="docs/METHODOLOGY.md" lang="markdown" bytes="14539" lines="242" sha256="d0fdfa915879e43aff622687afd730c0b6306cfd422c92ddab0f4455404a4dcf" md5="a0144c4311bfec4f1efafeff5ba08122"/>
       <entry path="docs/PROJECT_STATE.md" lang="markdown" bytes="5027" lines="84" sha256="760f5a56059e54cde0d16921435f04d9f4f7f4376147a8ab4aa038afe5df7f97" md5="9acdeae9001bb6309ab28c8b0ccb6580"/>
       <entry path="docs/TZ_v0.2_step1_fixes.md" lang="markdown" bytes="13920" lines="398" sha256="994f7dae8362bde94e86ffc8df3ce2668b17c6de5138fbcd4b0bc042302a721a" md5="fc4a121e93d0f139e0db739bb4b01aef"/>
@@ -61,6 +61,7 @@
       <entry path="docs/optional/RUST_FINDINGS.md" lang="markdown" bytes="3668" lines="30" sha256="538039fed69765820f6e9c9e508afbeb34eddf0f3f3a227001b49deafce2ddaa" md5="86a0459653f902261d0942902b0ea180"/>
       <entry path="docs/optional/THREAT_MODEL.md" lang="markdown" bytes="19399" lines="297" sha256="088a4e79b375a3b9e09997bcd784b95f1b6521bc11b81671c802ff5b003c33db" md5="435d5acb3e113cd252e33113a62586c1"/>
       <entry path="docs/optional/TZ_v0.2_step2_roles.md" lang="markdown" bytes="10459" lines="93" sha256="b22b3428747c656e2673d8b33691e0527b0fe285eee885d7b7e55b2a40cf5b1f" md5="ec056faeb85f9f146d7383e000350b49"/>
+      <entry path="docs/research/POSITIONING_2026.md" lang="markdown" bytes="13046" lines="100" sha256="514e13e19756c1983cc038a27b0fc26a1b84f48a69fecab9c7c91ef29ff88651" md5="cdd4e422a1e904c217c4913dd7576cf5"/>
     </index>
   </manifest>
   <files>
@@ -373,7 +374,7 @@ watchdog, worker-заглушка, CLI, Docker Compose.
 4. Перед PR — прочитать `docs/METHODOLOGY.md`, проверить соответствие.
 ]]></content>
     </file>
-    <file path="README.md" lang="markdown" bytes="8581" lines="229" sha256="a7213f0200526dda80ba2855c4338483f8a67e0d82d1c1138f7ac537d4e3977b" md5="c86bda8466dd186c5e6299d1cf276ff6">
+    <file path="README.md" lang="markdown" bytes="8652" lines="230" sha256="d6720eb91f036660fef87152baa4ec133daf041f4e0b0ba56c05cd45762a5af5" md5="08355192b57973cacd0100ad1baf113d">
       <content><![CDATA[
 # Swarm Dispatcher
 
@@ -401,7 +402,8 @@ Postgres-центричный диспетчер задач с канбан-по
 
 ## Требования
 
-- **Rust 1.85+** (из-за `edition2024` в транзитивных зависимостях).
+- **Rust 1.94.1+** (из-за `edition2024` в транзитивных зависимостях; MSRV
+ задан в `Cargo.toml` как `rust-version = "1.94.1"`).
 - **Postgres 16+** (проверено на 16.4 и 18.6).
 - **Docker + Docker Compose** (для production-пути).
 - ИЛИ **Linux + Postgres в user-space** (для dev-пути без root).
@@ -525,7 +527,7 @@ swarm-dispatcher/
 ├── MANIFEST.md                  # карта репозитория
 ├── CHANGELOG.md                 # история версий
 ├── LICENSE                      # MIT
-├── Cargo.toml                   # workspace, rust-version = 1.85
+├── Cargo.toml                   # workspace, rust-version = 1.94.1
 ├── Dockerfile                   # rust:1.98-slim + Debian runtime
 ├── docker-compose.yml           # postgres + watchdog + 2 воркера + cli
 ├── .env.example
@@ -3258,7 +3260,7 @@ v0.6 считается принятым только при воспроизв�
 - передача персональных или рабочих данных в архитектурные документы.
 ]]></content>
     </file>
-    <file path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="13880" lines="254" sha256="9a9bad5f7389f70663892837b0f6402f9d05a304fee027660219fd193bba51d3" md5="cef00e41087af09f218072c963dcbe83">
+    <file path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="18817" lines="305" sha256="ad63b03b956216115b1f0a9a53ada04d256eae9bc889f94b5057da24b6a2a425" md5="7db2a30f626758cba9559ed14ac7d546">
       <content><![CDATA[
 # Известные ограничения v0.1
 
@@ -3272,28 +3274,31 @@ v0.6 считается принятым только при воспроизв�
 
 ## 1. Функциональные ограничения
 
-### 1.1. Worker — заглушка, реального LLM нет
+### 1.1. Worker — реальный LLM-воркер (обновлено 2026-10-11, F16a)
 
-- **Что:** `swarm-worker` вместо работы вызывает `sleep(WORK_SECONDS)`.
-  Не подключается к LLM, не генерирует артефакты.
-- **Почему:** v0.1 — проверка инфраструктуры, не интеллекта.
-- **Когда:** v0.3 (см. `docs/ROADMAP.md`).
-- **Обход:** для проверки flow использовать `WORK_SECONDS=1`.
+- **Актуально:** `swarm-worker` вызывает LLM (`call_llm_with_retries`),
+  пишет артефакт на диск, делает `save_artifact`/`complete_task`, ведёт
+  фоновый heartbeat. Режим «sleep(WORK_SECONDS)» остался только как тестовый
+  (`work_sec`) — не как основное поведение.
+- **Устаревшая формулировка (v0.1):** «Worker — заглушка, реального LLM нет».
+  Оставлена как история: тезис больше неверен.
+- **См.:** `crates/swarm-worker/src/worker.rs`, `docs/ROADMAP.md`.
 
-### 1.2. Planner отсутствует
+### 1.2. Planner реализован (обновлено 2026-10-11, F16a)
 
-- **Что:** задачи создаются вручную (`cli seed` или через `add_task`).
-  Автоматической LLM-декомпозиции большой задачи на граф контрактов нет.
-- **Почему:** v0.1 — фундамент. Planner — следующий шаг.
-- **Когда:** v0.2 (см. `TZ_v0.2_step2_planner.md`).
+- **Актуально:** `swarm-planner` есть: LLM-декомпозиция задачи в граф
+  контрактов (`crates/swarm-planner`), ручной seed тоже доступен.
+- **Устаревшая формулировка (v0.1):** «Planner отсутствует» — более неверна.
+- **См.:** `crates/swarm-planner/`, `TZ_v0.2_step2_planner.md`.
 
-### 1.3. Артефакты не пишутся на диск
+### 1.3. Артефакты пишутся на диск и видимы потребителю (обновлено 2026-10-11, F1)
 
-- **Что:** `save_artifact` пишет metadata в БД (`storage_path`,
-  `content_type`, `size_bytes`), но **файл по этому пути не создаётся**.
-- **Почему:** by design в v0.1 — проверка жизненного цикла, не хранения.
-- **Когда:** v0.3 (одновременно с реальным LLM-воркером).
-- **Обход:** для демонстрации flow — можно игнорировать.
+- **Актуально:** `save_artifact` записывает файл; в compose артефакты лежат в
+  **общем именованном volume** `swarm-artifacts` (`storage_path` =
+  `volume://swarm-artifacts/<ref>`), видимом всем контейнерам.
+- **Устаревшая формулировка (v0.1):** «Файл по этому пути не создаётся» —
+  более неверна. Исторический дефект F1 (per-container tmpfs) закрыт, см. §5.9.
+- **Обход:** не требуется.
 
 ### 1.4. Git-интеграция отсутствует
 
@@ -3452,6 +3457,15 @@ v0.6 считается принятым только при воспроизв�
   команд в Docker-контейнере реализован (`allowlist.rs`, `sandbox.rs`,
   `agent_loop.rs`), проверен 35 unit + 9 integration тестами, мутации M1–M6
   ловятся 6 из 6.
+- **Компиляционный бан (FIND-01, 2026-10-11):** модули `agent_loop`,
+  `sandbox`, `allowlist`, `audit` (+ agent-промпты, `parse_step`, shell-tools
+  варианты `WorkerError`) скрыты за feature **`shell-tools`**, выключенной по
+  умолчанию. Бинарь `swarm-worker` её **не** включает, поэтому shell-tools
+  физически **не компилируются** в бинарь воркера — бан в КОДЕ, а не в
+  переписке. Проверяется арбитром в `scripts/acceptance_harness.sh`
+  (`shell_tools_ban`): строит бинарь без feature и убеждается, что символы
+  `AllowlistRejected` / `agent_system_prompt` / `run_shell` и т.п. отсутствуют.
+  Включить для тестов/примеров: `--features swarm-worker/shell-tools`.
 - **Что НЕ включено по умолчанию:** `WORKER_SHELL_TOOLS=0`. Чтобы воркер мог
   создавать sandbox-контейнеры, ему нужен доступ к Docker-демону.
 - **Почему это риск:** единственный способ дать воркеру Docker — смонтировать
@@ -3469,7 +3483,26 @@ v0.6 считается принятым только при воспроизв�
 - **Обход для проверки:** запускать `worker_sandbox`-тесты с хоста, где Docker
   доступен напрямую (именно так проверено: 9/9 passed).
 
-### 5.7. tmpfs `/workspace` монтируется с `exec`
+### 5.7. Дублирование `submit_review` устранено — ✅ ЗАКРЫТА (2026-10-11, F16г)
+
+- **Что было:** `submit_review` определялась **дважды** — в
+  `schema/schema_v0.sql` и в `step2/roles_patch_submit_review.sql`. Патч
+  применялся после схемы (`04-role-patches.sh`) и **перекрывал** её тело
+  устаревшей версией. Любой фикс в схеме был мёртвым кодом: initdb побеждал
+  патчем (подтверждено на свежем initdb: `has_f2_key=f`).
+- **Почему это дефект:** первопричина скрытых регрессий (F16г из аудита):
+  один объект имел два источника истины. Патч не нёс уникальной полезной
+  нагрузки — `GRANT EXECUTE ... TO swarm_reviewer` уже в `step2/roles.sql:79`,
+  а тело gate было устаревшим (обходится по `type`, см. F2).
+- **Решение:** `step2/roles_patch_submit_review.sql` **удалён**; монтирование
+  и вызов убраны из `scripts/acceptance_harness.sh` (в `docker-compose.yml`
+  его и не было). Единственный источник истины для `submit_review` и
+  `validate_contract` — `schema/schema_v0.sql`.
+- **Статус:** закрыто 2026-10-11 вместе с фиксом F2/F15 (строгий review-gate:
+  ключ проверки `coalesce(id, type||'|'||run)`, `type` обязателен, `id`
+  опционален). Триады RED→GREEN→RED в `docs/audit/evidence/`.
+
+### 5.8. tmpfs `/workspace` монтируется с `exec`
 
 - **Что:** в sandbox `/workspace` — tmpfs с `exec` (иначе `cargo test`
   не может запустить собранный бинарник: Docker по умолчанию добавляет
@@ -3480,14 +3513,34 @@ v0.6 считается принятым только при воспроизв�
 - **Когда пересмотреть:** если в sandbox появится код из недоверенного
   источника, а не только из LLM-итерации.
 
+### 5.9. Артефакты: общий volume только в пределах одного хоста — ✅ ЗАКРЫТА частично (2026-10-11, F1)
+
+- **Что (было):** в `docker-compose.yml` `/var/swarm/artifacts` монтировался как
+  **per-container tmpfs**. Файл, записанный `worker-1`, был невидим `worker-2`,
+  `cli` и любому потребителю: `storage_path` указывал на container-локальный
+  путь. F1 [CRITICAL].
+- **Стало:** общий **именованный volume** `swarm-artifacts`, смонтированный в
+  `worker-1`, `worker-2` и `cli` (потребитель). `storage_path` пишется как URI
+  `volume://swarm-artifacts/<ref>` (см. `local_storage_uri` в
+  `crates/swarm-worker/src/worker.rs`). Арбитр:
+  `tests/test_f1_artifact_visibility.sh` — завершает задачу, перезапускает
+  воркер, читает артефакт **из другого контейнера** и сверяет sha256.
+- **Честный пробел (S3):** общий volume работает **только на одном хосте**.
+  Для distributed-ветки (воркеры на разных машинах) нужен S3-совместимый
+  store: `SWARM_ARTIFACT_S3_*` в `crates/swarm-worker/src/storage.rs`.
+  По умолчанию не сконфигурирован — это осознанное ограничение, а не баг.
+- **Когда пересмотреть:** при выносе воркеров на несколько хостов — включить
+  S3 и заменить `ARTIFACTS_DIR`-volume на S3-режим.
+
 ---
 
 ## 6. Совместимость
 
-### 6.1. Rust 1.85+ обязателен
+### 6.1. Rust 1.94.1+ обязателен
 
-- **Что:** MSRV поднят с 1.75 до 1.85 из-за `edition2024` в транзитивной
-  `block-buffer 0.12`.
+- **Что:** MSRV поднят с 1.75 до **1.94.1** (задан в `Cargo.toml`
+  как `rust-version = "1.94.1"`) из-за `edition2024` в транзитивной
+  `block-buffer 0.12`. Ранее доки ошибочно указывали 1.85 — см. FIND-09.
 - **Почему:** эволюция crates.io.
 - **Обход:** обновить toolchain (`rustup update`).
 
@@ -10528,6 +10581,110 @@ mTLS, OPA, подписи Ed25519, мультитенантность, роль 
 
 ## 7. Формат отчёта
 `REPORT_v0.2_step2.md` одним файлом: список изменённых файлов, git diff, полный вывод критериев 1–9, отдельный блок «что не получилось или не проверено». Если что-то не сработало, остановиться и спросить автора.
+]]></content>
+    </file>
+    <file path="docs/research/POSITIONING_2026.md" lang="markdown" bytes="13046" lines="100" sha256="514e13e19756c1983cc038a27b0fc26a1b84f48a69fecab9c7c91ef29ff88651" md5="cdd4e422a1e904c217c4913dd7576cf5">
+      <content><![CDATA[
+# Позиционирование архитектуры Swarm Dispatcher и анализ мировых аналогов (2026-10)
+
+**Дата фиксации гипотезы:** Октябрь 2026
+**Контекст:** Исследование ландшафта распределенной оркестрации гетерогенных агентных систем и очередей задач.
+**Назначение документа:** Фиксация проверяемой рыночной и технологической гипотезы для `docs/research/POSITIONING_2026.md`.
+
+---
+
+## 1. Базовая технологическая гипотеза
+
+> **Гипотеза (2026-10):**
+> В открытом доступе и промышленной практике **отсутствует готовое коробочное решение**, реализующее легковесную пакетную оркестрацию децентрализованной группы автономных ИИ-агентов на гетерогенном и слабом оборудовании (потребительские ПК, локальные квантованные модели, CPU-ноды) по принципу **«Task-level MoE with Lease-based FSM»** с PostgreSQL как единственным источником истины, монотонными токенами ограждения (`lease_epoch`), защитой от зомби-воркеров и криптографически верифицируемым аудитом без привлечения тяжеловесных платформ распределенного исполнения (Temporal, Ray, Kubernetes, Kafka, Redis).
+
+Эта гипотеза датирована. Через 6–12 месяцев развитие открытых инструментов может сделать ее устаревшей, если появятся нативные плагины для Temporal/Postgres или специализированные агентские диспетчеры. Ниже приведен детальный срез того, как смежные задачи решаются в мире на текущий момент.
+
+---
+
+## 2. Анализ существующих мировых подходов
+
+Мировая индустрия решает задачи координации через три непересекающихся технологических стека:
+
+### Стек A. Долговечное выполнение и очереди на PostgreSQL (Durable Execution & Queues)
+
+1. **Транзакционные очереди в PostgreSQL (River, Oban, pg-boss, Graphile Worker):**
+   - *Как устроено:* Конкурентный захват пачек задач через `FOR UPDATE SKIP LOCKED`, поддержка очередей с приоритетами, повторные попытки (retries with backoff).
+   - *Почему не закрывает задачу:* Они оперируют простыми изолированными джобами (background jobs). В них отсутствует понятие динамического ориентированного графа подзадач (DAG), состязательного рецензирования артефактов (Adversarial Review), токеномики LLM и изоляции промпт-инъекций.
+2. **Платформы долговечного выполнения (Temporal, Restate, Hatchet):**
+   - *Temporal / Cadence:* Промышленный стандарт распределенной надежности. Использует модель детерминированного воспроизведения истории событий (*Event History Replay*). Для вероятностных генеративных моделей (LLM) это создает проблему: повторный прогон шага без детерминированного кэширования дает иной результат, ломая гарантии. Кроме того, Temporal требует отдельного кластера и сервисов координации.
+   - *Restate:* Легковесный журнальный рантайм. Применяет механизм *Epoch Fencing*, концептуально идентичный `lease_epoch` в `swarm-dispatcher`. Однако Restate предназначен для микросервисных RPC-цепочек, а не агентского управления.
+   - *DBOS и Absurd Workflows (Armin Ronacher, 2025–2026):* Инициатива переноса концепции Durable Workflows внутрь PostgreSQL. Демонстрирует растущий глобальный консенсус о том, что для надежного сохранения состояния база данных превосходит связки «Redis + Celery».
+
+### Стек B. Мультиагентные и канбан-фреймворки (Agent Frameworks & Swarms)
+
+1. **LangGraph (LangChain):**
+   - Доминирующий стандарт построения циклических агентных графов (Pregel architecture).
+   - Поддерживает контрольные точки в PostgreSQL (`PostgresSaver`) и приостановку для участия человека (`interrupt`).
+   - *Ограничение:* Спроектирован для исполнения внутри одного процесса или одного контейнера. В нем нет распределенного планировщика физических узлов с сопоставлением аппаратных возможностей (`needs` vs `capabilities`). Падение контейнера требует полного перезапуска воркфлоу внешним супервизором.
+2. **AutoGen (Microsoft / AG2), CrewAI, MetaGPT:**
+   - Ориентированы на диалоговые цепочки (Conversational Swarms) в оперативной памяти.
+   - Рассчитаны на облачные API с минимальной задержкой. Не обладают транзакционными конечными автоматами, защитой от зомби-процессов и персистентным аудитом в базе данных.
+3. **Nous Research Hermes Agent (Kanban Worker Lanes, 2026):**
+   - Наиболее близкий концептуальный аналог. Использует доску на SQLite с дорожками воркеров (`worker lanes`), декомпозицию и навык состязательного ревью (`sdlc-review`).
+   - *Ограничение:* Решение строго оптимизировано для персонального использования на одном локальном хосте и не рассчитано на распределение задач по сети.
+4. **Veritas Kanban (Brad Groux, 2026):**
+   - Автоматизация рабочих процессов через канбан и `git worktree`.
+   - *Ограничение:* Обеспечивает изоляцию файловой системы веток Git, но не изолирует системные привилегии процессов в ОС и не решает задачу удаленного кластера.
+
+### Стек C. Распределенный инференс на потребительском оборудовании
+
+1. **Petals (BigScience) / Parallax:**
+   - Децентрализованное разделение слоев одной модели между участниками сети через DHT (Swarm Parallelism).
+   - *Различие в задаче:* Petals решает задачу **тензорного параллелизма одного инференса**. Из-за необходимости частой пересылки промежуточных активаций через сеть система крайне чувствительна к задержкам (latency-bound).
+2. **Exo (2025–2026):**
+   - Объединение компьютеров (Mac Studio, Linux) в кластер для запуска модели целиком через MLX/RDMA.
+   - Это уровень выполнения нейросети, а не уровень оркестрации задач и инструментов.
+
+---
+
+## 3. Архитектурная ниша Swarm Dispatcher
+
+`swarm-dispatcher` занимает самостоятельную нишу: **Task-level Mixture-of-Experts (MoE) с конечным автоматом на базе аренд**.
+
+Вместо медленного разрезания весов одной нейросети через сетевые сокеты, система декомпозирует сложную 8-часовую задачу на контрактные подзадачи и распределяет их по пулу разнородных узлов:
+- Легкие задачи анализа, разметки и декомпозиции забирают слабые CPU/малые модели (Haiku / 8B).
+- Сложные задачи кодогенерации уходят на узлы с выделенными GPU и reasoning-моделями.
+- Задачи верификации, сборки и тестов забирают узлы с дисковыми ресурсами и компиляторами.
+
+```
+       [Пользовательская задача (8h batch)]
+                       │
+             [Planner / Декомпозиция]
+                       │
+       ┌───────────────┴───────────────┐
+       ▼                               ▼
+[Подзадача 1: Сборка]        [Подзадача 2: Код]
+(узел: быстрый NVMe, CPU)   (узел: локальный GPU)
+       │                               │
+       └───────────────┬───────────────┘
+                       ▼
+            [Подзадача 3: Рецензия]
+           (узел: кросс-вендорная LLM)
+                       │
+            [Криптографический Gate]
+                       │
+                    [Done]
+```
+
+### Ключевые преимущества подхода:
+1. **Толерантность к задержкам:** Обмен между машинами происходит только на границах задач (передача артефактов и контрольных сумм), а не на каждом токене.
+2. **Автономность узлов:** Сбои сети или временное падение узла не ломают общий кластер благодаря механизму `reclaim_expired` и монотонному счетчику `lease_epoch`.
+3. **Нулевой оверхед по инфраструктуре:** Отсутствие брокеров очередей и внешних координаторов снижает требования к администрированию до наличия одного экземпляра PostgreSQL.
+
+---
+
+## 4. Рекомендации по интеграции мировых практик в дорожную карту проекта
+
+1. **Компиляционный барьер для недоверенных инструментов:** Полное отключение недоверенного агентского цикла (`agent_loop`) в релизном бинарнике до проведения глубокого аудита безопасности песочницы.
+2. **Переход к контентно-адресуемому S3-хранилищу (CAS):** Замена локальных путей `/var/swarm/artifacts` на S3-совместимые пути с ключом `sha256/<digest>` (MinIO / Ceph), обеспечивающее физический обмен файлами между машинами.
+3. **Паттерн Transactional Outbox:** Разделение коммита транзакции в базе данных и побочных эффектов воркера (запись на диск, сетевые уведомления) для предотвращения рассинхронизации.
+4. **Абсолютные лимиты удержания аренды (Max Lease Timeout):** Ограничение максимального времени удержания задачи независимо от частоты heartbeat-запросов.
 ]]></content>
     </file>
   </files>

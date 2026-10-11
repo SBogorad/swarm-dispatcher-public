@@ -30,7 +30,7 @@ FILES = [
     ("step2/roles_patch_planner_status.sql", "roles-patch", "sql"),
     ("step2/roles_patch_tool_call_audit.sql", "roles-patch", "sql"),
     ("step2b/roles_2b.sql", "roles", "sql"),
-    ("step2b/roles_2b_patch_section3.sql", "roles-patch", "sql"),
+    ("docs/history/obsolete/roles_2b_patch_section3.sql", "roles-patch-obsolete", "sql"),
     # --- контейнеризация ---
     ("Dockerfile", "container", "dockerfile"),
     ("sandbox/Dockerfile", "container", "dockerfile"),

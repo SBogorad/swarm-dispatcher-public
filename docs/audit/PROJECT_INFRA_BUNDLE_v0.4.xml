@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-10T21:40:41+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-11T09:14:41+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="1909116437eab45cb8998dfe6b15ea49c49cd3c7"/>
+  <git is_git="true" head="7eb8617ec1a48434ebd76787913a29ec9c55adb8"/>
   <manifest>
-    <files count="27" total_bytes="165671"/>
+    <files count="33" total_bytes="208931"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -17,29 +17,35 @@
       <entry path=".env.example" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077"/>
       <entry path=".github/workflows/release-gate.yml" lang="yaml" bytes="2474" lines="85" sha256="c5c24dd697087b43ad7ab8dea49d86605e8ad1c2c72df1ad178f105bfe4f2639" md5="ec81d50ac33a6990434564be42fbf2fe"/>
       <entry path=".gitignore" lang="text" bytes="295" lines="24" sha256="52297dbac7da5b13e52a501d80b1c50fccddf95375ad4d639a5a944b53510462" md5="8ccc227b713a10ccbe10bd18b431d738"/>
-      <entry path="Dockerfile" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8"/>
+      <entry path="Dockerfile" lang="dockerfile" bytes="2303" lines="45" sha256="52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e" md5="466b8862c94cac583e18d7c1cd59ee42"/>
       <entry path="LICENSE" lang="text" bytes="1104" lines="21" sha256="6a0f51d5703ca8719a56f87b7a5fb84a8c773f5e361487a1b28fe6580044dff9" md5="3b65cb8672dc4ecbcd6daad5814b0c57"/>
-      <entry path="docker-compose.yml" lang="yaml" bytes="5478" lines="141" sha256="73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5" md5="a834e621209f0a2917dc2989d21577a6"/>
-      <entry path="schema/schema_v0.sql" lang="sql" bytes="23179" lines="479" sha256="4f9ea6398fbd7f9671a3b3d3fd280252c12615304ba9cd4247e3f64b2bcd7482" md5="01813aa838cdb12cc459ffd369cf51a7"/>
+      <entry path="docker-compose.yml" lang="yaml" bytes="6880" lines="163" sha256="5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d" md5="c13969907289a8dc7f0125fecbafffee"/>
+      <entry path="schema/schema_v0.sql" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a"/>
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
       <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="1457" lines="50" sha256="807dfb14944fe98e17b9e87b9e8cd77970f5163d48f1f661d18064c8e9ab894e" md5="f31b96b6094d6eae208abd7ad3619a07"/>
-      <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7"/>
+      <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="20677" lines="490" sha256="f4b26a49b2c7284e2f0f028ed12f7bcd32480e5cfdb6f80b0fa0e3e5423e449d" md5="379f66d198ceb73f8f04ed47c702b926"/>
       <entry path="scripts/build_audit_bundle.py" lang="python" bytes="6990" lines="183" sha256="b9afef90f0b8112a19901b137e9b5ec440d0b8547d31bd6dba43c8d16b757054" md5="a5eed45a10a981f6487f559378e7dc92"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8"/>
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4"/>
       <entry path="scripts/build_project_bundle.py" lang="python" bytes="8632" lines="200" sha256="967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906" md5="84ba54580f877b77f42a47d4dc3888d0"/>
       <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170"/>
-      <entry path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720"/>
+      <entry path="step2/roles.sql" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e"/>
       <entry path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
-      <entry path="step2/roles_patch_submit_review.sql" lang="sql" bytes="4046" lines="87" sha256="66d2483c1931da18098ea83f2b3335f8f0392ec1790221bf5f25a85b8ae75a54" md5="5c49cb6d4a17dde82b180584a92fdbc5"/>
-      <entry path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2630" lines="38" sha256="c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a" md5="bb9915c1806053d510028c5b0aedc5a7"/>
-      <entry path="step2/test_review_gate.py" lang="python" bytes="5002" lines="144" sha256="1a6d04694b7e65ec8c069add60fce3e3a1be109b8e4d2bce7e77bd55c444b6bb" md5="75c08b39f2ce7d6a44f4eb73c3b5884c"/>
+      <entry path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa"/>
+      <entry path="step2/test_review_gate.py" lang="python" bytes="5367" lines="150" sha256="153cbf184b1b48b4521635af9bc59472fcd6c82276020b9d8340f76bd27bc56f" md5="b0855a07b4bf6e327b1c792fef63c9b4"/>
       <entry path="step2/test_roles.py" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726"/>
-      <entry path="step2b/roles_2b.sql" lang="sql" bytes="12338" lines="232" sha256="177fb6183080898d52159e1fb506b0334ad2e0dd3e12477ae739687a23567afd" md5="0dfe745c65efd0a62298c8843e6f70b1"/>
-      <entry path="step2b/test_roles_2b.py" lang="python" bytes="12156" lines="303" sha256="1d4887b4544cde1fbd7547791a120e752c8181e3c3413102f0d938cf479f8bc7" md5="e09f23f333ada151fcea185128884d41"/>
+      <entry path="step2b/roles_2b.sql" lang="sql" bytes="13448" lines="242" sha256="37216bd7987df7be1a2875ffd21a709ed6f2fe5a532cc3e83ec919c9cd2e7082" md5="97b4c9fa0e7d2458bad7fa706c4c6af0"/>
+      <entry path="step2b/test_roles_2b.py" lang="python" bytes="13409" lines="319" sha256="9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645" md5="d8b6a10a9be420a1dd6c90343dfdba51"/>
+      <entry path="tests/conftest.py" lang="python" bytes="957" lines="23" sha256="7ec53a21af859ddee9f2d6b0fe790f5c067f6b264f011acd0a704da1518a6a76" md5="d3ae8212060bca591560e8d82de4d240"/>
+      <entry path="tests/test_contract_form_f15.py" lang="python" bytes="3252" lines="84" sha256="587691172a6e41fefb6d1a09efc02be0bf736be03ef41b2404030aada6366399" md5="677c5f16d855aabcf810a1b6a5e5f52a"/>
+      <entry path="tests/test_fail_unblock_f4.py" lang="python" bytes="7200" lines="162" sha256="14d7be23675f8dcdb30b1f12a27102a7a903a5b1fb564f138fcea9ec7f98d227" md5="6ab29b9e80916bc20095171ada505f30"/>
+      <entry path="tests/test_find04_record_tool_call_identity.py" lang="python" bytes="8165" lines="212" sha256="57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180" md5="8f9e22bc652a1b4c06cc0a1e57ea4788"/>
+      <entry path="tests/test_review_gate_f2.py" lang="python" bytes="6018" lines="172" sha256="327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8" md5="38e174878dfa45c7d749207db145fb04"/>
+      <entry path="tests/test_review_gate_wave4.py" lang="python" bytes="5016" lines="143" sha256="0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65" md5="4dc75a10fc13e996fdb952fedbfcb7e9"/>
       <entry path="tests/test_v0.py" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff"/>
+      <entry path="tests/test_worker_identity_f3.py" lang="python" bytes="5272" lines="142" sha256="e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a" md5="8105e7e7d1a0a45c1a4879f64fda274c"/>
     </index>
   </manifest>
   <files>
@@ -199,7 +205,7 @@ docker-compose.yml.orig
 docs/history/inbound/
 ]]></content>
     </file>
-    <file path="Dockerfile" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8">
+    <file path="Dockerfile" lang="dockerfile" bytes="2303" lines="45" sha256="52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e" md5="466b8862c94cac583e18d7c1cd59ee42">
       <content><![CDATA[
 # Stage 1: builder
 # ВНИМАНИЕ: образ поднят с 1.80 до 1.98.
@@ -218,12 +224,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cargo build --release --locked --bins
 
 # Stage 2: runtime
-FROM debian:bookworm-slim
+# База СОВПАДАЕТ с builder (trixie): иначе динамически слинкованный бинарь
+# требует GLIBC из trixie (2.38/2.39+), а bookworm-slim даёт только 2.36 —
+# контейнер падает с "version `GLIBC_2.38' not found".
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates libssl3 \
+    ca-certificates libssl3t64 \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd -u 1001 -m -s /bin/bash swarm
+    && useradd -u 1001 -m -s /bin/bash swarm \
+    && mkdir -p /var/swarm/artifacts \
+    && chown -R 1001:1001 /var/swarm
 
 USER 1001
 WORKDIR /app
@@ -232,6 +243,11 @@ COPY --from=builder /build/target/release/swarm-watchdog /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-worker   /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-cli      /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-planner  /usr/local/bin/
+
+# F1: /var/swarm/artifacts уже создан выше (владелец 1001), поэтому именованный
+# volume, смонтированный сюда впервые, наследует uid 1001. Без этого volume
+# создаётся root-owned, и worker (USER 1001) не может писать артефакт
+# (tmpfs раньше давал uid=1001 через опции монтирования — у volume их нет).
 
 # Для worker: изоляция
 # cap_drop, read_only, no-new-privileges задаются в compose
@@ -263,7 +279,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ]]></content>
     </file>
-    <file path="docker-compose.yml" lang="yaml" bytes="5478" lines="141" sha256="73f6f467afdffbcd96c67023827b101aff2355b3dfccc45c9338f5e9b59f5ce5" md5="a834e621209f0a2917dc2989d21577a6">
+    <file path="docker-compose.yml" lang="yaml" bytes="6880" lines="163" sha256="5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d" md5="c13969907289a8dc7f0125fecbafffee">
       <content><![CDATA[
 services:
   postgres:
@@ -322,10 +338,15 @@ services:
       LEASE_SEC: "10"
       CRASH_AFTER_CLAIM: "0"
       ARTIFACTS_DIR: /var/swarm/artifacts
+      # F1: storage_path пишется как volume://<name>/<relpath> — видим потребителю.
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      # Мок-провайдер (default) читает текст ответа из {prefix}MOCK_RESPONSE_FILE,
+      # где prefix = LLM_ (по умолчанию воркера), т.е. LLM_MOCK_RESPONSE_FILE.
+      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
       # v0.4: shell tools + Docker sandbox.
       # ВНИМАНИЕ: 1 требует доступа к Docker-сокету (docs/KNOWN_LIMITATIONS.md §6).
       WORKER_SHELL_TOOLS: ${WORKER_SHELL_TOOLS:-0}
@@ -341,7 +362,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
+    # Раньше /var/swarm/artifacts был приватным tmpfs: файл от worker-1 не был
+    # виден worker-2, cli и другим потребителям (F1 CRITICAL).
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
+      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -356,10 +382,12 @@ services:
       LEASE_SEC: "10"
       CRASH_AFTER_CLAIM: "1"
       ARTIFACTS_DIR: /var/swarm/artifacts
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
       RUST_LOG: swarm_worker=info
     security_opt:
       - no-new-privileges:true
@@ -368,7 +396,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
+      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -378,6 +409,10 @@ services:
     # command НЕ указывать — иначе compose подменяет entrypoint образа.
     environment:
       DATABASE_URL: postgres://swarm_cli:${SWARM_PW_CLI}@postgres:5432/swarm
+      ARTIFACTS_DIR: /var/swarm/artifacts
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
     profiles: ["tools"]
     depends_on:
       postgres:
@@ -406,9 +441,12 @@ services:
 
 volumes:
   postgres_data:
+  # F1: общий volume артефактов (один хост). Для distributed-ветки нужен S3 —
+  # см. docs/KNOWN_LIMITATIONS.md и SWARM_ARTIFACT_S3_* в storage.rs.
+  swarm-artifacts:
 ]]></content>
     </file>
-    <file path="schema/schema_v0.sql" lang="sql" bytes="23179" lines="479" sha256="4f9ea6398fbd7f9671a3b3d3fd280252c12615304ba9cd4247e3f64b2bcd7482" md5="01813aa838cdb12cc459ffd369cf51a7">
+    <file path="schema/schema_v0.sql" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -549,11 +587,23 @@ begin
 end $$;
 
 create function validate_contract(c jsonb) returns void language plpgsql immutable as $$
-declare k text;
+declare k text; e jsonb;
 begin
   if jsonb_typeof(c->'checks') is distinct from 'array' or jsonb_array_length(c->'checks') = 0 then
     raise exception 'contract_invalid: checks required' using errcode = 'CT001';
   end if;
+  -- F15: каждый элемент checks — объект с непустым строковым type; id опционален,
+  -- но если задан — непустая строка. Без этого задача без type не одобряется вечно.
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if jsonb_typeof(e) <> 'object'
+       or jsonb_typeof(e->'type') is distinct from 'string' or btrim(e->>'type') = '' then
+      raise exception 'contract_invalid: every check must be an object with non-empty string type'
+        using errcode = 'CT001';
+    end if;
+    if jsonb_exists(e, 'id') and (jsonb_typeof(e->'id') <> 'string' or btrim(e->>'id') = '') then
+      raise exception 'contract_invalid: check id must be a non-empty string' using errcode = 'CT001';
+    end if;
+  end loop;
   foreach k in array array['min_ram_gb','coder_class'] loop
     if jsonb_exists(c->'needs', k) and jsonb_typeof(c->'needs'->k) <> 'number' then
       raise exception 'contract_invalid: needs.% must be number', k using errcode = 'CT001';
@@ -767,9 +817,32 @@ begin
   return v_new;
 end $$;
 
+-- F4: честный отказ воркера. Раньше не-транзиентная ошибка LLM выставлялась
+-- через complete_task() с подделанным overspend (worker.rs), чтобы SQL сам
+-- перевёл задачу в blocked. Это ложь в журнале (spent_tokens врёт) и хрупко:
+-- зависит от '>' в complete_task. Теперь отказ — явная операция с reason.
+create function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                          p_result_ref text, p_reason text) returns text
+language plpgsql as $$
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+  return 'blocked';
+end $$;
+
 create function submit_review(p_task uuid, p_ref text, p_reviewer text,
                               p_verdict text, p_checks jsonb)
-returns text language plpgsql as $$
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
 declare t tasks%rowtype; v_creator text; v_new text;
 begin
   select * into t from tasks where id = p_task for update;
@@ -783,18 +856,21 @@ begin
     if jsonb_typeof(p_checks) <> 'array' then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
-    -- Строгий review-gate (G4): каждый required check из contract должен
-    -- иметь хотя бы один pass с тем же type. Проверка по длине больше не
-    -- принимается: `[{"status":"pass"},{"status":"pass"}]` обходил её.
+    -- Строгий review-gate (F2, вариант A): ключ проверки =
+    --   coalesce(id, type || '|' || run).
+    -- Для каждого ключа число pass в отчёте >= числа требований контракта с этим
+    -- ключом. Сопоставление только по type обходилось: контракт с двумя cmd
+    -- (cargo test, cargo clippy) закрывался одним generic {"type":"cmd","status":"pass"}.
+    -- Учёт run разводит такие проверки на разные ключи.
     if exists (
-      select 1
-      from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
-      where not exists (
-        select 1
-        from jsonb_array_elements(p_checks) p
-        where p->>'type' = c->>'type'
-          and p->>'status' = 'pass'
-      )
+      select 1 from (
+        select coalesce(c->>'id', (c->>'type') || '|' || coalesce(c->>'run', '')) as k,
+               count(*) as n
+          from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+         group by 1) req
+       where (select count(*) from jsonb_array_elements(p_checks) p
+               where coalesce(p->>'id', (p->>'type') || '|' || coalesce(p->>'run', '')) = req.k
+                 and p->>'status' = 'pass') < req.n
     ) then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
@@ -878,14 +954,30 @@ begin
   return v_n;
 end $$;
 
-create function unblock_task(p_task uuid, p_actor text) returns text language plpgsql as $$
-declare v_epoch bigint;
+-- F4: восстановимый unblock. Раньше задача из blocked возвращалась без учёта
+-- бюджета: если он уже исчерпан, unblock не помогал — задача снова уходила в
+-- blocked на первом же complete. Теперь оператор может явно поднять
+-- budget_cap, а при исчерпанном бюджете без явного cap функция отказывает
+-- (CT001) — вместо тихого нерабочего разблокирования.
+create function unblock_task(p_task uuid, p_actor text, p_new_budget_cap bigint default null)
+returns text language plpgsql as $$
+declare v_epoch bigint; t tasks%rowtype;
 begin
-  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
-         lease_epoch = lease_epoch + 1, updated_at = now()
-   where id = p_task and state = 'blocked' returning lease_epoch into v_epoch;
+  select * into t from tasks where id = p_task and state = 'blocked' for update;
   if not found then raise exception 'not_blocked' using errcode = 'GR009'; end if;
-  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor);
+  if p_new_budget_cap is not null then
+    if p_new_budget_cap <= t.spent_tokens then
+      raise exception 'budget cap must exceed spent_tokens' using errcode = 'CT001';
+    end if;
+  elsif t.spent_tokens >= t.budget_cap then
+    raise exception 'budget_exhausted: pass p_new_budget_cap' using errcode = 'CT001';
+  end if;
+  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
+         lease_epoch = lease_epoch + 1, budget_cap = coalesce(p_new_budget_cap, budget_cap),
+         updated_at = now()
+   where id = p_task returning lease_epoch into v_epoch;
+  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor,
+                       jsonb_build_object('new_budget_cap', p_new_budget_cap));
   perform promote_ready();
   return (select state from tasks where id = p_task);
 end $$;
@@ -1027,7 +1119,7 @@ Cargo.toml
 Cargo.lock
 ]]></content>
     </file>
-    <file path="scripts/acceptance_harness.sh" lang="bash" bytes="18792" lines="460" sha256="0cde74173effa77444aac398435f1ff8f1ef235ca77a65a990c2a7b311c09d7b" md5="b51c5672e8fbd6970c736ddf53b97ee7">
+    <file path="scripts/acceptance_harness.sh" lang="bash" bytes="20677" lines="490" sha256="f4b26a49b2c7284e2f0f028ed12f7bcd32480e5cfdb6f80b0fa0e3e5423e449d" md5="379f66d198ceb73f8f04ed47c702b926">
       <content><![CDATA[
 #!/usr/bin/env bash
 # Disposable acceptance harness for the schema/RBAC acceptance branch.
@@ -1271,6 +1363,36 @@ shell_checks() {
   fi
 }
 
+# FIND-01: shell-tools (agent_loop/sandbox/allowlist/audit) НЕ должны попадать
+# в бинарь воркера. Бан — в КОДЕ: модули за feature `shell-tools` (off by
+# default), бинарь её не включает. Проверяем механически: собираем бинарь без
+# feature и убеждаемся, что запрещённых символов/строк нет.
+shell_tools_ban() {
+  local bin="$WORKTREE/target/release/swarm-worker"
+  if ! (cd "$WORKTREE" && cargo build --release -p swarm-worker --bin swarm-worker --locked >/dev/null 2>&1); then
+    status FAIL "FIND-01: cargo build swarm-worker (no shell-tools) failed" 1 "cargo build --release -p swarm-worker --bin swarm-worker"
+    return 0
+  fi
+  if [ ! -f "$bin" ]; then
+    status FAIL "FIND-01: swarm-worker binary missing after build" 1 "ls $bin"
+    return 0
+  fi
+  local sym hit=0
+  # Только НАШИ уникальные маркеры (без generic-слов, которые могут встретиться
+  # в символах зависимостей: напр. kMaxIterations из aws).
+  for sym in AllowlistRejected agent_system_prompt agent_user_prompt run_shell WORKER_SHELL_TOOLS WORKER_ALLOWED_COMMANDS swarm_worker::sandbox swarm_worker::agent_loop SandboxConfig; do
+    if strings "$bin" | grep -q "$sym"; then
+      hit=1
+      printf 'FIND-01 BAN VIOLATION: symbol/string %%s found in swarm-worker binary\n' "$sym"
+    fi
+  done
+  if ((hit == 0)); then
+    status PASS "FIND-01: shell-tools symbols absent from swarm-worker binary" 0 "strings swarm-worker | grep -E '<banned>'"
+  else
+    status FAIL "FIND-01: shell-tools leaked into swarm-worker binary" 1 "strings swarm-worker | grep -E '<banned>'"
+  fi
+}
+
 compose_check() {
   local env_file rendered
   env_file="$(mktemp)"
@@ -1360,7 +1482,6 @@ provision_database() {
     -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
     -v "$WORKTREE/step2/roles_patch_planner_status.sql:/c2/patch_planner.sql:ro"
     -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
-    -v "$WORKTREE/step2/roles_patch_submit_review.sql:/c2/patch_review.sql:ro"
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
@@ -1390,7 +1511,6 @@ provision_database() {
     -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
-  pg postgres "$DB_PASSWORD" -f /c2/patch_review.sql
   DB_READY=1
   status PASS "disposable PostgreSQL 16 provisioned and initialized"
 }
@@ -1471,6 +1591,7 @@ else
 fi
 if command -v cargo >/dev/null 2>&1; then
   run_worktree_step "Rust library/unit tests" cargo test --workspace --lib --locked -- --test-threads=1
+  run_step "FIND-01 shell-tools symbol ban (worker binary)" shell_tools_ban
 else
   status BLOCKED "cargo unavailable: Rust unit tests not run"
 fi
@@ -1478,7 +1599,8 @@ if ((FULL_WORKSPACE_TEST)); then
   if ((DB_READY == 1)); then
     export TEST_DATABASE_URL
     export DATABASE_URL="$TEST_DATABASE_URL"
-    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --locked -- --test-threads=1
+    # FIND-01: shell-tools тесты требуют feature; бинарь собирается без неё в shell_tools_ban.
+    run_worktree_step "required full workspace test with disposable c2_ database" cargo test --workspace --features swarm-worker/shell-tools --locked -- --test-threads=1
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi
@@ -2339,7 +2461,7 @@ md5sum "$W/allowlist.rs" "$W/sandbox.rs" "$W/agent_loop.rs"
 [ "$survived" -eq 0 ]
 ]]></content>
     </file>
-    <file path="step2/roles.sql" lang="sql" bytes="5275" lines="80" sha256="bfdabc1b44d7fe136eb1e551fb631c45fc8c65e5f29ffd9eba4080efa2a312a6" md5="eddd4e48a250d11e6ad1aea8e948c720">
+    <file path="step2/roles.sql" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e">
       <content><![CDATA[
 -- swarm roles v0.2: горизонтальное разделение прав.
 -- Запуск (суперпользователем, ПОСЛЕ schema_v0.sql):
@@ -2420,7 +2542,11 @@ grant execute on function claim_task, heartbeat, save_artifact, complete_task, r
 grant execute on function reclaim_expired, promote_ready to swarm_watchdog;
 grant execute on function add_task, add_dep, promote_ready to swarm_planner;
 grant execute on function submit_review, verify_chain to swarm_reviewer;
-grant execute on function reopen_task, unblock_task, verify_chain, task_status to swarm_operator;
+grant execute on function reopen_task, verify_chain, task_status to swarm_operator;
+-- F4: unblock_task получил новый параметр (p_new_budget_cap) — перевыдаём по
+-- новой сигнатуре (старый грант висел на прежнем OID и после CREATE OR REPLACE
+-- новой формы стал бы висеть на несуществующей функции).
+grant execute on function unblock_task(uuid, text, bigint) to swarm_operator;
 ]]></content>
     </file>
     <file path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41">
@@ -2439,98 +2565,7 @@ grant execute on function reopen_task, unblock_task, verify_chain, task_status t
 grant execute on function task_status(int) to swarm_planner;
 ]]></content>
     </file>
-    <file path="step2/roles_patch_submit_review.sql" lang="sql" bytes="4046" lines="87" sha256="66d2483c1931da18098ea83f2b3335f8f0392ec1790221bf5f25a85b8ae75a54" md5="5c49cb6d4a17dde82b180584a92fdbc5">
-      <content><![CDATA[
--- Patch: strict review-gate verification in submit_review (P0 #5).
---
--- Problem (audit v0.6.0-mvp-rc1): the `approved` branch compared review
--- checks by *length only*:
---
---   if jsonb_array_length(p_checks) < jsonb_array_length(t.contract->'checks')
---      or exists (... e->>'status' is distinct from 'pass')
---
--- That lets a reviewer bypass the gates by submitting N fake
--- `{"status":"pass"}` items with no matching `type`, e.g.:
---
---   contract.checks = [{"type":"unit"},{"type":"lint"}]
---   p_checks        = [{"status":"pass"},{"status":"pass"}]   -- must now fail RV003
---
--- Fix: every required check type from `contract.checks` must have at least one
--- item in `p_checks` with the same `type` AND `status = 'pass'`. Extra passing
--- checks are allowed. Missing type, or status != pass, raises RV003.
---
--- Apply AFTER schema/schema_v0.sql and step2/roles.sql (same pattern as
--- roles_patch_planner_status.sql / roles_patch_tool_call_audit.sql).
---
--- NOTE: CREATE OR REPLACE FUNCTION does NOT preserve SECURITY DEFINER /
--- SET search_path, so they are re-declared explicitly below.
-
-create or replace function submit_review(p_task uuid, p_ref text, p_reviewer text,
-                                         p_verdict text, p_checks jsonb)
-returns text language plpgsql
-security definer
-set search_path = public, pg_temp
-as $$
-declare t tasks%rowtype; v_creator text; v_new text;
-begin
-  select * into t from tasks where id = p_task for update;
-  if not found then raise exception 'task_not_found' using errcode = 'GR000'; end if;
-  if t.state <> 'review' or t.result_ref is distinct from p_ref then
-    raise exception 'review_stale' using errcode = 'RV001';  -- ревью строго привязано к хэшу
-  end if;
-  select created_by into v_creator from artifacts where task_id = p_task and ref = p_ref;
-  if v_creator = p_reviewer then raise exception 'self_review' using errcode = 'RV002'; end if;
-  if p_verdict = 'approved' then
-    if jsonb_typeof(p_checks) <> 'array' then
-      raise exception 'checks_failed' using errcode = 'RV003';
-    end if;
-    -- Strict gate: каждый required check из contract должен иметь ровно
-    -- один pass с тем же type. Только длина больше не принимается.
-    if exists (
-      select 1
-      from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
-      where not exists (
-        select 1
-        from jsonb_array_elements(p_checks) p
-        where p->>'type' = c->>'type'
-          and p->>'status' = 'pass'
-      )
-    ) then
-      raise exception 'checks_failed' using errcode = 'RV003';
-    end if;
-  end if;
-  insert into reviews (task_id, artifact_ref, reviewer, verdict, checks)
-  values (p_task, p_ref, p_reviewer, p_verdict, p_checks);
-
-  if p_verdict = 'approved' then v_new := 'done';
-  elsif p_verdict = 'changes_requested' then
-    v_new := case when t.rework + 1 > c_num(t.contract, '{budget,max_rework}', 3)
-                  then 'blocked' else 'ready' end;
-  else v_new := 'blocked';
-  end if;
-
-  update tasks
-     set state = v_new,
-         rework = rework + case when p_verdict = 'changes_requested' then 1 else 0 end,
-         lease_epoch = lease_epoch + case when v_new = 'ready' then 1 else 0 end,
-         block_reason = case when v_new = 'blocked' then
-                        case when p_verdict = 'rejected' then 'rejected' else 'max_rework' end end,
-         updated_at = now()
-   where id = p_task;
-  perform append_event(p_task, 'review:' || p_ref || ':' || p_reviewer, 'review_submitted',
-                       p_reviewer, jsonb_build_object('verdict', p_verdict, 'new_state', v_new));
-  if v_new = 'done' then perform promote_ready(); end if;
-  return v_new;
-end $$;
-
-alter function submit_review(uuid, text, text, text, jsonb) owner to swarm_owner;
-alter function submit_review(uuid, text, text, text, jsonb)
-  security definer set search_path = public, pg_temp;
-
-grant execute on function submit_review(uuid, text, text, text, jsonb) to swarm_reviewer;
-]]></content>
-    </file>
-    <file path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2630" lines="38" sha256="c75ef22471ea33a9731eaae95b73424b0f0926437324f8f3a3bda5811fabbf9a" md5="bb9915c1806053d510028c5b0aedc5a7">
+    <file path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa">
       <content><![CDATA[
 -- roles_patch_tool_call_audit.sql — v0.4 §7: аудит tool calls (shell tools).
 --
@@ -2559,6 +2594,9 @@ create or replace function record_tool_call(
   p_task uuid, p_worker text, p_epoch bigint, p_event_id text, p_payload jsonb)
 returns boolean language plpgsql as $$
 begin
+  -- FIND-04: session_user обязан соответствовать p_worker (иначе WK003).
+  -- Без этой строки воркер w1 мог записать событие от имени w2 на его аренде.
+  perform assert_worker_identity(p_worker);
   -- Аренда жива и принадлежит этому воркеру? Иначе GR-ошибка.
   perform assert_lease(p_task, p_worker, p_epoch);
   return append_event(p_task, p_event_id, 'tool_call', p_worker, p_payload);
@@ -2572,19 +2610,25 @@ revoke all on function record_tool_call(uuid, text, bigint, text, jsonb) from pu
 grant execute on function record_tool_call(uuid, text, bigint, text, jsonb) to swarm_worker;
 ]]></content>
     </file>
-    <file path="step2/test_review_gate.py" lang="python" bytes="5002" lines="144" sha256="1a6d04694b7e65ec8c069add60fce3e3a1be109b8e4d2bce7e77bd55c444b6bb" md5="75c08b39f2ce7d6a44f4eb73c3b5884c">
+    <file path="step2/test_review_gate.py" lang="python" bytes="5367" lines="150" sha256="153cbf184b1b48b4521635af9bc59472fcd6c82276020b9d8340f76bd27bc56f" md5="b0855a07b4bf6e327b1c792fef63c9b4">
       <content><![CDATA[
-"""Negative tests for the review gate (P0 #5).
+"""Negative tests for the review gate (P0 #5, updated for F2/F15 wave 4).
 
-Regression coverage for the length-only check in `submit_review`:
-the old code accepted N fake `{"status":"pass"}` items with no matching
-`type`, bypassing `contract.checks`. After
-`step2/roles_patch_submit_review.sql`, every required check type from the
-contract must have a matching `type` + `status='pass'` in `p_checks`, or the
-review is rejected with RV003.
+Regression coverage for the review gate in `submit_review`:
+  * the old length-only check accepted N fake `{"status":"pass"}` items with no
+    matching type, bypassing `contract.checks`;
+  * the later EXISTS-by-type check still allowed ONE generic
+    `{"type":"cmd","status":"pass"}` to close TWO `cmd` requirements (F2).
 
-Run (DB with schema_v0.sql + roles.sql + roles_patch_submit_review.sql,
-passwords pw_<role>):
+Current rule (single source schema/schema_v0.sql): the comparison key is
+`coalesce(id, type || '|' || run)`; for every key, the number of `pass` items in
+the report must be >= the number of contract requirements with that key.
+`type` is mandatory (F15); `id` is optional.
+
+NOTE: step2/roles_patch_submit_review.sql was removed (F16г) — submit_review
+lives ONLY in schema/schema_v0.sql now.
+
+Run (DB with schema_v0.sql + roles.sql + roles_2b.sql, passwords pw_<role>):
   ROLES_DB=v0roles ROLES_HOST=localhost ADMIN_PW=pw pytest -q step2/test_review_gate.py
 """
 import json
@@ -2965,7 +3009,7 @@ def test_task_status_shows_state_but_not_contract(admin):
     assert cols[:3] == ["id", "root_id", "state"]
 ]]></content>
     </file>
-    <file path="step2b/roles_2b.sql" lang="sql" bytes="12338" lines="232" sha256="177fb6183080898d52159e1fb506b0334ad2e0dd3e12477ae739687a23567afd" md5="0dfe745c65efd0a62298c8843e6f70b1">
+    <file path="step2b/roles_2b.sql" lang="sql" bytes="13448" lines="242" sha256="37216bd7987df7be1a2875ffd21a709ed6f2fe5a532cc3e83ec919c9cd2e7082" md5="97b4c9fa0e7d2458bad7fa706c4c6af0">
       <content><![CDATA[
 -- swarm roles 2b v0.2: идентификация воркера.
 -- Запуск ПОСЛЕ schema_v0.sql и roles.sql (суперпользователем):
@@ -2995,13 +3039,17 @@ create or replace function assert_worker_identity(p_worker text)
 returns void language plpgsql as $$
 declare v_expected text;
 begin
-  if session_user::text like 'swarm_worker_%' then
-    v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
-    if session_user::text <> v_expected then
-      raise exception 'worker_identity_mismatch: session_user=% expected=%',
-        session_user, v_expected using errcode = 'WK003';
-    end if;
-  end if;
+  -- F3: идентификация закрыта по умолчанию (deny-by-default).
+  -- Пропуск ТОЛЬКО при строгом совпадении session_user с ожидаемой
+  -- per-worker ролью либо для суперпользователя. Раньше проверка была
+  -- завёрнута в `if session_user like 'swarm_worker_%'`, поэтому под
+  -- общей ролью swarm_worker (единственной, кому выданы обёртки) она
+  -- молча ничего не проверяла — bypass. См. reference_fix_wave4.sql (F3).
+  v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
+  if session_user::text = v_expected then return; end if;
+  if (select rolsuper from pg_roles where rolname = session_user) then return; end if;
+  raise exception 'worker_identity_mismatch: session_user=% expected=%', session_user, v_expected
+    using errcode = 'WK003';
 end $$;
 
 alter function normalize_worker_id(text) owner to swarm_owner;
@@ -3175,6 +3223,12 @@ grant swarm_worker to swarm_worker_w2;
 grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
 
+-- F4: fail_task — честный отказ воркera. Грант выдаётся ТОЛЬКО per-worker
+-- login-ролям, НЕ общей swarm_worker: общая роль — не identity (см. F3),
+-- и обёртки отказа должен вызывать только реальный воркер.
+grant execute on function fail_task(uuid, text, bigint, text, text)
+  to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+
 -- ============================================================
 -- 3b. Defense-in-depth: каждой per-worker роли запрещён SET на
 --     чужую роль (включая саму общую swarm_worker).
@@ -3201,7 +3255,7 @@ revoke set option for swarm_worker_w_1   from swarm_worker_w1, swarm_worker_w2, 
 revoke set option for swarm_worker_gpu_1 from swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1;
 ]]></content>
     </file>
-    <file path="step2b/test_roles_2b.py" lang="python" bytes="12156" lines="303" sha256="1d4887b4544cde1fbd7547791a120e752c8181e3c3413102f0d938cf479f8bc7" md5="e09f23f333ada151fcea185128884d41">
+    <file path="step2b/test_roles_2b.py" lang="python" bytes="13409" lines="319" sha256="9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645" md5="d8b6a10a9be420a1dd6c90343dfdba51">
       <content><![CDATA[
 """Тесты идентификации воркера (roles_2b.sql). Полная версия.
 
@@ -3395,7 +3449,14 @@ def test_15_watchdog_role_unaffected(admin):
 
 
 def test_16_common_worker_role_cannot_login_or_call(admin):
-    """Общая роль -- NOLOGIN и не может быть worker identity."""
+    """Общая роль swarm_worker не может быть worker identity (F3).
+
+    Две линии защиты, обе обязаны держаться:
+      1) NOLOGIN — вход под swarm_worker запрещён Postgres;
+      2) даже если бы вход состоялся (или через SET ROLE), session_user
+         ('swarm_worker') != 'swarm_worker_'||normalize(p_worker), поэтому
+         assert_worker_identity внутри обёрток вернул бы WK003.
+    """
     cur = admin.cursor()
     cur.execute("select rolcanlogin from pg_roles where rolname = 'swarm_worker'")
     assert cur.fetchone()[0] is False
@@ -3404,6 +3465,15 @@ def test_16_common_worker_role_cannot_login_or_call(admin):
     with pytest.raises(psycopg2.Error) as exc:
         connect("swarm_worker", os.environ.get("SWARM_PW_WORKER", "pw_worker"))
     assert "is not permitted to log in" in str(exc.value)
+    # F3: тело assert больше не завёрнуто в LIKE-гейт -> под общей ролью
+    # проверка активна (deny-by-default), а не молча пропускается.
+    cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
+    # Снимаем -- комментарии: F3-объяснение может упоминать старый гейт как историю.
+    body = "\n".join(line.split("--", 1)[0] for line in cur.fetchone()[0].splitlines()).lower()
+    assert "like 'swarm_worker_%'" not in body, (
+        "F3: assert_worker_identity всё ещё под LIKE-гейтом (bypass под общей ролью)"
+    )
+    assert "rolsuper" in body, "F3: единственный обход — явный rolsuper-lookup"
 
 
 # ---------- Каталог ----------
@@ -3506,6 +3576,826 @@ def test_21_set_role_spoofing_is_denied(admin):
     w = as_role("swarm_worker_w1")
     assert attempt(w, "set role swarm_worker_w2") == DENIED
     assert attempt(w, "set role swarm_worker") == DENIED
+]]></content>
+    </file>
+    <file path="tests/conftest.py" lang="python" bytes="957" lines="23" sha256="7ec53a21af859ddee9f2d6b0fe790f5c067f6b264f011acd0a704da1518a6a76" md5="d3ae8212060bca591560e8d82de4d240">
+      <content><![CDATA[
+"""Общий conftest для тестов волны 4.
+
+PRE-CONDITION FAIL = BLOCKED, не skip (урок FIND-08, применённый к нашим тестам).
+
+Pytest собирает хуки только из conftest.py/плагинов — не из тест-модулей.
+Поэтому гейт «нет PG => BLOCKED» живёт здесь, а не в файле теста.
+"""
+import os
+
+import pytest
+
+_REQUIRED = ("W4_ADMIN_DSN", "W4_W1_PW", "W4_W2_PW")
+
+
+def pytest_configure(config):
+    missing = [n for n in _REQUIRED if not os.environ.get(n)]
+    if missing:
+        # Hard BLOCKED: pytest останавливается на сборе, exit code 4, статус ERROR,
+        # а НЕ 'skipped' и НЕ молчаливый зелёный.
+        raise pytest.UsageError(
+            "BLOCKED: PostgreSQL not provisioned; wave-4 PG arbiters require a live DB "
+            "(missing: " + ", ".join(missing) + ")"
+        )
+]]></content>
+    </file>
+    <file path="tests/test_contract_form_f15.py" lang="python" bytes="3252" lines="84" sha256="587691172a6e41fefb6d1a09efc02be0bf736be03ef41b2404030aada6366399" md5="677c5f16d855aabcf810a1b6a5e5f52a">
+      <content><![CDATA[
+#!/usr/bin/env python3
+"""Тест-арбитр волны 4 — F15: validate_contract должен требовать форму checks[].
+
+Дефект: validate_contract проверял только непустоту checks (array), но НЕ форму
+элементов. Принимались ["pytest",42], [{"run":"cargo test"}], [{"type":""}],
+[{"type":123}] — задача без непустого строкового type затем вечно висит
+(её нельзя одобрить: RV003).
+
+Фикс (эталон reference_fix_wave4.sql, блок F15):
+  каждый элемент checks — объект с непустым строковым type;
+  id (если задан) — непустая строка.
+
+ТРИАДА:
+  RED  pre-fix : malformed checks принимаются (CT001 не летит) => падает
+  GREEN fixed  : CT001 на каждый malformed; валидные (с id и без) проходят
+  RED  after revert: снова принимаются => падает
+
+Гейт BLOCKED (нет PG) — в tests/conftest.py.
+Запуск:
+  W4_ADMIN_DSN="host=... user=postgres password=... dbname=c2_swarm" \
+  .venv/bin/python -m pytest -q tests/test_contract_form_f15.py
+"""
+import json
+import os
+
+import psycopg2
+import pytest
+
+
+def _dsn() -> str:
+    return os.environ.get("W4_ADMIN_DSN", "")
+
+
+@pytest.fixture()
+def conn():
+    c = psycopg2.connect(_dsn())
+    c.autocommit = False
+    yield c
+    c.rollback()
+    c.close()
+
+
+def _contract(checks):
+    return json.dumps(
+        {"kind": "t", "checks": checks, "budget": {"attempts": 3, "max_rework": 3}}
+    )
+
+
+@pytest.mark.parametrize(
+    "bad_checks",
+    [
+        ["pytest", 42],              # не объекты
+        [{"run": "cargo test"}],     # нет type
+        [{"type": ""}],              # пустой type
+        [{"type": "   "}],           # пробельный type
+        [{"type": 123}],             # type не строка
+        [{"type": "cmd", "id": ""}],  # id задан, но пустой
+        [{"type": "cmd", "id": 7}],   # id не строка
+    ],
+)
+def test_f15_rejects_malformed_checks(conn, bad_checks):
+    """validate_contract обязан отвергнуть каждый malformed элемент с CT001."""
+    cur = conn.cursor()
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select validate_contract(%s::jsonb)", (_contract(bad_checks),))
+    assert "contract_invalid" in str(e.value), (
+        f"F15: ожидался contract_invalid, получено: {e.value}"
+    )
+    conn.rollback()
+
+
+@pytest.mark.parametrize(
+    "good_checks",
+    [
+        [{"type": "cmd", "run": "cargo test"}],          # без id (формат планировщика)
+        [{"type": "cmd", "id": "unit", "run": "cargo test"}],  # с id
+        [{"type": "cmd"}, {"type": "lint", "id": "l1"}],  # несколько, смешанно
+    ],
+)
+def test_f15_accepts_valid_checks(conn, good_checks):
+    """Регрессия: валидные checks (в т.ч. без id, как у планировщика) проходят."""
+    cur = conn.cursor()
+    cur.execute("select validate_contract(%s::jsonb)", (_contract(good_checks),))
+    conn.rollback()
+]]></content>
+    </file>
+    <file path="tests/test_fail_unblock_f4.py" lang="python" bytes="7200" lines="162" sha256="14d7be23675f8dcdb30b1f12a27102a7a903a5b1fb564f138fcea9ec7f98d227" md5="6ab29b9e80916bc20095171ada505f30">
+      <content><![CDATA[
+"""F4 — честный отказ воркера (fail_task) + восстановимый unblock.
+
+Дефект (pre-fix):
+  * На HEAD нет функции fail_task. Отказ LLM оформлялся через complete_task()
+    с подделанным overspend (worker.rs: `(cap - spent).max(0) + 1`), чтобы SQL
+    сам перевёл задачу в blocked. Токены в журнале врут, поведение зависит от
+    знака '>' в complete_task.
+  * unblock_task(uuid,text) не знал про бюджет: исчерпанную задачу можно было
+    «разблокировать», и она тут же снова уходила в blocked. Плейсхолдера для
+    поднятия cap не было.
+
+Фикс (reference_fix_wave4.sql, блок F4):
+  * fail_task(p_task,p_worker,p_epoch,p_result_ref,p_reason) -> 'blocked';
+    assert_lease + проверка артефакта (AR001); block_reason='llm_error: ...';
+    событие completed{failed:true}.
+  * unblock_task(uuid,text,bigint default null): blocked-only (GR009);
+    p_new_budget_cap должен быть > spent_tokens (CT001), иначе при
+    исчерпанном бюджете отказ (CT001).
+
+Гейт BLOCKED (нет PG) — в tests/conftest.py.
+Запуск:
+  W4_ADMIN_DSN="host=... user=postgres password=*** dbname=c2_swarm" \
+  W4_W1_PW=... W4_W2_PW=... \
+  .venv/bin/python -m pytest -q tests/test_fail_unblock_f4.py
+"""
+import json
+import os
+import uuid
+
+import psycopg2
+import pytest
+
+
+def _dsn() -> str:
+    return os.environ.get("W4_ADMIN_DSN", "")
+
+
+@pytest.fixture()
+def conn():
+    c = psycopg2.connect(_dsn())
+    c.autocommit = False
+    yield c
+    c.rollback()
+    c.close()
+
+
+def _mk_leased_task(cur, worker="w1", spent=0, cap=1000, state="leased", epoch=0):
+    """Создаёт задачу. Для state='leased' сразу проставляет владельца и срок
+    аренды (CHECK tasks_check этого требует)."""
+    t = str(uuid.uuid4())
+    owner = worker if state == "leased" else None
+    cur.execute(
+        """insert into tasks(id, root_id, state, contract, priority, attempts,
+                             budget_cap, spent_tokens, lease_epoch,
+                             lease_owner, lease_until)
+           values (%s,%s,%s,%s::jsonb,0,1,%s,%s,%s,%s,
+                   case when %s is null then null else now()+interval '5 min' end)""",
+        (t, t, state, json.dumps({"kind": "k", "checks": [{"type": "cmd"}]}),
+         cap, spent, epoch, owner, owner),
+    )
+    return t
+
+
+# ---------- fail_task ----------
+
+def test_f4_fail_task_exists_and_blocks(conn):
+    """fail_task присутствует и честно переводит leased-задачу в blocked."""
+    cur = conn.cursor()
+    cur.execute(
+        "select p.proname from pg_proc p where p.proname = 'fail_task'"
+    )
+    assert cur.fetchone() is not None, "F4: fail_task отсутствует (pre-fix)"
+
+    t = _mk_leased_task(cur, worker="w1", spent=10, cap=1000, epoch=1)
+    cur.execute("select fail_task(%s,'w1',1,null,'boom')", (t,))
+    v = cur.fetchone()[0]
+    assert v == "blocked", f"F4: fail_task должен вернуть blocked, получено {v}"
+
+    cur.execute("select state, block_reason, spent_tokens from tasks where id=%s", (t,))
+    state, reason, spent = cur.fetchone()
+    assert state == "blocked"
+    assert reason == "llm_error: boom", f"F4: block_reason={reason!r}"
+    # spent_tokens НЕ подделывается (честность журнала)
+    assert spent == 10, f"F4: spent_tokens изменён ({spent}) — воркер врёт про бюджет"
+    conn.rollback()
+
+
+def test_f4_fail_task_requires_holdable_lease(conn):
+    """fail_task без живой аренды -> LS001 (нельзя закрыть чужую задачу)."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, worker="w1", state="leased", epoch=1)
+    # нет lease_owner / не этот epoch
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select fail_task(%s,'w1',99,null,'x')", (t,))
+    assert "LS001" in str(e.value) or "lease_lost" in str(e.value).lower()
+    conn.rollback()
+
+
+def test_f4_fail_task_artifact_missing(conn):
+    """fail_task с несуществующим result_ref -> AR001."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, worker="w1", epoch=1)
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select fail_task(%s,'w1',1,'no-such-ref','x')", (t,))
+    assert "AR001" in str(e.value) or "artifact_missing" in str(e.value).lower()
+    conn.rollback()
+
+
+# ---------- unblock_task + budget ----------
+
+def test_f4_unblock_exhausted_without_new_cap_rejected(conn):
+    """blocked с spent >= cap и без p_new_budget_cap -> CT001."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, spent=1000, cap=1000, state="blocked")
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select unblock_task(%s,'operator')", (t,))
+    assert "CT001" in str(e.value) or "budget" in str(e.value).lower()
+    conn.rollback()
+
+
+def test_f4_unblock_with_new_cap_raises_budget(conn):
+    """blocked с исчерпанным бюджетом + p_new_budget_cap > spent -> pending."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, spent=1000, cap=1000, state="blocked")
+    cur.execute("select unblock_task(%s,'operator',2000)", (t,))
+    assert cur.fetchone()[0] in ("pending", "ready")
+    cur.execute("select state, budget_cap, attempts, rework from tasks where id=%s", (t,))
+    state, cap, attempts, rework = cur.fetchone()
+    # promote_ready() в конце unblock_task может сразу поднять pending -> ready
+    assert state in ("pending", "ready"), f"F4: state={state!r}"
+    assert cap == 2000, f"F4: budget_cap не поднят ({cap})"
+    assert attempts == 0 and rework == 0
+    conn.rollback()
+
+
+def test_f4_unblock_new_cap_not_above_spent_rejected(conn):
+    """p_new_budget_cap <= spent_tokens -> CT001 (бессмысленно)."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, spent=1000, cap=1000, state="blocked")
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select unblock_task(%s,'operator',500)", (t,))
+    assert "CT001" in str(e.value) or "budget" in str(e.value).lower()
+    conn.rollback()
+
+
+def test_f4_unblock_non_blocked_rejected(conn):
+    """unblock_task не для blocked -> GR009."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, state="pending")
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select unblock_task(%s,'operator',2000)", (t,))
+    assert "GR009" in str(e.value) or "not_blocked" in str(e.value).lower()
+    conn.rollback()
+
+
+def test_f4_unblock_ok_when_budget_fine(conn):
+    """blocked, но бюджет не исчерпан: unblock без явного cap работает."""
+    cur = conn.cursor()
+    t = _mk_leased_task(cur, spent=10, cap=1000, state="blocked")
+    cur.execute("select unblock_task(%s,'operator')", (t,))
+    assert cur.fetchone()[0] in ("pending", "ready")
+    conn.rollback()
+]]></content>
+    </file>
+    <file path="tests/test_find04_record_tool_call_identity.py" lang="python" bytes="8165" lines="212" sha256="57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180" md5="8f9e22bc652a1b4c06cc0a1e57ea4788">
+      <content><![CDATA[
+#!/usr/bin/env python3
+"""Тест-арбитр волны 4 — FIND-04: подделка аудита через record_tool_call.
+
+Дефект: record_tool_call() вызывает только assert_lease(), но НЕ
+assert_worker_identity(). Функция принимает p_worker параметром, который
+контролирует вызывающий. Поэтому воркер w1 (session_user=swarm_worker_w1)
+может записать событие tool_call для аренды w2, указав p_worker='w2' —
+hash-chain зафиксирует фальшивое авторство w2.
+
+Требование: `perform assert_worker_identity(p_worker);` первой строкой тела.
+
+ТРИАДА (три кейса в одном файле):
+  case1 (собственно триада): w1 -> record_tool_call(task_w2, p_worker='w2')
+        ДО фикса: успех (подделка проходит)   -> КРАСНЫЙ
+        ПОСЛЕ:    WK003 worker_identity_mismatch -> ЗЕЛЁНЫЙ
+        ПОСЛЕ revert: снова успех              -> КРАСНЫЙ
+  case2 (регресс легит w1): w1 -> record_tool_call(task_w1, p_worker='w1') -> успех
+  case3 (регресс легит w2): w2 -> record_tool_call(task_w2, p_worker='w2') -> успех
+
+Без case2/case3 фикс «отклонять всё подряд» пройдёт триаду и сломает воркер.
+
+PRE-CONDITION: отсутствие DSN => BLOCKED (env-гейт, exit 2), НЕ skip.
+Это применение урока FIND-08 к нашему собственному PG-тесту.
+
+Запуск (против свежего initdb из HEAD, schema->roles->roles_2b->patches):
+    W4_ADMIN_DSN="host=... port=... user=postgres password=... dbname=c2_swarm" \
+    W4_W1_PW=... W4_W2_PW=... python3 -m pytest -q tests/test_find04_record_tool_call_identity.py
+"""
+import json
+import os
+import sys
+import uuid
+
+import psycopg2
+import psycopg2.extensions
+import pytest
+
+BLOCKED_EXIT = 2
+
+
+def _admin_dsn() -> str:
+    return os.environ.get("W4_ADMIN_DSN", "")
+
+
+def _role_dsn(worker: str, password: str) -> str:
+    dsn = _admin_dsn()
+    # swap user/password for the per-worker role
+    parts = dict(
+        kv.split("=", 1) for kv in dsn.split() if "=" in kv
+    )
+    host = parts.get("host", "127.0.0.1")
+    port = parts.get("port", "5432")
+    db = parts.get("dbname", "c2_swarm")
+    return f"host={host} port={port} user=swarm_worker_{worker} password={password} dbname={db}"
+
+
+def _env_missing():
+    return [
+        n for n in ("W4_ADMIN_DSN", "W4_W1_PW", "W4_W2_PW") if not os.environ.get(n)
+    ]
+
+
+BLOCKED_MSG = (
+    "BLOCKED: PostgreSQL not provisioned; FIND-04 arbiter requires a live DB "
+    "(set W4_ADMIN_DSN, W4_W1_PW, W4_W2_PW)"
+)
+
+
+def pytest_configure(config):
+    # PRE-CONDITION FAIL = BLOCKED, never skip (lesson from FIND-08).
+    if _env_missing():
+        config.option.collectonly = False
+        raise pytest.UsageError(BLOCKED_MSG)
+
+
+@pytest.fixture()
+def admin():
+    # Second barrier: even if configure is bypassed, never silently proceed to DB-less run.
+    if _env_missing():
+        pytest.fail(BLOCKED_MSG, pytrace=False)
+    c = psycopg2.connect(_admin_dsn())
+    c.autocommit = True
+    yield c
+    c.close()
+
+
+def _worker_conn(worker: str):
+    pw = os.environ.get(f"W4_{worker.upper()}_PW")
+    c = psycopg2.connect(_role_dsn(worker, pw))
+    c.autocommit = True
+    return c
+
+
+def _contract():
+    return json.dumps(
+        {
+            "kind": "code.test",
+            "checks": [{"type": "cmd", "run": "true"}],
+            "needs": {},
+            "budget": {"attempts": 3, "max_rework": 2},
+        }
+    )
+
+
+def _make_leased_task(admin, worker: str) -> tuple[str, int]:
+    """Создаёт ready-задачу, регистрирует worker и захватывает её. Возвращает (task_id, epoch)."""
+    cur = admin.cursor()
+    task_id = str(uuid.uuid4())
+    cur.execute(
+        "select add_task(%s, null, %s::jsonb, 10000, 0);",
+        (task_id, _contract()),
+    )
+    cur.execute("select promote_ready();")
+    cur.execute(
+        "select register_worker(%s, %s::jsonb);",
+        (worker, json.dumps({"ram_gb": 16})),
+    )
+    cur.execute("select out_epoch from claim_task(%s, 60);", (worker,))
+    epoch = cur.fetchone()[0]
+    assert epoch is not None, f"claim_task({worker}) не выдал аренду"
+    return task_id, int(epoch)
+
+
+# ---------------- CASE 1: триада — спуфинг должен быть отклонён ----------------
+
+
+def test_case1_w1_cannot_forge_event_as_w2(admin):
+    """w1 пишет tool_call на аренде w2, указав p_worker='w2'.
+
+    ДО фикса: вызов проходит, событие атрибутируется w2 -> assert падает (КРАСНЫЙ).
+    ПОСЛЕ:    WK003 worker_identity_mismatch -> зелёный.
+    """
+    task_w2, epoch_w2 = _make_leased_task(admin, "w2")
+
+    w1 = _worker_conn("w1")
+    try:
+        cur = w1.cursor()
+        forged = json.dumps({"tool": "run_shell", "command": "spoofed_by_w1"})
+        with pytest.raises(psycopg2.DatabaseError) as e:
+            cur.execute(
+                "select record_tool_call(%s,'w2',%s,'spoofed_evt_1',%s::jsonb);",
+                (task_w2, epoch_w2, forged),
+            )
+        assert "WK003" in str(e.value) or "worker_identity_mismatch" in str(e.value), (
+            f"CASE1: ожидался WK003 worker_identity_mismatch, получено: {e.value}"
+        )
+    finally:
+        w1.close()
+
+    # доп.: события с этим id быть не должно
+    ac = admin.cursor()
+    ac.execute(
+        "select count(*) from events where task_id=%s and event_id='spoofed_evt_1';",
+        (task_w2,),
+    )
+    assert ac.fetchone()[0] == 0, "CASE1: поддельное событие всё же попало в журнал"
+
+
+# ---------------- CASE 2: регресс — легитимный вызов w1 на своей аренде ----------------
+
+
+def test_case2_legit_w1_can_record_own_event(admin):
+    """w1 пишет tool_call на СВОЕЙ аренде под своим именем — должно работать."""
+    task_w1, epoch_w1 = _make_leased_task(admin, "w1")
+
+    w1 = _worker_conn("w1")
+    try:
+        cur = w1.cursor()
+        good = json.dumps({"tool": "run_shell", "command": "cargo test", "exit_code": 0})
+        cur.execute(
+            "select record_tool_call(%s,'w1',%s,'w1_evt_1',%s::jsonb);",
+            (task_w1, epoch_w1, good),
+        )
+        assert cur.fetchone()[0] is True, "CASE2: легитимный вызов w1 должен вернуть true"
+    finally:
+        w1.close()
+
+    ac = admin.cursor()
+    ac.execute(
+        "select actor from events where task_id=%s and event_id='w1_evt_1';",
+        (task_w1,),
+    )
+    row = ac.fetchone()
+    assert row is not None and row[0] == "w1", "CASE2: событие должно быть атрибутировано w1"
+
+
+# ---------------- CASE 3: регресс — легитимный вызов w2 на своей аренде ----------------
+
+
+def test_case3_legit_w2_can_record_own_event(admin):
+    """w2 пишет tool_call на СВОЕЙ аренде под своим именем — должно работать."""
+    task_w2, epoch_w2 = _make_leased_task(admin, "w2")
+
+    w2 = _worker_conn("w2")
+    try:
+        cur = w2.cursor()
+        good = json.dumps({"tool": "run_shell", "command": "cargo clippy", "exit_code": 0})
+        cur.execute(
+            "select record_tool_call(%s,'w2',%s,'w2_evt_1',%s::jsonb);",
+            (task_w2, epoch_w2, good),
+        )
+        assert cur.fetchone()[0] is True, "CASE3: легитимный вызов w2 должен вернуть true"
+    finally:
+        w2.close()
+
+    ac = admin.cursor()
+    ac.execute(
+        "select actor from events where task_id=%s and event_id='w2_evt_1';",
+        (task_w2,),
+    )
+    row = ac.fetchone()
+    assert row is not None and row[0] == "w2", "CASE3: событие должно быть атрибутировано w2"
+]]></content>
+    </file>
+    <file path="tests/test_review_gate_f2.py" lang="python" bytes="6018" lines="172" sha256="327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8" md5="38e174878dfa45c7d749207db145fb04">
+      <content><![CDATA[
+#!/usr/bin/env python3
+"""Тест-арбитр волны 4 — F2: review-gate должен считать по КЛЮЧУ проверки.
+
+Дефект: submit_review сопоставлял проверки по `type` через EXISTS. Контракт с
+двумя cmd-требованиями (cargo test, cargo clippy) закрывался ОДНИМ generic
+{"type":"cmd","status":"pass"} — gate обходился.
+
+Фикс (эталон reference_fix_wave4.sql, блок F2):
+  ключ = coalesce(check->>'id', check->>'type');
+  для каждого ключа число pass в отчёте >= числа требований контракта с этим ключом.
+
+ТРИАДА:
+  RED  pre-fix : one generic cmd pass -> task становится done (баг) => падает
+  GREEN fixed  : one generic cmd pass -> RV003; два pass -> done
+  RED  after revert: снова done => падает
+
+Гейт BLOCKED (нет PG) — в tests/conftest.py.
+Запуск:
+  W4_ADMIN_DSN="host=... user=postgres password=... dbname=c2_swarm" \
+  .venv/bin/python -m pytest -q tests/test_review_gate_f2.py
+"""
+import json
+import os
+import uuid
+
+import psycopg2
+import pytest
+
+
+def _dsn() -> str:
+    return os.environ.get("W4_ADMIN_DSN", "")
+
+
+@pytest.fixture()
+def conn():
+    c = psycopg2.connect(_dsn())
+    c.autocommit = False
+    yield c
+    c.rollback()
+    c.close()
+
+
+def _contract(checks):
+    return json.dumps(
+        {"kind": "code.test", "checks": checks, "needs": {}, "budget": {"attempts": 3, "max_rework": 3}}
+    )
+
+
+def _mk_task_in_review(cur, checks, result_ref="r1"):
+    t = str(uuid.uuid4())
+    cur.execute(
+        """insert into tasks(id, root_id, state, contract, priority, attempts, budget_cap)
+           values (%s,%s,'review',%s::jsonb,0,1,1000)""",
+        (t, t, _contract(checks)),
+    )
+    cur.execute(
+        """insert into artifacts(task_id, ref, created_by, lease_epoch, storage_path)
+           values (%s,%s,'author',0,'/tmp/'||%s)""",
+        (t, result_ref, result_ref),
+    )
+    cur.execute("update tasks set result_ref=%s where id=%s", (result_ref, t))
+    return t
+
+
+def _submit(cur, t, checks_json, verdict="approved"):
+    cur.execute(
+        "select submit_review(%s,%s,'reviewer',%s,%s::jsonb)",
+        (t, "r1", verdict, checks_json),
+    )
+    return cur.fetchone()[0]
+
+
+def _state(cur, t):
+    cur.execute("select state from tasks where id=%s", (t,))
+    return cur.fetchone()[0]
+
+
+# ---------------- F2 core: два cmd одного типа требуют двух pass ----------------
+
+
+def test_f2_two_checks_same_type_need_two_passes(conn):
+    """Контракт: два cmd разных run, без id -> один generic cmd pass = RV003."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "run": "cargo test"},
+            {"type": "cmd", "run": "cargo clippy -- -D warnings"},
+        ],
+    )
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        _submit(cur, t, '[{"type":"cmd","status":"pass"}]')
+    assert "checks_failed" in str(e.value), "F2: один pass не должен закрывать два cmd"
+    conn.rollback()
+
+
+def test_f2_two_ids_need_two_passes(conn):
+    """checks с id: для каждого id нужен свой pass."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "id": "unit", "run": "cargo test"},
+            {"type": "cmd", "id": "lint", "run": "cargo clippy"},
+        ],
+    )
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        _submit(cur, t, '[{"type":"cmd","id":"unit","status":"pass"}]')
+    assert "checks_failed" in str(e.value), "F2: id 'lint' остался без pass"
+    conn.rollback()
+
+
+def test_f2_matching_passes_accepted(conn):
+    """Позитивный: два pass по ключам -> done (регрессия легитимного пути)."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "id": "unit", "run": "cargo test"},
+            {"type": "cmd", "id": "lint", "run": "cargo clippy"},
+        ],
+    )
+    v = _submit(
+        cur,
+        t,
+        '[{"type":"cmd","id":"unit","status":"pass"},{"type":"cmd","id":"lint","status":"pass"}]',
+    )
+    assert v == "done", f"F2: два корректных pass должны дать done, получено {v}"
+    assert _state(cur, t) == "done"
+    conn.rollback()
+
+
+def test_f2_same_type_no_id_two_passes_accepted(conn):
+    """Позитивный без id: два cmd pass с совпадающими run (ключ = type|run) -> done."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "run": "cargo test"},
+            {"type": "cmd", "run": "cargo clippy"},
+        ],
+    )
+    v = _submit(
+        cur,
+        t,
+        '[{"type":"cmd","run":"cargo test","status":"pass"},'
+        '{"type":"cmd","run":"cargo clippy","status":"pass"}]',
+    )
+    assert v == "done", f"F2: два совпадающих pass закрывают два cmd, получено {v}"
+    conn.rollback()
+
+
+def test_f2_wrong_run_does_not_close_other_command(conn):
+    """F2-ядро: pass с run='cargo test' НЕ закрывает требование run='cargo clippy'."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "run": "cargo test"},
+            {"type": "cmd", "run": "cargo clippy"},
+        ],
+    )
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        # отчёт дублирует один и тот же run дважды — clippy всё равно не покрыт
+        _submit(
+            cur,
+            t,
+            '[{"type":"cmd","run":"cargo test","status":"pass"},'
+            '{"type":"cmd","run":"cargo test","status":"pass"}]',
+        )
+    assert "checks_failed" in str(e.value), "F2: дубль run не должен закрывать clippy"
+    conn.rollback()
+]]></content>
+    </file>
+    <file path="tests/test_review_gate_wave4.py" lang="python" bytes="5016" lines="143" sha256="0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65" md5="4dc75a10fc13e996fdb952fedbfcb7e9">
+      <content><![CDATA[
+#!/usr/bin/env python3
+"""Тесты-арбитры волны 4 (F2, F15) — аудит swarm-dispatcher v0.4.
+
+Назначение: КРАСНЫЕ на текущем стеке, ЗЕЛЁНЫЕ после правок F2/F15.
+
+Запуск (против поднятого стека schema -> roles -> roles_2b, БЕЗ патча review):
+    PGPASSWORD=... python3 -m pytest -q tests/test_review_gate_wave4.py
+
+Требования: psycopg2, переменные окружения как в acceptance_harness.sh
+(PGDSN или ROLES_*). Файл использует суперпользовательский DSN (как test_v0.py).
+
+Механика проверки: каждый тест СНАЧАЛА утверждает текущее (дефектное) поведение
+в маркере comment, но ассертит ЖЕЛАЕМОЕ. На коде до правки тест падает — это
+и есть красный лог. После правки F2/F15 — зелёный. Откат правки снова краснит.
+"""
+import os
+import uuid
+
+import psycopg2
+import pytest
+
+
+def _dsn() -> str:
+    return os.environ.get(
+        "PGDSN",
+        "dbname=c2_swarm user=postgres host=127.0.0.1 port=5432 password=pw",
+    )
+
+
+@pytest.fixture()
+def conn():
+    c = psycopg2.connect(_dsn())
+    c.autocommit = False
+    yield c
+    c.rollback()
+    c.close()
+
+
+def _mk_task_in_review(cur, checks, result_ref="r1"):
+    """tasks в состоянии review с артефактом и result_ref (two-phase, FK-safe)."""
+    t = str(uuid.uuid4())
+    cur.execute(
+        """insert into tasks(id, root_id, state, contract, priority, attempts, budget_cap)
+           values (%s,%s,'review',%s::jsonb,0,1,1000)""",
+        (t, t, _contract(checks)),
+    )
+    cur.execute(
+        """insert into artifacts(task_id, ref, created_by, lease_epoch, storage_path)
+           values (%s,%s,'author',0,'/tmp/'||%s)""",
+        (t, result_ref, result_ref),
+    )
+    cur.execute("update tasks set result_ref=%s where id=%s", (result_ref, t))
+    return t
+
+
+def _contract(checks):
+    import json
+
+    return json.dumps(
+        {"kind": "t", "checks": checks, "budget": {"attempts": 3, "max_rework": 3}}
+    )
+
+def _submit(cur, t, checks_json, verdict="approved"):
+    cur.execute(
+        "select submit_review(%s,%s,'reviewer',%s,%s::jsonb)",
+        (t, "r1", verdict, checks_json),
+    )
+
+
+# ---------------- F2: gate должен считать ПО КЛЮЧУ, а не по type ----------------
+
+
+def test_f2_two_checks_same_type_need_two_passes(conn):
+    """Два cmd-требования: один generic pass обязан быть отклонён (RV003)."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "run": "cargo test"},
+            {"type": "cmd", "run": "cargo clippy -- -D warnings"},
+        ],
+    )
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        _submit(cur, t, '[{"type":"cmd","status":"pass"}]')
+    assert "checks_failed" in str(e.value), "F2: один pass не должен закрывать два cmd"
+    conn.rollback()
+
+
+def test_f2_two_distinct_ids_need_two_passes(conn):
+    """checks с id: для каждого id нужен свой pass."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "id": "unit", "run": "cargo test"},
+            {"type": "cmd", "id": "lint", "run": "cargo clippy"},
+        ],
+    )
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        _submit(cur, t, '[{"type":"cmd","id":"unit","status":"pass"}]')
+    assert "checks_failed" in str(e.value), "F2: id 'lint' остался без pass"
+    conn.rollback()
+
+
+def test_f2_matching_passes_accepted(conn):
+    """Позитивный: два pass с нужными ключами → done."""
+    cur = conn.cursor()
+    t = _mk_task_in_review(
+        cur,
+        [
+            {"type": "cmd", "id": "unit", "run": "cargo test"},
+            {"type": "cmd", "id": "lint", "run": "cargo clippy"},
+        ],
+    )
+    _submit(
+        cur,
+        t,
+        '[{"type":"cmd","id":"unit","status":"pass"},{"type":"cmd","id":"lint","status":"pass"}]',
+    )
+    cur.execute("select state from tasks where id=%s", (t,))
+    assert cur.fetchone()[0] == "done"
+    conn.rollback()
+
+
+# ---------------- F15: форма контракта ----------------
+
+
+@pytest.mark.parametrize(
+    "bad_checks",
+    [
+        ["pytest", 42],
+        [{"run": "cargo test"}],
+        [{"type": ""}],
+        [{"type": 123}],
+    ],
+)
+def test_f15_contract_rejects_malformed_checks(conn, bad_checks):
+    """validate_contract не должен принимать checks без непустого строкового type."""
+    cur = conn.cursor()
+    with pytest.raises(psycopg2.DatabaseError) as e:
+        cur.execute("select validate_contract(%s::jsonb)", (_contract(bad_checks),))
+    assert "contract_invalid" in str(e.value)
+    conn.rollback()
 ]]></content>
     </file>
     <file path="tests/test_v0.py" lang="python" bytes="18537" lines="519" sha256="88a3ffdf56dc62f967ce516a7aa5bc650dbf7cd2eafbe67de093c4abd94ffa95" md5="e8fd8c4af59d65b97f1da340209d46ff">
@@ -4029,6 +4919,152 @@ def test_tampering_breaks_chain(db):
     db.cursor().execute("update events set payload='{\"x\":1}' where task_id=%s and event_id='e1'", (t,))
     db.commit()
     assert one(db, "select verify_chain(%s)", t) is False
+]]></content>
+    </file>
+    <file path="tests/test_worker_identity_f3.py" lang="python" bytes="5272" lines="142" sha256="e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a" md5="8105e7e7d1a0a45c1a4879f64fda274c">
+      <content><![CDATA[
+"""F3 — identification closed by default.
+
+Defect (pre-fix): assert_worker_identity only guarded when
+`session_user LIKE 'swarm_worker_%'`. The shared role `swarm_worker`
+does NOT match that pattern, yet it is the one role granted the wrappers
+(register_worker / claim_task). So under `swarm_worker` the identity
+check is a silent no-op — defense rested solely on `nologin`.
+
+Fix (reference_fix_wave4.sql): deny-by-default. Bypass only when
+session_user = 'swarm_worker_'||normalize_worker_id(p_worker), or the
+session is a superuser. Everything else -> WK003.
+
+assert_worker_identity is intentionally NOT granted to any role; it is
+observed only through wrappers. The positive control therefore drives a
+wrapper (register_worker), not the assert directly.
+
+Connection contract matches the other wave-4 arbiters:
+  W4_ADMIN_DSN   full DSN for the admin (postgres) connection
+  W4_W1_PW       password of swarm_worker_w1
+  W4_W2_PW       password of swarm_worker_w2
+Pre-condition gate (no PG => BLOCKED) lives in tests/conftest.py.
+
+Запуск:
+  W4_ADMIN_DSN="host=127.0.0.1 port=... user=postgres password=... dbname=c2_swarm" \
+  W4_W1_PW=... W4_W2_PW=... \
+  .venv/bin/python -m pytest -q tests/test_worker_identity_f3.py
+"""
+import os
+import re
+
+import psycopg2
+import pytest
+
+MISMATCH = "WK003"
+
+
+def _dsn() -> str:
+    return os.environ.get("W4_ADMIN_DSN", "")
+
+
+def _parts():
+    """Parse key=value DSN into a dict."""
+    return dict(re.findall(r"(\w+)=(\S+)", _dsn()))
+
+
+def connect(user, password):
+    p = _parts()
+    c = psycopg2.connect(
+        host=p.get("host", "127.0.0.1"),
+        port=int(p.get("port", "5432")),
+        dbname=p.get("dbname", "swarm"),
+        user=user,
+        password=password,
+    )
+    c.autocommit = True
+    return c
+
+
+def _sqlstate(conn, sql, params=None):
+    try:
+        conn.cursor().execute(sql, params)
+        return None
+    except psycopg2.Error as e:
+        return e.pgcode
+
+
+@pytest.fixture
+def admin():
+    c = psycopg2.connect(_dsn())
+    c.autocommit = True
+    c.cursor().execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
+    yield c
+    c.close()
+
+
+# ---------- structural anchor: deny-by-default body ----------
+
+def _strip_sql_comments(body: str) -> str:
+    """Убирает строковые комментарии (-- ... до конца строки), чтобы
+    структурный анкер не ловил упоминание паттерна в пояснении."""
+    out = []
+    for line in body.splitlines():
+        out.append(line.split("--", 1)[0])
+    return "\n".join(out)
+
+
+def test_f3_body_is_deny_by_default(admin):
+    """The assert body must not be gated on LIKE 'swarm_worker_%'.
+
+    Pre-fix the whole check sits inside
+    `if session_user LIKE 'swarm_worker_%'`, which is false for the shared
+    role swarm_worker — the guard is skipped entirely (bypass).
+
+    Комментарии (-- ...) исключаем: F3-объяснение может упоминать старый
+    LIKE-гейт как историю, и это не должно считаться гейтом в коде.
+    """
+    cur = admin.cursor()
+    cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
+    body = cur.fetchone()[0]
+    low = _strip_sql_comments(body).lower()
+    assert "like 'swarm_worker_%'" not in low, (
+        "F3: assert_worker_identity is still gated on LIKE 'swarm_worker_%' — "
+        "under the shared role the check is a no-op (bypass)"
+    )
+    # deny-by-default must raise WK003 and must consult rolsuper for the bypass
+    assert "wk003" in low or "worker_identity_mismatch" in low, "F3: assert must raise WK003"
+    assert "rolsuper" in low, "F3: the only bypass must be an explicit rolsuper lookup"
+
+
+# ---------- behavioural ----------
+
+def test_f3_superuser_bypass(admin):
+    """Superuser session may pass any p_worker (explicit rolsuper bypass)."""
+    assert _sqlstate(admin, "select assert_worker_identity('w1')") is None, (
+        "F3: superuser must bypass the check"
+    )
+
+
+def test_f3_owner_not_whitelisted(admin):
+    """The object owner (swarm_owner) must not be whitelisted by name."""
+    cur = admin.cursor()
+    cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
+    body = cur.fetchone()[0].lower()
+    assert "swarm_owner" not in body, "F3: assert must not whitelist swarm_owner by name"
+
+
+# ---------- positive control: legit worker still works, via wrapper ----------
+
+def test_f3_legit_worker_wrapper_passes(admin):
+    """swarm_worker_w1 registering itself succeeds (identity matches)."""
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
+    assert code is None, f"F3: legit w1/register_worker('w1') must succeed, got {code!r}"
+    w.close()
+
+
+def test_f3_wrong_identity_via_wrapper_rejected(admin):
+    """swarm_worker_w1 registering as 'w2' must be WK003 (identity mismatch)."""
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select register_worker('w2', '{\"ram_gb\":16}'::jsonb)")
+    assert code == MISMATCH, f"F3: w1 as 'w2' must be WK003, got {code!r}"
+    w.close()
 ]]></content>
     </file>
   </files>

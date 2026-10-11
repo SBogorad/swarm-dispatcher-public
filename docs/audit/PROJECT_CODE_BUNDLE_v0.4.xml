@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-10T21:40:41+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="CODE" generated="2026-10-11T09:14:41+07:00" generator="scripts/build_project_bundle.py">
   <title>Код проекта (Rust + тесты + манифесты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="1909116437eab45cb8998dfe6b15ea49c49cd3c7"/>
+  <git is_git="true" head="7eb8617ec1a48434ebd76787913a29ec9c55adb8"/>
   <manifest>
-    <files count="45" total_bytes="377201"/>
+    <files count="46" total_bytes="398650"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -18,13 +18,13 @@
       <entry path="crates/swarm-cli/Cargo.toml" lang="toml" bytes="225" lines="10" sha256="43cacce0e3960bb63925656b3ac96ccece391d295e041a7242844b134eb13f46" md5="6de905d3d78ab75211ce0a387d32d121"/>
       <entry path="crates/swarm-cli/src/main.rs" lang="rust" bytes="6676" lines="205" sha256="7202eb0ae1412fa3686c1067e7281b1d1c3a06de5504b35e17825e2b3c608e2b" md5="ee12e71bef16784b0b874057f60f30e5"/>
       <entry path="crates/swarm-core/Cargo.toml" lang="toml" bytes="345" lines="17" sha256="aa491b9d7ab721880f0f86efaa5c02875e9d3ab1a1dba37e474f2c70d81c1f40" md5="afa18665cc4ff26a353e3305a5636880"/>
-      <entry path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="12262" lines="361" sha256="634723de103c29672bd411f9a8e6f975b60e5c1e4aab7156f7357fad59f40640" md5="efe4e3fba246774ea74464328dea1ac9"/>
+      <entry path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="13120" lines="386" sha256="5cba1ed744924bfac25bfd44f07193f4dd69d69c59adc904d2db7f68dee5722c" md5="d4b423a7b26246a167ce1a0cef2703bb"/>
       <entry path="crates/swarm-core/src/errors.rs" lang="rust" bytes="6948" lines="189" sha256="b8d8415d10ceb9010a171303247c749c8eaa3d8521611509d084830bb082b6ba" md5="b3f5f394a961240a5f0212ff4bb9096e"/>
       <entry path="crates/swarm-core/src/lib.rs" lang="rust" bytes="235" lines="7" sha256="b9210371c22830287ec2681249d835ddc7e793d67a8078ddc5c228586ec277b0" md5="bdc9b565620ebf78af3341fcc504461f"/>
       <entry path="crates/swarm-core/src/types.rs" lang="rust" bytes="9084" lines="272" sha256="d87f95640ed83607efed6ec875a75b30c407ef81a4b2e0782e3f49783e7ce4f2" md5="61184cf2fcfc9b8e5d4dcd7eb2b9f629"/>
-      <entry path="crates/swarm-core/tests/alt/integration_alt.rs" lang="rust" bytes="6247" lines="190" sha256="f7be51e6a0b02cf633cee01de39606e252572800e8ff01013e1021c51fff9ee8" md5="293ce793252e82f7130485e5722efc0b"/>
-      <entry path="crates/swarm-core/tests/integration.rs" lang="rust" bytes="12002" lines="349" sha256="1330be7a320c614c59946060fff44fe8e70f8c531b27c8a70daa3205d84e2746" md5="5f30d896e55202f1c01cd7dbe7178c0a"/>
-      <entry path="crates/swarm-core/tests/integration_verified.rs" lang="rust" bytes="9759" lines="315" sha256="ce5ee3b8e69e8fdcdeadbd817277f5a00fbf3d2d813f0731b03a5a65ae384fb7" md5="0218bb4592165b5303fccd151bc92f1c"/>
+      <entry path="crates/swarm-core/tests/alt/integration_alt.rs" lang="rust" bytes="6587" lines="200" sha256="23cc2ad52cc9ac2ad01d1f0d3c0a56d26101f1004acb98fb7236bdd4c9159988" md5="272f2190b7f39d0dc80a8ad46c3db77b"/>
+      <entry path="crates/swarm-core/tests/integration.rs" lang="rust" bytes="12783" lines="364" sha256="85b571dc55a300c63e6ba55c548ac5b80863f94f92e755354fa7f2076a40026c" md5="2db40da696f735399dd1f6d0c49e3a08"/>
+      <entry path="crates/swarm-core/tests/integration_verified.rs" lang="rust" bytes="10177" lines="319" sha256="792cc3ffff5abe4c97debe5da2c09f28539c5c6cc4e8fa2e8e809e84e785c4e9" md5="7c1e6cd8fca26a4f1afeed87229c0f86"/>
       <entry path="crates/swarm-llm/Cargo.toml" lang="toml" bytes="367" lines="11" sha256="f3da8011038d37fc95332a7158f11c0ba44141d51e85842acd62d682276ab86b" md5="1ab92f61bd2f9873eff6638dd6a72b64"/>
       <entry path="crates/swarm-llm/src/error.rs" lang="rust" bytes="1147" lines="43" sha256="83ed168ea6bab9202c19d61f06106e2878fecd62b007a0b179cbdbfa8010445e" md5="98500d1bc89e4dcb757b7632ee67603d"/>
       <entry path="crates/swarm-llm/src/lib.rs" lang="rust" bytes="13638" lines="433" sha256="4da23c279bef521e3eacb8a0a88768e669bb8b4c84e9c28255b50b345ffd86d3" md5="2a07019b6bd60b57a4ec4cc9a1653e3c"/>
@@ -38,25 +38,26 @@
       <entry path="crates/swarm-planner/tests/fixtures/planner_dup_dep.json" lang="json" bytes="745" lines="31" sha256="a2853ef4c1f243da155cba4436f9e7b6fc733094331903ec3df7252497cc2eb1" md5="5711b2b984c111a0905695e0afd18da9"/>
       <entry path="crates/swarm-planner/tests/fixtures/planner_ok.json" lang="json" bytes="935" lines="31" sha256="2044fcfa6c1dc51ffb12bc6b959f4609e88b22f62964eae8a94351d52ca88d09" md5="f5225b93c47e041e9a87293969e5afaf"/>
       <entry path="crates/swarm-planner/tests/fixtures/planner_too_many.json" lang="json" bytes="340" lines="18" sha256="6660c81d7e32c0b292251d83d8c673218a4c5ceae865b285574b615d33b0f22c" md5="bc0554d4703275a611003450005fdf95"/>
-      <entry path="crates/swarm-planner/tests/planner_integration.rs" lang="rust" bytes="10664" lines="282" sha256="5f5504700d08f50c1c51f8f1d8ee44798099e477ba6acf65acefae97fe6fa520" md5="59a8f0b941e59a9a787bed3258539af6"/>
+      <entry path="crates/swarm-planner/tests/planner_integration.rs" lang="rust" bytes="10679" lines="282" sha256="7785e61bc15435a238f321b94b4c54328f47ca752850be5975629a6efc89cb3e" md5="ea7f5bcf996209d767d5667b1c93217f"/>
       <entry path="crates/swarm-watchdog/Cargo.toml" lang="toml" bytes="227" lines="10" sha256="214a53d97e923842faf74e5a0f30ae8ea4277b65b75d74554f22fc20a45e6fab" md5="140aceb52b260384e9fba419b9a0fa1b"/>
       <entry path="crates/swarm-watchdog/src/main.rs" lang="rust" bytes="3107" lines="84" sha256="e439de2468b655e310a0b0d03f218883f986a7607722593f8176cb93e59dfb3f" md5="93b3d74c73be8787ee5ec1a3cd2abc73"/>
-      <entry path="crates/swarm-worker/Cargo.toml" lang="toml" bytes="902" lines="32" sha256="7eac49b458f5f22091ace3f9c04b4e747e3a1ab3e9079f04fe6b89986b6659ef" md5="20b4de18e3f09f72ac2ebf4c6be148e0"/>
+      <entry path="crates/swarm-worker/Cargo.toml" lang="toml" bytes="1745" lines="51" sha256="85194c3fc2f6c2fb79e15644a94a91090915626d4aa3e2a6388b1c2f40f4bb7b" md5="62849aa1dab6806c6ab95b9f37af54cd"/>
       <entry path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4840" lines="123" sha256="1380b6ba0651b30a89116828b27fcd1256d9cbeada1623ee6674f404a4ec937f" md5="9df11ec440423aa051a7484b6499c050"/>
       <entry path="crates/swarm-worker/src/agent_loop.rs" lang="rust" bytes="15103" lines="453" sha256="d2d4b89cfcedbab6f54cb699335c20928a41c20f51afa64eab3b03a8d061cc03" md5="95afa64156c184133c195da893ad01f1"/>
       <entry path="crates/swarm-worker/src/allowlist.rs" lang="rust" bytes="17248" lines="436" sha256="48e389dff202d89b66e9e971380beac81b6f47f853f90ff10512b12e2877c54a" md5="378384912da489ceef3100b978a7d853"/>
       <entry path="crates/swarm-worker/src/artifacts.rs" lang="rust" bytes="8019" lines="197" sha256="840be123cb3d9e61f75c2d8c06540161c2cba489e1bfc82c5b51aa8167d8e0f3" md5="f532f05aab4a20434e3d4063957db9a9"/>
       <entry path="crates/swarm-worker/src/audit.rs" lang="rust" bytes="3178" lines="83" sha256="7638c4d31e447c63d470342995658f23b345a10e2f8304fa82e54209e25dc844" md5="fa7a5e04ac9eb99d31c3a2d52c513dc7"/>
-      <entry path="crates/swarm-worker/src/error.rs" lang="rust" bytes="1458" lines="47" sha256="db458aea5bef333dab5b3dc00eebabc30cbac22c3c613745759f517369e1cf10" md5="c20742c92ac3c2c5c17e1e020f51fa27"/>
-      <entry path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="853" lines="26" sha256="988dfa0549b14748192649ea40cbbcffb2f9e0dc17a47471535720b6c2b903ba" md5="4da61fa7ccd91a605db80074edfe28f5"/>
+      <entry path="crates/swarm-worker/src/error.rs" lang="rust" bytes="1677" lines="52" sha256="a23482e6278533a592bb3e50d26465d57643950c46da288d54256dba00e2a4d9" md5="8065589c23856c0c5fecd84f88716749"/>
+      <entry path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="1421" lines="38" sha256="93ab850ac5fbe1d232f5e0f0ad152f906941f82e6ddfc06cecb58446cb7c66e4" md5="9910d11fa5a13527434e2c9d637c3e28"/>
       <entry path="crates/swarm-worker/src/main.rs" lang="rust" bytes="5074" lines="136" sha256="9d66ae5e85d6ea071810734d5c9fcfae14c07663f2013ace2a414e195ba16d8b" md5="77dbd9060196205d1820d546c04c6368"/>
       <entry path="crates/swarm-worker/src/parse_step.rs" lang="rust" bytes="16165" lines="369" sha256="74f8e69be76842679fdc4f61caedda7471f1c32fb1087f784e4f9d0592315246" md5="30c3f75bb69c0af263c9d3c33e634a03"/>
-      <entry path="crates/swarm-worker/src/prompt.rs" lang="rust" bytes="9035" lines="201" sha256="59d9dd3c8a227d15948f5023e0c269929405a37f23476e32079900c14ecb86d1" md5="a2aeb6d28f4a2b7ff82013cacf43db85"/>
+      <entry path="crates/swarm-worker/src/prompt.rs" lang="rust" bytes="9171" lines="205" sha256="54bd53c464c3beff9636d2d88369ba875f0227f547a18a0b1948ff473b29f771" md5="50b9df6595c5a73e357f9b8f3d7f6112"/>
       <entry path="crates/swarm-worker/src/retry.rs" lang="rust" bytes="3238" lines="103" sha256="f44b5d1792135f71da38191f257ecf54d4bf2facfa32f7ffb9d67a3d8bea35b9" md5="a55ccea01123462543b8aba991e4d492"/>
-      <entry path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="20825" lines="592" sha256="b1e1db54631d8de91a60da8e83771227cd704926f8ffd5bfda59f73112e640c0" md5="719152ee55c73dc2a3e0b6d3e8982e7f"/>
+      <entry path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="23714" lines="654" sha256="5c1a28560183f0c3d676e50976416840de8dad7c43477a9630a2b9e183b2ee74" md5="8b1e71dc7eba49d2e1cff411131b38d1"/>
       <entry path="crates/swarm-worker/src/storage.rs" lang="rust" bytes="5657" lines="165" sha256="73e82baa6fea1d489c9778a4578f251dc902f351683012d2e391b864e60be4c3" md5="55d20d72a6e238db61d97ac46ac6cf6e"/>
-      <entry path="crates/swarm-worker/src/worker.rs" lang="rust" bytes="10016" lines="293" sha256="bf456e6b45963c86a19288415f4a45e92498c66e434b2f03cb065b2bef67303d" md5="289966d26870e14fe23fea4e281c35b7"/>
-      <entry path="crates/swarm-worker/tests/worker_integration.rs" lang="rust" bytes="18954" lines="528" sha256="4f96891baa72a63fd7bbf6741bb4f629032ee171a5be429489912ddbdefca20e" md5="5d82325c067782c57941aa87d1ba5f17"/>
+      <entry path="crates/swarm-worker/src/worker.rs" lang="rust" bytes="16438" lines="413" sha256="469550a1de4edcd823afeead391784af10e3706cad75118373d3a4cff1f2ce32" md5="65004935871f837497779c71d2e69d23"/>
+      <entry path="crates/swarm-worker/tests/worker_heartbeat_f5.rs" lang="rust" bytes="7825" lines="227" sha256="b40473024e57bb17b7c895d2feeb5e1e99331e7dae06bd0f3377a39b69fc84f7" md5="23ea6be867a28284a20782618ce0b34f"/>
+      <entry path="crates/swarm-worker/tests/worker_integration.rs" lang="rust" bytes="19089" lines="529" sha256="3edf9942efbcff47dd4999e073feb4f85357195deea991b73173f15bd3c8dce8" md5="d265ce3373b049438b9e01081ab2bff2"/>
       <entry path="crates/swarm-worker/tests/worker_sandbox.rs" lang="rust" bytes="16153" lines="476" sha256="f0f20c05d21c0cb4fb723ef18b30e9800ef1ae57e6d73bfa17617794f6a52a95" md5="f74585e4f99d931c8fa131de71d55f51"/>
     </index>
   </manifest>
@@ -3966,7 +3967,7 @@ name = "integration_alt"
 path = "tests/alt/integration_alt.rs"
 ]]></content>
     </file>
-    <file path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="12262" lines="361" sha256="634723de103c29672bd411f9a8e6f975b60e5c1e4aab7156f7357fad59f40640" md5="efe4e3fba246774ea74464328dea1ac9">
+    <file path="crates/swarm-core/src/dispatcher.rs" lang="rust" bytes="13120" lines="386" sha256="5cba1ed744924bfac25bfd44f07193f4dd69d69c59adc904d2db7f68dee5722c" md5="d4b423a7b26246a167ce1a0cef2703bb">
       <content><![CDATA[
 use crate::errors::DispatcherError;
 use crate::types::{Lease, TaskContract, TaskRow, TaskStatusRow, Verdict};
@@ -4198,6 +4199,31 @@ impl SwarmDispatcher {
                     &lease.epoch,
                     &result_ref,
                     &tokens,
+                ],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(row.get(0))
+    }
+
+    /// F4: честный отказ воркера. Переводит задачу в `blocked` с `reason`,
+    /// без подделки `spent_tokens` (раньше это делалось через `complete`
+    /// с overspend). Возвращает `"blocked"`.
+    pub fn fail(
+        &mut self,
+        lease: &Lease,
+        result_ref: Option<&str>,
+        reason: &str,
+    ) -> Result<String, DispatcherError> {
+        let row = self
+            .client
+            .query_one(
+                "SELECT fail_task($1, $2, $3, $4, $5)",
+                &[
+                    &lease.task_id,
+                    &lease.worker_id,
+                    &lease.epoch,
+                    &result_ref,
+                    &reason,
                 ],
             )
             .map_err(DispatcherError::from_pg)?;
@@ -4811,7 +4837,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-core/tests/alt/integration_alt.rs" lang="rust" bytes="6247" lines="190" sha256="f7be51e6a0b02cf633cee01de39606e252572800e8ff01013e1021c51fff9ee8" md5="293ce793252e82f7130485e5722efc0b">
+    <file path="crates/swarm-core/tests/alt/integration_alt.rs" lang="rust" bytes="6587" lines="200" sha256="23cc2ad52cc9ac2ad01d1f0d3c0a56d26101f1004acb98fb7236bdd4c9159988" md5="272f2190b7f39d0dc80a8ad46c3db77b">
       <content><![CDATA[
 //! Альтернативные формулировки интеграционных тестов (из `integration_verified.rs`).
 //!
@@ -4826,6 +4852,16 @@ use uuid::Uuid;
 
 fn dsn() -> Option<String> {
     std::env::var("TEST_DATABASE_URL").ok()
+}
+
+/// FIND-08: без TEST_DATABASE_URL — panic (FAIL), не молчаливый return.
+fn require_dsn() -> String {
+    dsn().unwrap_or_else(|| {
+        panic!(
+            "BLOCKED/FAIL: TEST_DATABASE_URL не задан; integration-тесты требуют \
+             живую тестовую БД (prefix test_/v0/c2_)"
+        )
+    })
 }
 
 fn raw(dsn: &str) -> postgres::Client {
@@ -4894,7 +4930,7 @@ fn ready_task(d: &mut SwarmDispatcher) -> Uuid {
 #[test]
 #[ignore]
 fn full_cycle_claim_save_complete_review() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     reset(&dsn);
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     worker(&mut d, "w1");
@@ -4907,7 +4943,7 @@ fn full_cycle_claim_save_complete_review() {
     d.save_artifact(&lease, "sha256:aa", "/p", None, None)
         .unwrap();
     assert_eq!(d.complete(&lease, "sha256:aa", 5).unwrap(), "review");
-    let checks = serde_json::json!([{"type":"cmd","status":"pass","exit_code":0}]);
+    let checks = serde_json::json!([{"type":"cmd","run":"true","status":"pass","exit_code":0}]);
     assert_eq!(
         d.submit_review(t, "sha256:aa", "rev", Verdict::Approved, &checks)
             .unwrap(),
@@ -4919,7 +4955,7 @@ fn full_cycle_claim_save_complete_review() {
 #[test]
 #[ignore]
 fn sqlstate_mapping() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     reset(&dsn);
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     worker(&mut d, "w1");
@@ -4957,7 +4993,7 @@ fn sqlstate_mapping() {
         d.complete(&lease, "sha256:aa", 1),
         Err(DispatcherError::LeaseLost)
     ));
-    let ok = serde_json::json!([{"type":"cmd","status":"pass"}]);
+    let ok = serde_json::json!([{"type":"cmd","run":"true","status":"pass"}]);
     assert!(matches!(
         d.submit_review(a, "sha256:aa", "w1", Verdict::Approved, &ok),
         Err(DispatcherError::SelfReview)
@@ -4981,7 +5017,7 @@ fn sqlstate_mapping() {
 #[test]
 #[ignore]
 fn zombie_is_fenced_and_heartbeat_false() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     reset(&dsn);
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     worker(&mut d, "w1");
@@ -5005,7 +5041,7 @@ fn zombie_is_fenced_and_heartbeat_false() {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-core/tests/integration.rs" lang="rust" bytes="12002" lines="349" sha256="1330be7a320c614c59946060fff44fe8e70f8c531b27c8a70daa3205d84e2746" md5="5f30d896e55202f1c01cd7dbe7178c0a">
+    <file path="crates/swarm-core/tests/integration.rs" lang="rust" bytes="12783" lines="364" sha256="85b571dc55a300c63e6ba55c548ac5b80863f94f92e755354fa7f2076a40026c" md5="2db40da696f735399dd1f6d0c49e3a08">
       <content><![CDATA[
 //! Integration-тесты против реального Postgres.
 //!
@@ -5013,13 +5049,27 @@ fn zombie_is_fenced_and_heartbeat_false() {
 //!   TEST_DATABASE_URL=postgres://swarm:pw@localhost:5432/swarm \
 //!     cargo test -p swarm-core --test integration -- --ignored --test-threads=1
 //!
-//! Без `TEST_DATABASE_URL` тесты пропускаются.
+//! Без `TEST_DATABASE_URL` тесты падают (FIND-08: не молчаливый пропуск).
 
 use swarm_core::{Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict};
 use uuid::Uuid;
 
 fn dsn() -> Option<String> {
     std::env::var("TEST_DATABASE_URL").ok()
+}
+
+/// FIND-08: отсутствие DSN — это ОШИБКА (тест не должен "проходить" молча).
+/// Раньше было `let dsn = require_dsn();` — провал pre-condition
+/// давал ложный PASS. Теперь — panic (FAIL) с явным сообщением. Запускать эти
+/// тесты надо с `--ignored` и заданным TEST_DATABASE_URL.
+fn require_dsn() -> String {
+    dsn().unwrap_or_else(|| {
+        panic!(
+            "BLOCKED/FAIL: TEST_DATABASE_URL не задан; integration-тесты требуют \
+             живую тестовую БД (prefix test_/v0/c2_). Запуск: \
+             TEST_DATABASE_URL=... cargo test -- --ignored"
+        )
+    })
 }
 
 /// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
@@ -5074,7 +5124,7 @@ fn contract(kind: &str) -> TaskContract {
 #[test]
 #[ignore]
 fn add_task_and_list() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -5091,7 +5141,7 @@ fn add_task_and_list() {
 #[test]
 #[ignore]
 fn add_dep_cycle_rejected() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -5111,7 +5161,7 @@ fn add_dep_cycle_rejected() {
 #[test]
 #[ignore]
 fn claim_and_fencing() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -5149,7 +5199,7 @@ fn claim_and_fencing() {
 #[test]
 #[ignore]
 fn complete_and_review_self_rejected() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -5165,7 +5215,8 @@ fn complete_and_review_self_rejected() {
     assert_eq!(state, "review");
 
     // Рецензент = автор → SelfReview.
-    let checks = serde_json::json!([{"type": "cmd", "status": "pass"}]);
+    // F2: ключ проверки = coalesce(id, type||'|'||run) — отчёт совпадает по run.
+    let checks = serde_json::json!([{"type": "cmd", "run": "true", "status": "pass"}]);
     let err = d
         .submit_review(id, "sha256:x", "w1", Verdict::Approved, &checks)
         .unwrap_err();
@@ -5181,7 +5232,7 @@ fn complete_and_review_self_rejected() {
 #[test]
 #[ignore]
 fn verify_chain_after_operations() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -5223,7 +5274,7 @@ fn count(dsn: &str, ids: &[Uuid]) -> i64 {
 #[test]
 #[ignore]
 fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
@@ -5255,7 +5306,7 @@ fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
 #[test]
 #[ignore]
 fn concurrent_claims_are_disjoint() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     for i in 0..8 {
@@ -5296,7 +5347,7 @@ fn concurrent_claims_are_disjoint() {
 #[test]
 #[ignore]
 fn with_transaction_rolls_back_on_error() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
@@ -5320,7 +5371,7 @@ fn with_transaction_rolls_back_on_error() {
 #[test]
 #[ignore]
 fn with_transaction_rolls_back_on_sql_error_midway() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
@@ -5339,7 +5390,7 @@ fn with_transaction_rolls_back_on_sql_error_midway() {
 #[test]
 #[ignore]
 fn with_transaction_commits_whole_graph_atomically() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let ids: Vec<Uuid> = (0..4).map(|_| Uuid::new_v4()).collect();
@@ -5358,7 +5409,7 @@ fn with_transaction_commits_whole_graph_atomically() {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-core/tests/integration_verified.rs" lang="rust" bytes="9759" lines="315" sha256="ce5ee3b8e69e8fdcdeadbd817277f5a00fbf3d2d813f0731b03a5a65ae384fb7" md5="0218bb4592165b5303fccd151bc92f1c">
+    <file path="crates/swarm-core/tests/integration_verified.rs" lang="rust" bytes="10177" lines="319" sha256="792cc3ffff5abe4c97debe5da2c09f28539c5c6cc4e8fa2e8e809e84e785c4e9" md5="7c1e6cd8fca26a4f1afeed87229c0f86">
       <content><![CDATA[
 use postgres::{Client, NoTls};
 use serde_json::json;
@@ -5452,7 +5503,8 @@ fn full_cycle_claim_save_complete_review() {
     d.save_artifact(&lease, "sha256:aa", "/p", None, None)
         .unwrap();
     assert_eq!(d.complete(&lease, "sha256:aa", 5).unwrap(), "review");
-    let checks = json!([{"type":"cmd","status":"pass","exit_code":0}]);
+    // F2: ключ проверки = coalesce(id, type||'|'||run); отчёт обязан совпасть по run.
+    let checks = json!([{"type":"cmd","run":"true","status":"pass","exit_code":0}]);
     assert_eq!(
         d.submit_review(t, "sha256:aa", "rev", Verdict::Approved, &checks)
             .unwrap(),
@@ -5500,7 +5552,7 @@ fn sqlstate_mapping() {
         d.complete(&lease, "sha256:aa", 1),
         Err(DispatcherError::LeaseLost)
     ));
-    let ok = json!([{"type":"cmd","status":"pass"}]);
+    let ok = json!([{"type":"cmd","run":"true","status":"pass"}]);
     assert!(matches!(
         d.submit_review(a, "sha256:aa", "w1", Verdict::Approved, &ok),
         Err(DispatcherError::SelfReview)
@@ -5582,6 +5634,9 @@ fn concurrent_claims_are_disjoint() {
 
 /// Контракт, который SQL принимает (kind не обязателен, число может быть дробным),
 /// но который Rust не может десериализовать ПОСЛЕ того, как аренда уже выдана.
+///
+/// F15: проверки обязаны иметь непустой строковый type, поэтому «непонятность для
+/// Rust» несёт дробный budget.attempts (2.5), а не малформед-проверка.
 #[test]
 fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
     reset();
@@ -5591,7 +5646,7 @@ fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
     raw()
         .execute(
             "select add_task($1, null, $2::jsonb, 100, 0)",
-            &[&t, &json!({"checks":[{"a":1}], "budget":{"attempts": 2.5}})],
+            &[&t, &json!({"checks":[{"type":"cmd","run":"true"}], "budget":{"attempts": 2.5}})],
         )
         .unwrap();
     d.promote_ready().unwrap();
@@ -7349,7 +7404,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-planner/tests/planner_integration.rs" lang="rust" bytes="10664" lines="282" sha256="5f5504700d08f50c1c51f8f1d8ee44798099e477ba6acf65acefae97fe6fa520" md5="59a8f0b941e59a9a787bed3258539af6">
+    <file path="crates/swarm-planner/tests/planner_integration.rs" lang="rust" bytes="10679" lines="282" sha256="7785e61bc15435a238f321b94b4c54328f47ca752850be5975629a6efc89cb3e" md5="ea7f5bcf996209d767d5667b1c93217f">
       <content><![CDATA[
 //! Интеграционные тесты Planner: реальный Postgres, mock LLM.
 //!
@@ -7586,7 +7641,7 @@ fn e2e_planner_to_review() {
             "sha256:root",
             "reviewer",
             swarm_core::Verdict::Approved,
-            &serde_json::json!([{"type": "cmd", "status": "pass", "exit_code": 0}]),
+            &serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]),
         )
         .unwrap();
     assert_eq!(st, "done");
@@ -7737,12 +7792,20 @@ fn sleep_until(shutdown: &AtomicBool, secs: u64) {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/Cargo.toml" lang="toml" bytes="902" lines="32" sha256="7eac49b458f5f22091ace3f9c04b4e747e3a1ab3e9079f04fe6b89986b6659ef" md5="20b4de18e3f09f72ac2ebf4c6be148e0">
+    <file path="crates/swarm-worker/Cargo.toml" lang="toml" bytes="1745" lines="51" sha256="85194c3fc2f6c2fb79e15644a94a91090915626d4aa3e2a6388b1c2f40f4bb7b" md5="62849aa1dab6806c6ab95b9f37af54cd">
       <content><![CDATA[
 [package]
 name = "swarm-worker"
 version.workspace = true
 edition.workspace = true
+
+[features]
+# FIND-01: shell-tools (agent_loop + sandbox + allowlist + audit) — ВЫКЛЮЧЕНЫ по
+# умолчанию. Бинарь swarm-worker их НЕ подключает: без этого feature модули
+# физически не компилируются в бинарь воркера (бан в КОДЕ, а не в переписке).
+# Включать только тестам/примерам и после закрытия F6/F7/F11/F12.
+default = []
+shell-tools = []
 
 [dependencies]
 swarm-core = { path = "../swarm-core" }
@@ -7771,6 +7834,17 @@ swarm-planner = { path = "../swarm-planner" }
 [[test]]
 name = "worker_integration"
 path = "tests/worker_integration.rs"
+
+# FIND-01: shell-tools тесты/пример требуют feature (иначе модули не компилируются).
+[[test]]
+name = "worker_sandbox"
+path = "tests/worker_sandbox.rs"
+required-features = ["shell-tools"]
+
+[[example]]
+name = "agent_loop_demo"
+path = "examples/agent_loop_demo.rs"
+required-features = ["shell-tools"]
 ]]></content>
     </file>
     <file path="crates/swarm-worker/examples/agent_loop_demo.rs" lang="rust" bytes="4840" lines="123" sha256="1380b6ba0651b30a89116828b27fcd1256d9cbeada1623ee6674f404a4ec937f" md5="9df11ec440423aa051a7484b6499c050">
@@ -9085,7 +9159,7 @@ pub fn count_tool_calls(dsn: &str, task_id: Uuid) -> Result<i64> {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/error.rs" lang="rust" bytes="1458" lines="47" sha256="db458aea5bef333dab5b3dc00eebabc30cbac22c3c613745759f517369e1cf10" md5="c20742c92ac3c2c5c17e1e020f51fa27">
+    <file path="crates/swarm-worker/src/error.rs" lang="rust" bytes="1677" lines="52" sha256="a23482e6278533a592bb3e50d26465d57643950c46da288d54256dba00e2a4d9" md5="8065589c23856c0c5fecd84f88716749">
       <content><![CDATA[
 //! Ошибки LLM-worker.
 
@@ -9111,24 +9185,29 @@ pub enum WorkerError {
     #[error("lease lost during work")]
     LeaseLost,
 
-    // ---- v0.4: shell tools + sandbox ----
+    // ---- v0.4: shell tools + sandbox (FIND-01: только под feature) ----
     /// WK004: команда не прошла allowlist (ТЗ v0.4 §4).
+    #[cfg(feature = "shell-tools")]
     #[error("WK004 allowlist rejected: {reason} (command: {command:?})")]
     AllowlistRejected { command: String, reason: String },
 
     /// WK005: команда превысила таймаут (ТЗ v0.4 §5).
+    #[cfg(feature = "shell-tools")]
     #[error("WK005 command timeout after {timeout_sec}s: {command:?}")]
     CommandTimeout { command: String, timeout_sec: u64 },
 
     /// Ошибка sandbox-контейнера (Docker).
+    #[cfg(feature = "shell-tools")]
     #[error("sandbox error: {0}")]
     Sandbox(String),
 
     /// Исчерпан бюджет итераций Agent Loop (ТЗ v0.4 §6).
+    #[cfg(feature = "shell-tools")]
     #[error("agent loop exceeded max iterations ({max})")]
     MaxIterations { max: u32 },
 
     /// LLM вернул невалидный tool call.
+    #[cfg(feature = "shell-tools")]
     #[error("invalid tool call from llm: {0}")]
     InvalidToolCall(String),
 }
@@ -9136,32 +9215,44 @@ pub enum WorkerError {
 pub type Result<T> = std::result::Result<T, WorkerError>;
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="853" lines="26" sha256="988dfa0549b14748192649ea40cbbcffb2f9e0dc17a47471535720b6c2b903ba" md5="4da61fa7ccd91a605db80074edfe28f5">
+    <file path="crates/swarm-worker/src/lib.rs" lang="rust" bytes="1421" lines="38" sha256="93ab850ac5fbe1d232f5e0f0ad152f906941f82e6ddfc06cecb58446cb7c66e4" md5="9910d11fa5a13527434e2c9d637c3e28">
       <content><![CDATA[
 //! LLM-worker: выполняет задачу через LLM, сохраняет артефакт на диск, сдаёт.
 //!
-//! ТЗ v0.3. В этом шаге воркер **только** вызывает LLM и сохраняет результат —
-//! никаких subprocess/shell (это v0.4).
+//! ТЗ v0.3. В этом шаге воркер **только** вызывает LLM и сохраняет результат.
+//!
+//! FIND-01: shell-tools (agent_loop + sandbox + allowlist + audit) скрыты за
+//! feature `shell-tools` (по умолчанию ВЫКЛ). Бинарь воркера их не подключает,
+//! поэтому они не компилируются в бинарь. Включать — после F6/F7/F11/F12.
 
+#[cfg(feature = "shell-tools")]
 pub mod agent_loop;
+#[cfg(feature = "shell-tools")]
 pub mod allowlist;
-pub mod artifacts;
+#[cfg(feature = "shell-tools")]
 pub mod audit;
+pub mod artifacts;
 pub mod error;
+#[cfg(feature = "shell-tools")]
 pub mod parse_step;
 pub mod prompt;
 pub mod retry;
+#[cfg(feature = "shell-tools")]
 pub mod sandbox;
 pub mod storage;
 pub mod worker;
 
+#[cfg(feature = "shell-tools")]
 pub use agent_loop::{
     parse_step, AgentLoopConfig, AgentResult, Step, ToolAudit, ToolAuditSink, ToolCall,
 };
+#[cfg(feature = "shell-tools")]
 pub use allowlist::Allowlist;
+#[cfg(feature = "shell-tools")]
 pub use audit::PgAuditSink;
 pub use error::{Result, WorkerError};
 pub use retry::RetryPolicy;
+#[cfg(feature = "shell-tools")]
 pub use sandbox::{ExecOutput, Sandbox, SandboxConfig};
 pub use worker::{process_lease, Outcome, WorkerConfig};
 ]]></content>
@@ -9679,7 +9770,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/prompt.rs" lang="rust" bytes="9035" lines="201" sha256="59d9dd3c8a227d15948f5023e0c269929405a37f23476e32079900c14ecb86d1" md5="a2aeb6d28f4a2b7ff82013cacf43db85">
+    <file path="crates/swarm-worker/src/prompt.rs" lang="rust" bytes="9171" lines="205" sha256="54bd53c464c3beff9636d2d88369ba875f0227f547a18a0b1948ff473b29f771" md5="50b9df6595c5a73e357f9b8f3d7f6112">
       <content><![CDATA[
 //! Системный промпт для LLM-worker и защита от prompt injection.
 //!
@@ -9743,6 +9834,7 @@ pub fn user_prompt(contract: &serde_json::Value) -> String {
 ///
 /// В отличие от v0.3 промпт описывает доступные инструменты и allowlist.
 /// Список команд берётся из env/конфига и **не** может быть расширен LLM.
+#[cfg(feature = "shell-tools")]
 pub fn agent_system_prompt(allowlist: &crate::allowlist::Allowlist) -> String {
     let allowed = allowlist.list().join(", ");
     format!(
@@ -9769,6 +9861,7 @@ pub fn agent_system_prompt(allowlist: &crate::allowlist::Allowlist) -> String {
 }
 
 /// Пользовательский промпт Agent Loop: контракт + description + история tool calls.
+#[cfg(feature = "shell-tools")]
 pub fn agent_user_prompt(contract: &serde_json::Value, history: &[String]) -> String {
     let mut out = user_prompt(contract);
     if !history.is_empty() {
@@ -9804,6 +9897,7 @@ mod tests {
     }
 
     // v0.4 §6: промпт Agent Loop перечисляет инструменты и allowlist.
+    #[cfg(feature = "shell-tools")]
     #[test]
     fn agent_system_prompt_lists_tools_and_allowlist() {
         let al = crate::allowlist::Allowlist::default();
@@ -9815,6 +9909,7 @@ mod tests {
         assert!(p.contains("<untrusted>"));
     }
 
+    #[cfg(feature = "shell-tools")]
     #[test]
     fn agent_user_prompt_includes_history() {
         let c = json!({"kind": "code.generate", "checks": [{"type":"cmd","run":"true"}]});
@@ -9991,7 +10086,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="20825" lines="592" sha256="b1e1db54631d8de91a60da8e83771227cd704926f8ffd5bfda59f73112e640c0" md5="719152ee55c73dc2a3e0b6d3e8982e7f">
+    <file path="crates/swarm-worker/src/sandbox.rs" lang="rust" bytes="23714" lines="654" sha256="5c1a28560183f0c3d676e50976416840de8dad7c43477a9630a2b9e183b2ee74" md5="8b1e71dc7eba49d2e1cff411131b38d1">
       <content><![CDATA[
 //! Docker-sandbox для shell tools (ТЗ v0.4 §2–§3, §5).
 //!
@@ -10125,10 +10220,11 @@ impl Sandbox {
             &cfg.docker_bin,
             &["rm", "-f", &name],
             Duration::from_secs(30),
+            1 << 20,
         );
 
         let args = Self::build_run_args(cfg, &name);
-        let out = run_cmd_owned(&cfg.docker_bin, &args, Duration::from_secs(120))?;
+        let out = run_cmd_owned(&cfg.docker_bin, &args, Duration::from_secs(120), cfg.max_output_bytes)?;
         if !out.success() {
             return Err(WorkerError::Sandbox(format!(
                 "docker run failed ({}): {}",
@@ -10165,7 +10261,7 @@ impl Sandbox {
         let started = Instant::now();
         // Внешний wall-clock: страховка на случай, если подвиснет сам docker.
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer)?;
+        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer, self.cfg.max_output_bytes)?;
         let duration_ms = started.elapsed().as_millis();
 
         if out.timed_out {
@@ -10214,7 +10310,7 @@ impl Sandbox {
         ];
         let started = Instant::now();
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_stdin(&self.cfg.docker_bin, &args, outer, content)?;
+        let out = run_cmd_stdin(&self.cfg.docker_bin, &args, outer, content, self.cfg.max_output_bytes)?;
         let duration_ms = started.elapsed().as_millis();
         if out.timed_out {
             return Err(WorkerError::CommandTimeout {
@@ -10244,7 +10340,7 @@ impl Sandbox {
         ];
         let started = Instant::now();
         let outer = Duration::from_secs(self.cfg.cmd_timeout_sec + 15);
-        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer)?;
+        let out = run_cmd_owned(&self.cfg.docker_bin, &args, outer, self.cfg.max_output_bytes)?;
         if out.timed_out {
             return Err(WorkerError::CommandTimeout {
                 command: format!("read_file {path}"),
@@ -10270,6 +10366,7 @@ impl Sandbox {
             &self.cfg.docker_bin,
             &["rm", "-f", &self.name],
             Duration::from_secs(30),
+            self.cfg.max_output_bytes,
         )?;
         if !out.success() && !out.stderr.contains("No such container") {
             return Err(WorkerError::Sandbox(format!(
@@ -10296,6 +10393,7 @@ pub fn cleanup_stale(cfg: &SandboxConfig, keep: &[String]) -> Result<usize> {
             "{{.Names}}",
         ],
         Duration::from_secs(30),
+        cfg.max_output_bytes,
     )?;
     if !out.success() {
         return Err(WorkerError::Sandbox(format!(
@@ -10312,6 +10410,7 @@ pub fn cleanup_stale(cfg: &SandboxConfig, keep: &[String]) -> Result<usize> {
             &cfg.docker_bin,
             &["rm", "-f", name],
             Duration::from_secs(30),
+            1 << 20,
         )?;
         if rm.success() {
             removed += 1;
@@ -10361,13 +10460,13 @@ impl RawOut {
 }
 
 /// Запустить процесс с wall-clock таймаутом (kill при превышении).
-fn run_cmd(bin: &str, args: &[&str], timeout: Duration) -> Result<RawOut> {
+fn run_cmd(bin: &str, args: &[&str], timeout: Duration, max_bytes: usize) -> Result<RawOut> {
     let owned: Vec<String> = args.iter().map(|s| s.to_string()).collect();
-    run_cmd_owned(bin, &owned, timeout)
+    run_cmd_owned(bin, &owned, timeout, max_bytes)
 }
 
-fn run_cmd_owned(bin: &str, args: &[String], timeout: Duration) -> Result<RawOut> {
-    run_cmd_owned_inner(bin, args, timeout, None)
+fn run_cmd_owned(bin: &str, args: &[String], timeout: Duration, max_bytes: usize) -> Result<RawOut> {
+    run_cmd_owned_inner(bin, args, timeout, None, max_bytes)
 }
 
 /// Запустить процесс, записав `stdin_data` в stdin (для `write_file`).
@@ -10376,8 +10475,9 @@ fn run_cmd_stdin(
     args: &[String],
     timeout: Duration,
     stdin_data: &str,
+    max_bytes: usize,
 ) -> Result<RawOut> {
-    run_cmd_owned_inner(bin, args, timeout, Some(stdin_data.to_string()))
+    run_cmd_owned_inner(bin, args, timeout, Some(stdin_data.to_string()), max_bytes)
 }
 
 fn run_cmd_owned_inner(
@@ -10385,8 +10485,9 @@ fn run_cmd_owned_inner(
     args: &[String],
     timeout: Duration,
     stdin_data: Option<String>,
+    max_bytes: usize,
 ) -> Result<RawOut> {
-    use std::io::{Read, Write};
+    use std::io::Write;
 
     let mut child = Command::new(bin)
         .args(args)
@@ -10415,17 +10516,50 @@ fn run_cmd_owned_inner(
     // reading would then let the wall-clock watchdog kill a healthy command
     // and lose its output. Independent reader threads keep the pipes moving
     // while the loop below only tracks liveness and the deadline.
+    // FIND-05: чтение с ЖЁСТКИМ лимитом. Раньше `read_to_end` копил вывод в
+    // неограниченный Vec: команда, пишущая гигабайты, валила воркер по OOM ещё
+    // ДО `truncate_output`. Читаем не более `max_bytes` (+ небольшой запас), но
+    // продолжаем дренировать трубу (потребляем и отбрасываем), чтобы ребёнок не
+    // встал на write.
+    let cap = max_bytes.saturating_add(64 * 1024);
     let stdout_reader = child.stdout.take().map(|mut p| {
         std::thread::spawn(move || {
-            let mut buf = Vec::new();
-            let _ = p.read_to_end(&mut buf);
+            let mut buf = Vec::with_capacity(cap.min(1 << 20));
+            {
+                use std::io::Read;
+                let mut limited = (&mut p).take(cap as u64);
+                let _ = limited.read_to_end(&mut buf);
+            }
+            // Дочитать и выбросить остаток (дренаж трубы).
+            {
+                use std::io::Read;
+                let mut sink = [0u8; 8192];
+                while let Ok(n) = p.read(&mut sink) {
+                    if n == 0 {
+                        break;
+                    }
+                }
+            }
             buf
         })
     });
     let stderr_reader = child.stderr.take().map(|mut p| {
         std::thread::spawn(move || {
-            let mut buf = Vec::new();
-            let _ = p.read_to_end(&mut buf);
+            let mut buf = Vec::with_capacity(cap.min(1 << 20));
+            {
+                use std::io::Read;
+                let mut limited = (&mut p).take(cap as u64);
+                let _ = limited.read_to_end(&mut buf);
+            }
+            {
+                use std::io::Read;
+                let mut sink = [0u8; 8192];
+                while let Ok(n) = p.read(&mut sink) {
+                    if n == 0 {
+                        break;
+                    }
+                }
+            }
             buf
         })
     });
@@ -10571,6 +10705,7 @@ mod tests {
             "bash",
             &["-c", "yes 0123456789abcdef | head -n 20000"],
             Duration::from_secs(15),
+            1 << 20,
         )
         .expect("run_cmd");
         assert!(
@@ -10582,6 +10717,28 @@ mod tests {
             out.stdout.len(),
             17 * 20_000,
             "full stdout must be captured, not truncated by a stall"
+        );
+    }
+
+    // FIND-05: вывод ограничен при ЧТЕНИИ, а не только после (иначе OOM).
+    #[test]
+    fn find05_output_read_is_bounded() {
+        // Пишем ~10 MiB, но читаем с лимитом 64 KiB: буфер не растёт до 10 MiB,
+        // а процесс всё равно доходит до конца (остаток отбрасывается).
+        let out = run_cmd(
+            "bash",
+            &["-c", "yes 0123456789abcdef | head -n 600000"], // ~10.2 MiB
+            Duration::from_secs(30),
+            64 * 1024,
+        )
+        .expect("run_cmd");
+        assert!(!out.timed_out, "bounded read must not deadlock");
+        assert_eq!(out.exit_code, 0);
+        // Прочитано не больше, чем cap (64 KiB + запас), а не все ~10 MiB.
+        assert!(
+            out.stdout.len() <= 64 * 1024 + 64 * 1024,
+            "bounded read must cap memory (got {} bytes)",
+            out.stdout.len()
         );
     }
 }
@@ -10756,7 +10913,7 @@ mod tests {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/src/worker.rs" lang="rust" bytes="10016" lines="293" sha256="bf456e6b45963c86a19288415f4a45e92498c66e434b2f03cb065b2bef67303d" md5="289966d26870e14fe23fea4e281c35b7">
+    <file path="crates/swarm-worker/src/worker.rs" lang="rust" bytes="16438" lines="413" sha256="469550a1de4edcd823afeead391784af10e3706cad75118373d3a4cff1f2ce32" md5="65004935871f837497779c71d2e69d23">
       <content><![CDATA[
 //! Ядро LLM-worker: обработка одной аренды.
 //!
@@ -10769,10 +10926,10 @@ use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
 use crate::storage::ArtifactStore;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use swarm_core::{Lease, SwarmDispatcher};
 use swarm_llm::{LlmClient, LlmError, LlmRequest};
 use tracing::{error, info, warn};
@@ -10824,6 +10981,36 @@ struct HeartbeatGuard {
     handle: Option<thread::JoinHandle<()>>,
 }
 
+/// F5: состояние фонового heartbeat, видимое главному потоку.
+/// Раньше потеря аренды/обрыв соединения только логировались внутри потока:
+/// главный поток продолжал считать, что аренда жива, и тратил LLM-вызов впустую
+/// (а при нестартовавшем потоке вообще терял аренду молча).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum LeaseHealth {
+    Ok = 0,
+    /// Postgres сообщил, что аренда потеряна (heartbeat вернул false).
+    Lost = 1,
+    /// Heartbeat-поток мёртв: не смог подключиться / не смог восстановиться.
+    Dead = 2,
+}
+
+impl LeaseHealth {
+    fn from_u8(v: u8) -> Self {
+        match v {
+            1 => LeaseHealth::Lost,
+            2 => LeaseHealth::Dead,
+            _ => LeaseHealth::Ok,
+        }
+    }
+    fn store(self, a: &AtomicU8) {
+        a.store(self as u8, Ordering::SeqCst);
+    }
+    fn load(a: &AtomicU8) -> Self {
+        Self::from_u8(a.load(Ordering::SeqCst))
+    }
+}
+
 impl Drop for HeartbeatGuard {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::SeqCst);
@@ -10858,23 +11045,34 @@ pub fn process_lease(
         return Ok(blocked_or_review(st, ref_, "budget_exhausted"));
     }
 
-    // Фоновый heartbeat.
+    // Фоновый heartbeat (F5). health — канал fail-fast в главный поток.
+    // started — поток подтвердил подключение (барьер против гонки:
+    // иначе главный поток мог бы проверить health до того, как поток упадёт
+    // при connect).
     let stop = Arc::new(AtomicBool::new(false));
+    let health = Arc::new(AtomicU8::new(LeaseHealth::Ok as u8));
+    let started = Arc::new(AtomicBool::new(false));
     let hb = heartbeat_conn.map(|dsn| {
         let stop = stop.clone();
+        let health = health.clone();
+        let started = started.clone();
         let task_id = lease.task_id;
         let epoch = lease.epoch;
         let worker_id = lease.worker_id.clone();
         let interval = Duration::from_secs((cfg.lease_sec / 3).max(1) as u64);
         let extend = cfg.lease_sec;
         thread::spawn(move || {
+            // F5: нестартовавший поток = мёртвая аренда. Сигналим главному потоку,
+            // что heartbeat не работает, чтобы он сделал fail-fast, а не молчал.
             let mut d = match SwarmDispatcher::connect(&dsn) {
                 Ok(d) => d,
                 Err(e) => {
-                    error!(error = %e, "heartbeat: connect failed");
+                    error!(error = %e, "heartbeat: connect failed (fail-fast)");
+                    LeaseHealth::Dead.store(&health);
                     return;
                 }
             };
+            started.store(true, Ordering::SeqCst);
             while !stop.load(Ordering::SeqCst) {
                 thread::sleep(interval);
                 if stop.load(Ordering::SeqCst) {
@@ -10891,10 +11089,27 @@ pub fn process_lease(
                 match d.heartbeat(&l, extend) {
                     Ok(true) => {}
                     Ok(false) => {
+                        // Постгрес говорит, что аренда потеряна: сигналим fail-fast
+                        // и прекращаем бесполезные heartbeat-циклы.
                         warn!(task_id = %task_id, "lease lost, stopping heartbeat");
+                        LeaseHealth::Lost.store(&health);
                         break;
                     }
-                    Err(e) => error!(error = %e, "heartbeat failed"),
+                    Err(e) => {
+                        // F5: транзиентный обрыв соединения — пробуем восстановиться.
+                        // Раньше ошибка только логировалась, и аренда тихо истекала.
+                        warn!(error = %e, "heartbeat failed, reconnecting");
+                        match SwarmDispatcher::connect(&dsn) {
+                            Ok(nd) => {
+                                d = nd;
+                            }
+                            Err(e2) => {
+                                error!(error = %e2, "heartbeat reconnect failed (fail-fast)");
+                                LeaseHealth::Dead.store(&health);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         })
@@ -10904,8 +11119,44 @@ pub fn process_lease(
         thread::sleep(Duration::from_secs(cfg.work_sec));
     }
 
+    // F5: барьер старта. Ждём, пока heartbeat-поток либо подтвердит подключение
+    // (started), либо умрёт (Dead). Без барьера проверка health могла пройти
+    // до того, как поток упал при connect — и воркер молча продолжал работу.
+    if hb.is_some() {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !started.load(Ordering::SeqCst)
+            && LeaseHealth::load(&health) == LeaseHealth::Ok
+            && Instant::now() < deadline
+        {
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    // F5: fail-fast — если heartbeat уже мёртв/потерян, не тратим LLM-вызов.
+    match LeaseHealth::load(&health) {
+        LeaseHealth::Ok => {}
+        LeaseHealth::Lost => {
+            warn!(task_id = %lease.task_id, "lease lost before LLM call; aborting");
+            drop(hb);
+            return Ok(Outcome::LeaseLost);
+        }
+        LeaseHealth::Dead => {
+            warn!(task_id = %lease.task_id, "heartbeat dead before LLM call; aborting");
+            drop(hb);
+            return Ok(Outcome::LeaseLost);
+        }
+    }
+
     // Вызов LLM с ретраями.
     let result = call_llm_with_retries(llm, &contract, cfg);
+
+    // F5: повторная проверка после LLM — если аренду потеряли во время работы,
+    // не пытаемся сохранять артефакт/завершать (это всё равно LS001).
+    if LeaseHealth::load(&health) != LeaseHealth::Ok {
+        warn!(task_id = %lease.task_id, "lease lost during LLM call; discarding result");
+        drop(hb);
+        return Ok(Outcome::LeaseLost);
+    }
 
     let heartbeat = HeartbeatGuard {
         stop: stop.clone(),
@@ -10918,7 +11169,7 @@ pub fn process_lease(
                 artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
             let storage_path = match ArtifactStore::from_env()? {
                 Some(store) => store.put_verified(&ref_, &path, "text/plain")?,
-                None => path.to_string_lossy().into_owned(),
+                None => local_storage_uri(&path),
             };
             d.save_artifact(
                 lease,
@@ -10949,9 +11200,9 @@ pub fn process_lease(
                 Some("text/plain"),
                 None,
             )?;
-            // Токены выставляем так, чтобы SQL перевёл задачу в blocked.
-            let overspend = (lease.budget_cap - lease.spent_tokens).max(0) + 1;
-            let st = d.complete(lease, &ref_, overspend)?;
+            // F4: честный отказ — без подделки spent_tokens. Причина попадает
+            // в block_reason и в событие completed{failed:true}.
+            let st = d.fail(lease, Some(&ref_), &reason)?;
             blocked_or_review(st, ref_, &reason)
         }
     };
@@ -10972,9 +11223,35 @@ fn blocked_or_review(state: String, artifact_ref: String, reason: &str) -> Outco
 }
 
 fn path_str(cfg: &WorkerConfig, reference: &str) -> String {
-    artifacts::artifact_path(&cfg.artifacts_dir, reference)
-        .to_string_lossy()
-        .into_owned()
+    local_storage_uri(&artifacts::artifact_path(&cfg.artifacts_dir, reference))
+}
+
+/// F1: путь артефакта, видимый потребителю.
+///
+/// Раньше записывался container-локальный путь (например,
+/// `/var/swarm/artifacts/<ref>`), недостижимый из другого контейнера. Теперь:
+///   * если задан `SWARM_ARTIFACTS_VOLUME` — возвращаем URI
+///     `volume://<name>/<relpath>`, который потребитель разрешает в тот же
+///     общий volume;
+///   * иначе — абсолютный путь как есть (совместимость: локальный режим/
+///     тесты без volume).
+///
+/// S3-режим (ArtifactStore) даёт собственный URI и сюда не попадает.
+fn local_storage_uri(path: &std::path::Path) -> String {
+    let path_str = path.to_string_lossy();
+    match std::env::var("SWARM_ARTIFACTS_VOLUME") {
+        Ok(vol) if !vol.trim().is_empty() => {
+            // Отрезаем точку монтирования, оставляя относительный путь в volume.
+            let mount = std::env::var("ARTIFACTS_DIR")
+                .unwrap_or_else(|_| "/var/swarm/artifacts".to_string());
+            let rel = path_str
+                .strip_prefix(&mount)
+                .map(|r| r.trim_start_matches('/'))
+                .unwrap_or(path_str.as_ref());
+            format!("volume://{}/{}", vol.trim(), rel)
+        }
+        _ => path_str.into_owned(),
+    }
 }
 
 /// Артефакт-«ошибка»: сохраняем причину как содержимое, чтобы complete_task
@@ -11053,7 +11330,238 @@ fn _assert_llm_error_is_send_sync(e: LlmError) -> LlmError {
 }
 ]]></content>
     </file>
-    <file path="crates/swarm-worker/tests/worker_integration.rs" lang="rust" bytes="18954" lines="528" sha256="4f96891baa72a63fd7bbf6741bb4f629032ee171a5be429489912ddbdefca20e" md5="5d82325c067782c57941aa87d1ba5f17">
+    <file path="crates/swarm-worker/tests/worker_heartbeat_f5.rs" lang="rust" bytes="7825" lines="227" sha256="b40473024e57bb17b7c895d2feeb5e1e99331e7dae06bd0f3377a39b69fc84f7" md5="23ea6be867a28284a20782618ce0b34f">
+      <content><![CDATA[
+//! F5 — heartbeat fail-fast + reconnect.
+//!
+//! Дефекты (pre-fix):
+//!   1. Потеря аренды (`heartbeat` -> Ok(false)) только логировалась внутри
+//!      фонового потока; главный поток продолжал работу и тратил LLM-вызов.
+//!   2. Ошибка heartbeat (обрыв соединения) логировалась и игнорировалась —
+//!      аренда тихо истекала.
+//!   3. Если heartbeat-поток не стартовал (не смог подключиться), главный поток
+//!      об этом не знал: аренда истекала, а воркер считал, что жива.
+//!
+//! Фикс: общий `LeaseHealth` (Ok/Lost/Dead) между потоком и главным; fail-fast
+//! (Outcome::LeaseLost) до и после LLM-вызова; реконнект при транзиентной
+//! ошибке; `Dead` при нестартовавшем/невосстановимом потоке.
+//!
+//! Запуск (нужен живой Postgres с фикс-схемой; имя БД test_/v0/c2_):
+//!   TEST_DATABASE_URL="host=127.0.0.1 port=55440 user=postgres password=pw dbname=v0worker" \
+//!     cargo test -p swarm-worker --test worker_heartbeat_f5 -- --test-threads=1
+
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::Instant;
+
+use swarm_core::SwarmDispatcher;
+use swarm_llm::{LlmClient, LlmError, LlmRequest, LlmResponse};
+use swarm_worker::{process_lease, Outcome, RetryPolicy, WorkerConfig};
+
+fn dsn() -> String {
+    std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| {
+        "host=127.0.0.1 port=55440 user=postgres password=pw dbname=v0worker".into()
+    })
+}
+
+fn db_name(dsn: &str) -> String {
+    dsn.split_whitespace()
+        .find_map(|p| p.strip_prefix("dbname="))
+        .unwrap_or("")
+        .to_string()
+}
+
+fn clear() {
+    let name = db_name(&dsn());
+    assert!(
+        name.starts_with("test_") || name.starts_with("v0") || name.starts_with("c2_"),
+        "refusing to TRUNCATE non-disposable database {name:?}"
+    );
+    let mut c = postgres::Client::connect(&dsn(), postgres::NoTls).expect("raw connect");
+    c.batch_execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
+        .expect("truncate");
+}
+
+fn raw() -> postgres::Client {
+    postgres::Client::connect(&dsn(), postgres::NoTls).expect("raw")
+}
+
+fn tmpdir(tag: &str) -> PathBuf {
+    let d = std::env::temp_dir().join(format!(
+        "swarm_hb_f5_{tag}_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&d).unwrap();
+    d
+}
+
+fn cfg(dir: &PathBuf, lease_sec: i32) -> WorkerConfig {
+    WorkerConfig {
+        artifacts_dir: dir.clone(),
+        lease_sec,
+        max_tokens: 4096,
+        llm_timeout_sec: 5,
+        retry: RetryPolicy::default(),
+        work_sec: 0,
+    }
+}
+
+fn contract_json() -> serde_json::Value {
+    serde_json::json!({
+        "kind": "code.generate",
+        "checks": [{"type": "cmd", "run": "true"}],
+        "needs": {},
+        "budget": {"attempts": 3, "max_rework": 2}
+    })
+}
+
+fn ready_task(worker: &str) -> uuid::Uuid {
+    let t = uuid::Uuid::new_v4();
+    let mut c = raw();
+    c.execute(
+        "select register_worker($1, '{\"ram_gb\":16}'::jsonb)",
+        &[&worker],
+    )
+    .unwrap();
+    c.execute(
+        "select add_task($1, null, $2::jsonb, 100000, 0)",
+        &[&t, &contract_json()],
+    )
+    .unwrap();
+    c.execute("select promote_ready()", &[]).unwrap();
+    t
+}
+
+struct MockLlm {
+    body: String,
+    calls: AtomicUsize,
+}
+
+impl MockLlm {
+    fn ok(body: &str) -> Self {
+        Self {
+            body: body.to_string(),
+            calls: AtomicUsize::new(0),
+        }
+    }
+    fn calls(&self) -> usize {
+        self.calls.load(Ordering::SeqCst)
+    }
+}
+
+impl LlmClient for MockLlm {
+    fn complete(&self, _req: &LlmRequest) -> Result<LlmResponse, LlmError> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        Ok(LlmResponse {
+            text: self.body.clone(),
+            tokens_in: 1,
+            tokens_out: 1,
+            model: "mock".into(),
+        })
+    }
+}
+
+fn state_of(t: uuid::Uuid) -> String {
+    raw().query_one("select state from tasks where id=$1", &[&t])
+        .unwrap()
+        .get(0)
+}
+
+// ---------- 1. heartbeat thread cannot start -> fail-fast, LLM not called ----------
+
+#[test]
+fn f5_dead_heartbeat_fails_fast_without_llm() {
+    clear();
+    let mut d = SwarmDispatcher::connect(&dsn()).unwrap();
+    let dir = tmpdir("dead");
+    let _t = ready_task("w1");
+    let lease = d.claim("w1", 3).unwrap().expect("lease"); // lease=3 -> interval=1s
+
+    // Искусственно битый DSN для heartbeat: поток не сможет подключиться.
+    let bad = "host=127.0.0.1 port=1 user=nobody password=nope dbname=nope";
+    let llm = MockLlm::ok("should-not-be-used");
+    let c = cfg(&dir, 3);
+
+    let out = process_lease(&mut d, &lease, &llm, &c, Some(bad.to_string())).unwrap();
+    assert!(
+        matches!(out, Outcome::LeaseLost),
+        "F5: нестартовавший heartbeat должен дать LeaseLost, получено {out:?}"
+    );
+    assert_eq!(
+        llm.calls(),
+        0,
+        "F5: при мёртвом heartbeat LLM не должен вызываться (fail-fast)"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// ---------- 2. healthy heartbeat -> normal review ----------
+
+#[test]
+fn f5_healthy_heartbeat_completes_normally() {
+    clear();
+    let mut d = SwarmDispatcher::connect(&dsn()).unwrap();
+    let dir = tmpdir("ok");
+    let _t = ready_task("w1");
+    let lease = d.claim("w1", 9).unwrap().expect("lease"); // lease=9 -> interval=3s
+    let llm = MockLlm::ok("done-body");
+    let c = cfg(&dir, 9);
+
+    let out = process_lease(&mut d, &lease, &llm, &c, Some(dsn())).unwrap();
+    assert!(
+        matches!(out, Outcome::Review { .. }),
+        "F5: здоровый heartbeat -> Review, получено {out:?}"
+    );
+    assert_eq!(llm.calls(), 1);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// ---------- 3. lease removed underneath -> LeaseLost (fail-fast) ----------
+
+#[test]
+fn f5_lease_revoked_mid_flight_fails_fast() {
+    clear();
+    let mut d = SwarmDispatcher::connect(&dsn()).unwrap();
+    let dir = tmpdir("revoked");
+    let t = ready_task("w1");
+    let lease = d.claim("w1", 3).unwrap().expect("lease"); // interval=1s
+
+    // Отбираем аренду в watch-dog-стиле: задача уходит обратно в ready,
+    // lease_owner сбрасывается -> heartbeat вернёт false.
+    raw()
+        .execute(
+            "update tasks set state='ready', lease_owner=null, lease_until=null where id=$1",
+            &[&t],
+        )
+        .unwrap();
+
+    // work_sec=2 > interval(1s): heartbeat успеет обнаружить потерю до LLM.
+    let mut c = cfg(&dir, 3);
+    c.work_sec = 2;
+    let llm = MockLlm::ok("late");
+    let started = Instant::now();
+    let out = process_lease(&mut d, &lease, &llm, &c, Some(dsn())).unwrap();
+    let elapsed = started.elapsed();
+
+    assert!(
+        matches!(out, Outcome::LeaseLost),
+        "F5: потерянная аренда -> LeaseLost, получено {out:?}"
+    );
+    assert!(
+        elapsed.as_secs() < 30,
+        "F5: fail-fast должен прерваться, а не ждать весь lease; прошло {elapsed:?}"
+    );
+    // Задача не должна быть завершена воркером.
+    assert_ne!(state_of(t), "review");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+]]></content>
+    </file>
+    <file path="crates/swarm-worker/tests/worker_integration.rs" lang="rust" bytes="19089" lines="529" sha256="3edf9942efbcff47dd4999e073feb4f85357195deea991b73173f15bd3c8dce8" md5="d265ce3373b049438b9e01081ab2bff2">
       <content><![CDATA[
 //! Интеграционные тесты LLM-worker: mock LLM, реальный Postgres.
 //!
@@ -11440,7 +11948,8 @@ fn worker_artifact_passes_review() {
         Outcome::Review { artifact_ref } => artifact_ref,
         other => panic!("got {other:?}"),
     };
-    let checks = serde_json::json!([{"type": "cmd", "status": "pass", "exit_code": 0}]);
+    // F2: ключ проверки = coalesce(id, type||'|'||run); отчёт обязан совпасть по run.
+    let checks = serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]);
     let st = d
         .submit_review(t, &reference, "rev", Verdict::Approved, &checks)
         .unwrap();
