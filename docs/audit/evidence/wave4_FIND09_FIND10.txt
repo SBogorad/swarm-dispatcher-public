@@ -1,0 +1,16 @@
+### FIND-09 + FIND-10 — закрытие | 2026-10-11T08:21:02+07:00
+
+=== FIND-09 (LOW, доки): MSRV сведён к Cargo.toml ===
+Было: Cargo.toml rust-version=1.94.1, а README (x2) и KNOWN_LIMITATIONS §6.1 — 1.85.
+Стало: везде 1.94.1 (README строки 27-28, 152; KNOWN_LIMITATIONS §6.1).
+15:rust-version = "1.94.1"
+
+=== FIND-10 (LOW): наборы патчей compose и harness совпадают ===
+compose mounts:
+  25:      - ./step2/roles_patch_planner_status.sql:/sql/roles_patch_planner_status.sql:ro
+  26:      - ./step2/roles_patch_tool_call_audit.sql:/sql/roles_patch_tool_call_audit.sql:ro
+  144:      # Роль swarm_planner; грант на task_status — roles_patch_planner_status.sql.
+harness mounts:
+  360:    -v "$WORKTREE/step2/roles_patch_planner_status.sql:/c2/patch_planner.sql:ro"
+  361:    -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
+Дивергенция по submit_review устранена ещё в F16г (патч удалён) — наборы идентичны.
