@@ -375,8 +375,33 @@ check_integration_not_ignored() {
     "grep -cE '^(sandbox|agent_loop)_' ${TEST_NAMES_FILE}"
 }
 
-compose_check() {
-  local env_file rendered
+# Волна 5.2: backup/restore арбитр (KNOWN_LIMITATIONS 5.1).
+# Дамп disposable-БД восстанавливается в новую БД и проходит verify_chain.
+backup_restore_check() {
+  [[ "$DB_READY" == 1 ]] || { status FAIL "backup/restore requires provisioned DB" 1 ""; return 0; }
+  local tmp
+  tmp="$(mktemp -d)"
+  # DATABASE_URL для ops/db_backup.sh (postgres://-форма).
+  local url="postgres://postgres:${DB_PASSWORD}@127.0.0.1:${TEST_DB_PORT}/${TEST_DB_NAME}"
+  if ! (cd "$WORKTREE" && DATABASE_URL="$url" ./ops/db_backup.sh dump "$tmp") >/dev/null 2>&1; then
+    status FAIL "backup/restore: dump failed" 1 "ops/db_backup.sh dump"
+    rm -rf "$tmp"; return 0
+  fi
+  local dump
+  dump="$(ls -t "$tmp"/*.dump 2>/dev/null | head -1)"
+  if [[ -z "$dump" ]]; then
+    status FAIL "backup/restore: no dump produced" 1 "ops/db_backup.sh dump"
+    rm -rf "$tmp"; return 0
+  fi
+  if (cd "$WORKTREE" && DATABASE_URL="$url" ./ops/db_backup.sh verify "$dump") >/dev/null 2>&1; then
+    status PASS "backup/restore round-trip verified" 0 "ops/db_backup.sh verify"
+  else
+    status FAIL "backup/restore: verify failed" 1 "ops/db_backup.sh verify"
+  fi
+  rm -rf "$tmp"
+}
+
+compose_check() {  local env_file rendered
   env_file="$(mktemp)"
   cat >"$env_file" <<'ENV'
 DB_PASSWORD=dummy_db_password
@@ -609,6 +634,9 @@ if ((FULL_WORKSPACE_TEST)); then
     # интеграционные тесты, а не молча их пропустил. Защита от возврата дефекта:
     # предыдущий инцидент — 21 тест игнорировался, а гейт был "зелёным".
     check_integration_not_ignored
+    # Волна 5.2: backup/restore арбитр (охват KNOWN_LIMITATIONS 5.1). Дамп
+    # disposable-БД восстанавливается в новую БД + verify_chain по задачам.
+    run_step "backup/restore round-trip (ops/db_backup.sh verify)" backup_restore_check
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi
