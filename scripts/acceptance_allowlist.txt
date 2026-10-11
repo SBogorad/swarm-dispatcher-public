@@ -52,3 +52,6 @@ docs/ci/*
 # MSRV correction required by the G1 toolchain pin.
 Cargo.toml
 Cargo.lock
+
+# Волна 5.1: пакеты аудита/релизов не версионируются (outbox/ исключён).
+.gitignore
