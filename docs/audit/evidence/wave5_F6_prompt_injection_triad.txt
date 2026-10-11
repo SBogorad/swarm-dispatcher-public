@@ -1,0 +1,30 @@
+### F6 — Prompt Injection (закрывающий </untrusted>) | 2026-10-11T10:53:30+07:00
+
+Дефект: wrap_untrusted слепо оборачивал текст
+  format!("<untrusted>{s}</untrusted>")
+Текст задачи с '</untrusted>' закрывал блок досрочно; всё после — вне пометки
+'недоверенное' и трактуется как инструкции. Аналогично: вывод инструментов
+sandbox и вход планировщика (task_text/context/expected).
+
+Фикс: внутри тегов < и > нейтрализуются (&lt;/&gt;) — маркер в любом
+регистре/с пробелами не закрывает блок. Обёрнуты: description (worker),
+история tool calls (agent_loop), task_text/context/expected (planner).
+
+=== Триада (арбитр tests/test_f6_prompt_injection.sh) ===
+[RED pre-fix  ] planner::user_prompt_neutralizes_closing_tag_injection FAILED
+                (rc=101; assert: ровно один </untrusted> — наш)
+                ARBITER: RED (ожидаемо для pre-fix)
+[GREEN fixed  ] worker 6 passed, planner 4 passed; ARBITER: GREEN
+[RED after revert] тот же тест снова FAILED; ARBITER: RED
+[GREEN повторно] ARBITER: GREEN
+
+=== RED raw ===
+test prompt::tests::user_prompt_optional_parts ... ok
+thread 'prompt::tests::user_prompt_neutralizes_closing_tag_injection' (2128870) panicked at crates/swarm-planner/src/prompt.rs:106:9:
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+ARBITER: RED (ожидаемо для pre-fix)
+=== GREEN raw ===
+test prompt::tests::user_prompt_neutralizes_closing_tag_injection ... ok
+test prompt::tests::user_prompt_optional_parts ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+ARBITER: GREEN (ожидаемо)
