@@ -226,10 +226,16 @@
   Изоляция самого sandbox (`cap_drop ALL`, `read_only`, `network none`,
   `no-new-privileges`) защищает от **команд LLM**, но не от
   скомпрометированного воркера.
-- **Как включить (осознанно):** добавить воркеру сервису
-  `volumes: ["/var/run/docker.sock:/var/run/docker.sock"]` и
-  `WORKER_SHELL_TOOLS=1`, предварительно собрав образ
-  `docker build -t agent-sandbox:1.85 sandbox/`.
+- **Как включить (осознанно, Волна 5.2):** НЕ монтировать сокет напрямую.
+  Использовать socket-proxy с белым списком Docker API
+  (`ops/docker-compose.shell-tools.yml` + `ops/docker-socket-proxy.md`): воркер
+  получает `DOCKER_HOST=tcp://socket-proxy:2375`, а прокси пропускает только
+  `CONTAINERS/EXEC/IMAGES/INFO/PING`. Это сужает поверхность, но НЕ устраняет
+  полностью (прокси фильтрует эндпоинты, не тело запроса — привилегированный
+  контейнер всё ещё возможен без rootless-daemon). Включать только на выделенном
+  стенде, значение `WORKER_SHELL_TOOLS=1` в базовый compose/CI НЕ добавлять.
+  Прямое монтирование `/var/run/docker.sock` — только как лабораторный обход.
+  Образ песочницы: `docker build -t agent-sandbox:1.85 sandbox/`.
 - **Когда:** в v0.4+/v1.0 — когда появится отдельный runner-хост или
   rootless-вариант (Podman / Docker rootless / sysbox).
 - **Обход для проверки:** запускать `worker_sandbox`-тесты с хоста, где Docker

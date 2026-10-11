@@ -1,0 +1,44 @@
+# Docker socket proxy для shell-tools (Волна 5.2, см. ops/docker-socket-proxy.md).
+#
+# НЕ включается по умолчанию. Запуск на выделенном стенде:
+#   docker compose -f docker-compose.yml -f ops/docker-compose.shell-tools.yml up
+#
+# Воркеры ходят к Docker через прокси с белым списком API вместо прямого
+# монтирования /var/run/docker.sock. Прокси — сужение поверхности, не полное
+# устранение (см. «Остаточный риск» в ops/docker-socket-proxy.md).
+services:
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.2
+    environment:
+      CONTAINERS: "1"
+      EXEC: "1"
+      IMAGES: "1"
+      INFO: "1"
+      PING: "1"
+      POST: "1"
+      BUILD: "0"
+      COMMIT: "0"
+      CONFIGS: "0"
+      SWARM: "0"
+      SECRETS: "0"
+      NODES: "0"
+      SERVICES: "0"
+      VOLUMES: "0"
+      NETWORKS: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  worker-1:
+    environment:
+      WORKER_SHELL_TOOLS: "1"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    depends_on:
+      - socket-proxy
+
+  worker-2:
+    environment:
+      WORKER_SHELL_TOOLS: "1"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    depends_on:
+      - socket-proxy
