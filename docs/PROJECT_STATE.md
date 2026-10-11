@@ -11,15 +11,19 @@ Reference implementation распределённой оркестрации И�
 
 ## Что уже существует
 
+> **Актуально на v0.5.2 (2026-10-12).** Таблица ниже — историческая (v0.2);
+> текущее состояние проверяется `scripts/acceptance_harness.sh --full-workspace-test`
+> (8 шагов, 536 имён тестов, `release_gate: STRICT`) и мутационным прогоном
+> `scripts/run_mutations_v04.sh` (M1–M6: 6/6, 0 выживших).
+
 | Артефакт | Статус | Что внутри |
 |----------|--------|-----------|
-| `schema_v0.sql` | Готов, 26 тестов проходят | DDL + 14 SQL-функций |
-| `test_v0.py` | Готов | 26 тестов инвариантов на Postgres 16 |
-| `TZ_executor_v0.md` | Готов | ТЗ для агента-исполнителя (Python-обёртка, сторож, воркер) |
-| `ARCHITECTURE_DECISIONS.md` | Готов | Ключевые решения и обоснования |
-| `AUDIT_HISTORY.md` | Готов | Что было найдено и исправлено |
-| `CLAUDE_DIALOGUE.md` | Готов | Ключевые обмены с Claude (диагнозы, правки) |
-| `NEXT_STEPS.md` | Готов | Что делать дальше |
+| `schema/schema_v0.sql` | Готов | DDL + SQL-функции, строгая валидация контракта (реестр типов проверок) |
+| `tests/` + `step2/` + `step2b/` | Готовы | Python-арбитры: RBAC, identity/SET ROLE, review-gate, FSM, F15/F4/FIND-04/F2 |
+| `crates/` (Rust workspace) | Готов | core, planner, worker (+shell-tools), watchdog, llm, cli |
+| `scripts/acceptance_harness.sh` | Готов | Единый релизный гейт (disposable PG16 + Docker + мутации в CI) |
+| `ops/docker-socket-proxy.md` | Готов | Socket-proxy с белым списком Docker API (вместо голого сокета) |
+| `docs/` | Готов | ARCHITECTURE, KNOWN_LIMITATIONS, CHANGELOG, TZ-volumes, аудит-журналы |
 
 ## Что в `schema_v0.sql`
 
@@ -37,7 +41,7 @@ Reference implementation распределённой оркестрации И�
 `claim_task`, `heartbeat`, `save_artifact`, `complete_task`, `submit_review`,
 `reclaim_expired`, `reopen_task`, `unblock_task`, `append_event`, `verify_chain`.
 
-**Коды ошибок (SQLSTATE):** LS001, AR001, CT001, GR000–GR009, RV001–RV003,
+**Коды ошибок (SQLSTATE):** LS001, AR001, CT001, GR000–GR009, RV001–RV003, WK001–WK003.
 WK001, WK002. Полная таблица — в `TZ_executor_v0.md`, раздел 3.3.
 
 ## Что НЕ в v0 (сознательно отложено)
