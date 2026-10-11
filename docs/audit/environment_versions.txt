@@ -1,0 +1,9 @@
+# Версии окружения аудита/верификации
+# Ревизия кода: 188e63604adf9782e1d451de57e9d2e24e4ea10e
+# Дата: 2026-10-11T10:12:45+07:00
+
+PostgreSQL: 16.15 (postgres:16-alpine) — подтверждено live: SELECT version()
+  PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+Docker: 29.7.2 (build a7dcaa6fdb)
+Rust: rustc 1.99.0 (b940084d7 2026-09-28)
+Sandbox image: agent-sandbox:1.85 (runtime base debian:trixie-slim)
