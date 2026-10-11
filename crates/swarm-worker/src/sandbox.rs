@@ -357,7 +357,7 @@ impl Sandbox {
     /// Это не эскалация за песочницу (контейнер read-only, без docker.sock), но
     /// позволяет инъекцию сборки внутри неё — закрываем превентивно.
     pub fn write_file(&self, path: &str, content: &str) -> Result<ExecOutput> {
-        if let Some(reason) = cargo_config_write_reason(path) {
+        if let Some(reason) = forbidden_write_reason(path) {
             return Err(WorkerError::AllowlistRejected {
                 command: format!("write_file {path}"),
                 reason,
@@ -579,6 +579,38 @@ fn cargo_config_write_reason(path: &str) -> Option<String> {
     None
 }
 
+/// N6 (Волна 5.3): запись в управляющие файлы git — RCE мимо allowlist.
+///
+/// Внешний аудит (проверено на живом коде): `write_file` в `.git/config`
+/// позволяет задать `core.fsmonitor`, `filter.*` или `alias.*` — исполняемые
+/// команды. После этого РАЗРЕШЁННАЯ команда `git status` запускает произвольный
+/// код, минуя проверку argv. `.gitattributes`/`.gitmodules` задают
+/// `filter=`/`diff=`-драйверы, подтягивающие команды из конфига. Запрещаем
+/// любой компонент `.git` в пути (как `.cargo`), а также файлы `.gitconfig`,
+/// `.gitattributes`, `.gitmodules` в корне рабочего дерева.
+fn git_config_write_reason(path: &str) -> Option<String> {
+    let normalized = path.replace('\\', "/");
+    let comps: Vec<&str> = normalized.split('/').filter(|c| !c.is_empty()).collect();
+    if comps.contains(&".git") {
+        return Some(format!(
+            "запись под .git/ запрещена (RCE через core.fsmonitor/filter/alias/hooks): {path}"
+        ));
+    }
+    if let Some(last) = comps.last() {
+        if matches!(*last, ".gitconfig" | ".gitattributes" | ".gitmodules") {
+            return Some(format!(
+                "запись в git-конфигурацию запрещена (filter/diff/fsmonitor): {path}"
+            ));
+        }
+    }
+    None
+}
+
+/// Единая проверка путей, запрещённых к записи инструментом `write_file`.
+fn forbidden_write_reason(path: &str) -> Option<String> {
+    cargo_config_write_reason(path).or_else(|| git_config_write_reason(path))
+}
+
 /// Запустить процесс, записав `stdin_data` в stdin (для `write_file`).
 fn run_cmd_stdin(
     bin: &str,
@@ -729,6 +761,24 @@ mod tests {
             joined.contains("no-new-privileges:true"),
             "нет no-new-privileges"
         );
+        // N7 (Волна 5.3): НЕГАТИВНЫЕ проверки (критерий внешнего аудита) —
+        // аргументы запуска не должны содержать эскалацию или доступ к хосту.
+        assert!(
+            !args.iter().any(|a| a == "--privileged"),
+            "--privileged запрещён: {joined}"
+        );
+        assert!(!args.iter().any(|a| a == "--cap-add"), "--cap-add запрещён");
+        // Никаких bind-mount'ов хоста: только tmpfs (начинаются с '--tmpfs').
+        assert!(
+            !args.iter().any(|a| a.starts_with("--volume") || a == "-v"),
+            "bind-mount хоста запрещён: {joined}"
+        );
+        // Путь хоста '/' не должен фигурировать как том.
+        assert!(
+            !joined.contains("-v /"),
+            "нельзя монтировать хост: {joined}"
+        );
+        assert!(!joined.contains("/:/host"), "нельзя монтировать /:/host");
         assert!(joined.contains("--memory 2g"), "нет лимита памяти");
         assert!(joined.contains("--cpus 2"), "нет лимита cpu");
         assert!(
@@ -932,6 +982,57 @@ mod f12_tests {
         // голый config.toml тоже перекрывает сборку (CARGO_HOME=/workspace)
         assert!(cargo_config_write_reason("config.toml").is_some());
         assert!(cargo_config_write_reason("config").is_some());
+    }
+
+    // ---------- N6 (Волна 5.3): запрет записи в git-конфигурацию ----------
+
+    #[test]
+    fn git_config_paths_are_rejected() {
+        // Критерий внешнего аудита: любой компонент `.git` запрещён целиком
+        // (хуки, core.fsmonitor, filter.* исполняют команды), а также
+        // .gitattributes/.gitmodules/.gitconfig, задающие filter/diff-драйверы.
+        for p in [
+            ".git/config",
+            ".git/hooks/pre-commit",
+            "sub/.git/config",
+            "/workspace/.git/config",
+            "../.git/config",
+            ".gitattributes",
+            "sub/.gitattributes",
+            ".gitmodules",
+            ".gitconfig",
+        ] {
+            assert!(
+                git_config_write_reason(p).is_some(),
+                "путь обязан быть запрещён: {p}"
+            );
+        }
+    }
+
+    #[test]
+    fn normal_git_like_paths_are_allowed() {
+        // Обычные файлы (в т.ч. с «git» в имени) не задеваются.
+        for p in [
+            "src/main.rs",
+            "notes.txt",
+            "docs/git-guide.md",
+            ".gitignore",
+        ] {
+            assert!(
+                git_config_write_reason(p).is_none(),
+                "путь обязан быть разрешён: {p}"
+            );
+        }
+    }
+
+    #[test]
+    fn forbidden_write_reason_covers_both_cargo_and_git() {
+        // Единая точка: и cargo-, и git-векторы отвергаются одним вызовом.
+        assert!(forbidden_write_reason(".cargo/config.toml").is_some());
+        assert!(forbidden_write_reason("config.toml").is_some());
+        assert!(forbidden_write_reason(".git/config").is_some());
+        assert!(forbidden_write_reason(".gitattributes").is_some());
+        assert!(forbidden_write_reason("src/main.rs").is_none());
     }
 
     // ---------- N4: конфиг sandbox из окружения ----------

@@ -48,6 +48,15 @@ const DENIED_GIT_OPTS: &[&str] = &[
 ];
 const DENIED_CARGO_OPTS: &[&str] = &["--config", "-Z", "--rustc", "--wrapper"];
 
+/// N5 (Волна 5.3): опасные опции конкретных подкоманд `git`.
+///
+/// `rebase` сам по себе безопасен (код не исполняет), но `-x`/`--exec`
+/// запускают произвольную команду на каждом коммите — это RCE в обход
+/// whitelist подкоманд. Найдено внешним аудитом: `git rebase -x id HEAD~1`
+/// проходил все проверки.
+const DENIED_GIT_SUBCMD_OPTS: &[(&str, &[&str])] =
+    &[("rebase", &["--exec", "-x", "--interactive", "-i"])];
+
 /// F11-доп (Волна 5.2): строгий whitelist ПОДКОМАНД `git`.
 ///
 /// Чёрного списка опций недостаточно: `git config core.pager "sh -c ..."`
@@ -295,6 +304,38 @@ fn check_vcs_tool_subcommands(base: &str, tokens: &[String], command: &str) -> R
             command: command.to_string(),
             reason: format!("подкоманда {base} '{sub}' не в whitelist"),
         });
+    }
+    // N5 (Волна 5.3): адресно отклоняем исполняющие опции разрешённых подкоманд
+    // (`git rebase -x/--exec`). Whitelist подкоманд их не ловит, т.к. `rebase`
+    // сам по себе разрешён.
+    if base == "git" {
+        if let Some(denied) = DENIED_GIT_SUBCMD_OPTS
+            .iter()
+            .find(|(s, _)| *s == sub_lc.as_str())
+            .map(|(_, opts)| *opts)
+        {
+            for t in tokens.iter().skip(1) {
+                let raw = t.split('=').next().unwrap_or(t);
+                for d in denied {
+                    let hit = if let Some(_long) = d.strip_prefix("--") {
+                        t == d || t.starts_with(&format!("{d}="))
+                    } else {
+                        // короткий флаг: точное совпадение, слитная форма
+                        // (`-xcmd`) или кластер (`-ix cmd`).
+                        raw == *d
+                            || (raw.starts_with('-')
+                                && !raw.starts_with("--")
+                                && raw[1..].contains(&d[1..]))
+                    };
+                    if hit {
+                        return Err(WorkerError::AllowlistRejected {
+                            command: command.to_string(),
+                            reason: format!("запрещённая опция {base} {sub_lc} '{t}'"),
+                        });
+                    }
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -684,5 +725,37 @@ mod tests {
         assert!(al().check("git --no-pager log").is_ok());
         assert!(al().check("cargo test --release").is_ok());
         assert!(al().check("cargo clippy -- -D warnings").is_ok());
+    }
+
+    // ---------- N5 (Волна 5.3): опасные опции подкоманд git ----------
+
+    #[test]
+    fn n5_rejects_git_rebase_exec() {
+        // Найдено внешним аудитом (Claude, проверено запуском): `git rebase`
+        // разрешён как подкоманда, но `-x`/`--exec` исполняют переданную команду
+        // на каждом коммите, а `-i`/`--interactive` позволяет вписать `exec`
+        // в todo-лист — RCE в обход whitelist подкоманд.
+        for cmd in [
+            "git rebase -x id HEAD~1",
+            "git rebase --exec 'id' HEAD~1",
+            "git rebase --exec=id HEAD~1",
+            "git rebase -i -x sh HEAD~3",
+            "git rebase --interactive -xevil HEAD~3",
+            "git rebase -i HEAD~3",
+            "git rebase --interactive HEAD~3",
+            "git rebase -ix sh HEAD~2",
+        ] {
+            assert!(al().check(cmd).is_err(), "должно быть отклонено: {cmd}");
+        }
+    }
+
+    #[test]
+    fn n5_allows_plain_rebase() {
+        // Безопасные (не-исполняющие) формы rebase не задеваются.
+        assert!(al().check("git rebase main").is_ok());
+        assert!(al().check("git rebase --continue").is_ok());
+        assert!(al().check("git rebase --abort").is_ok());
+        assert!(al().check("git rebase --onto main base topic").is_ok());
+        assert!(al().check("git rebase --autostash main").is_ok());
     }
 }
