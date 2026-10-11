@@ -202,6 +202,17 @@ with open(os.environ["EVENT_FILE"], encoding="utf-8") as f:
         state, code, label, command = line.rstrip("\n").split("\t", 3)
         events.append({"status": state, "exit_code": int(code), "label": label, "command": command})
 test_suites = read_tests(os.environ.get("TEST_NAMES_FILE", ""))
+# Волна 5.3: честная статистика имён. Группы пересекаются (lib-юниты входят
+# в full-workspace-прогон), поэтому сумма строк > числа уникальных. Приводим оба,
+# чтобы «N тестов» нельзя было прочитать как «N разных покрытых случаев».
+_all = [t for s in test_suites for t in s["tests"]]
+_unique = sorted(set(_all))
+test_counts = {
+    "rows_total": len(_all),
+    "unique_names": len(_unique),
+    "duplicates": len(_all) - len(_unique),
+    "note": "rows_total суммирует группы (возможны пересечения); unique_names — честное число разных имён",
+}
 artifacts = [{"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]}]
 tests_path = os.environ.get("TEST_NAMES_FILE", "")
 if tests_path and sha256_of(tests_path):
@@ -220,10 +231,15 @@ with open(os.environ["ATTESTATION_FILE"], "w", encoding="utf-8") as f:
         "credentials_redacted": bool(int(os.environ["CREDENTIALS_REDACTED"])),
         "statuses": events,
         "test_names": test_suites,
+        "test_counts": test_counts,
         "log": {"path": os.environ["SEALED_LOG_FILE"], "sha256": os.environ["log_sha"]},
         "artifacts": artifacts,
     }, f, indent=2, sort_keys=True)
     f.write("\n")
+    # Волна 5.3: печатаем честную статистику имён в стандартный вывод harness,
+    # чтобы «N тестов» нельзя было прочитать по-разному.
+    print("[test-names] rows_total=%d unique=%d duplicates=%d" % (
+        test_counts["rows_total"], test_counts["unique_names"], test_counts["duplicates"]))
 PY
 }
 
