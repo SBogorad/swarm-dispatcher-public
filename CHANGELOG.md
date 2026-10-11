@@ -44,6 +44,17 @@ Hardening по итогам трёх внешних аудитов v0.5.1 и п�
 
 ### Added
 
+- **`ops/db_backup.sh`** — dump/restore/verify с контрольной суммой и
+  проверкой восстановления в disposable-БД (`verify_chain` по задачам).
+  Закрывает практическую часть ограничения 5.1; шаг `backup/restore` добавлен
+  в acceptance harness.
+- **`ops/docker-socket-proxy.md` + `ops/docker-compose.shell-tools.yml`** —
+  socket-proxy с белым списком Docker API (CONTAINERS/EXEC/IMAGES/INFO/PING)
+  вместо прямого монтирования `/var/run/docker.sock`. Не включено по умолчанию.
+- **CI job `mutations`** (`.github/workflows/release-gate.yml`) — мутационное
+  тестирование M1–M6, fail on survivors; выживший мутант теперь валит CI.
+- **Fail-closed `check_integration_not_ignored`** — гейт не может «пройти»,
+  не выполнив интеграционные тесты.
 - Тесты слоёв allowlist: L1/L7/L8/L9/L10/L11/L12 (мутационно проверены,
   выживших нет) + поведенческий арбитр whitelist подкоманд (`56c317b`).
 - Артефакт `harness-*.tests.txt` и поле `test_names` в attestation —
@@ -51,6 +62,11 @@ Hardening по итогам трёх внешних аудитов v0.5.1 и п�
 
 ### Fixed
 
+- **7 дефектов тест-инфраструктуры** (найдены ночным прогоном): SIGPIPE+pipefail
+  в FIND-01; `run_mutations_v04.sh` без `--ignored` (4/6 ложных выживших); гейт
+  игнорировал 21 интеграционный тест; устаревшая копия `integration.rs`;
+  doc-блок `ignore` с псевдокодом; W4-арбитры не запускались (38 за BLOCKED);
+  их же не изолированность (lease_lost).
 - **FIND-01 в harness был вакуумным** (`bf191f4`). Негативная проверка искала
   `swarm_worker::sandbox` в форме `::`, но rustc мангалит как
   `swarm_worker7sandbox` → grep всегда давал 0, шаг PASS-ил при реальной
