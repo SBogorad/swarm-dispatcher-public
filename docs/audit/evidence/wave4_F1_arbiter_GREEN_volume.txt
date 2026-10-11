@@ -1,0 +1,10 @@
+### F1 arbiter — GREEN (общий volume) | 2026-10-11T07:21:08+07:00
+### worker-1 writes -> restart -> read from cli container -> sha256 matches
+
+[f1] bringing up stack (project=f1arb)
+[f1] task=167af6c4-0ea7-4b9d-9b1e-3f3667a5de4c
+[f1] state after worker: review
+[f1] ref=sha256:303069d4fe6fd971d409b8cb04038b6528572f7c2ffd0fd21b2228af3c9fb4da
+[f1] storage_path=volume://swarm-artifacts/303069d4fe6fd971d409b8cb04038b6528572f7c2ffd0fd21b2228af3c9fb4da.txt
+[f1] sha256 read from cli container: 303069d4fe6fd971d409b8cb04038b6528572f7c2ffd0fd21b2228af3c9fb4da
+[f1] PASS: artifact visible across containers and content matches ref

@@ -24,7 +24,8 @@ Postgres-центричный диспетчер задач с канбан-по
 
 ## Требования
 
-- **Rust 1.85+** (из-за `edition2024` в транзитивных зависимостях).
+- **Rust 1.94.1+** (из-за `edition2024` в транзитивных зависимостях; MSRV
+ задан в `Cargo.toml` как `rust-version = "1.94.1"`).
 - **Postgres 16+** (проверено на 16.4 и 18.6).
 - **Docker + Docker Compose** (для production-пути).
 - ИЛИ **Linux + Postgres в user-space** (для dev-пути без root).
@@ -148,7 +149,7 @@ swarm-dispatcher/
 ├── MANIFEST.md                  # карта репозитория
 ├── CHANGELOG.md                 # история версий
 ├── LICENSE                      # MIT
-├── Cargo.toml                   # workspace, rust-version = 1.85
+├── Cargo.toml                   # workspace, rust-version = 1.94.1
 ├── Dockerfile                   # rust:1.98-slim + Debian runtime
 ├── docker-compose.yml           # postgres + watchdog + 2 воркера + cli
 ├── .env.example

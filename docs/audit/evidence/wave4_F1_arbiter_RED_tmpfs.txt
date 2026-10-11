@@ -1,0 +1,10 @@
+### F1 arbiter — RED after revert (per-container tmpfs) | 2026-10-11T07:22:56+07:00
+### worker-1 writes to its own tmpfs; storage_path = container-local path
+### expectation: arbiter FAILS (not a consumer-readable URI / not visible in cli)
+
+[f1] bringing up stack (project=f1arb)
+[f1] task=afe59ac5-b59d-41bd-9100-88299b2f601f
+[f1] state after worker: review
+[f1] ref=sha256:303069d4fe6fd971d409b8cb04038b6528572f7c2ffd0fd21b2228af3c9fb4da
+[f1] storage_path=/var/swarm/artifacts/303069d4fe6fd971d409b8cb04038b6528572f7c2ffd0fd21b2228af3c9fb4da.txt
+[f1] FAIL: storage_path is not a consumer-readable URI: /var/swarm/artifacts/303069d4fe6fd971d409b8cb04038b6528572f7c2ffd0fd21b2228af3c9fb4da.txt

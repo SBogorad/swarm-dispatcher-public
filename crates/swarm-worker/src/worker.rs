@@ -252,7 +252,7 @@ pub fn process_lease(
                 artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
             let storage_path = match ArtifactStore::from_env()? {
                 Some(store) => store.put_verified(&ref_, &path, "text/plain")?,
-                None => path.to_string_lossy().into_owned(),
+                None => local_storage_uri(&path),
             };
             d.save_artifact(
                 lease,
@@ -306,9 +306,35 @@ fn blocked_or_review(state: String, artifact_ref: String, reason: &str) -> Outco
 }
 
 fn path_str(cfg: &WorkerConfig, reference: &str) -> String {
-    artifacts::artifact_path(&cfg.artifacts_dir, reference)
-        .to_string_lossy()
-        .into_owned()
+    local_storage_uri(&artifacts::artifact_path(&cfg.artifacts_dir, reference))
+}
+
+/// F1: путь артефакта, видимый потребителю.
+///
+/// Раньше записывался container-локальный путь (например,
+/// `/var/swarm/artifacts/<ref>`), недостижимый из другого контейнера. Теперь:
+///   * если задан `SWARM_ARTIFACTS_VOLUME` — возвращаем URI
+///     `volume://<name>/<relpath>`, который потребитель разрешает в тот же
+///     общий volume;
+///   * иначе — абсолютный путь как есть (совместимость: локальный режим/
+///     тесты без volume).
+///
+/// S3-режим (ArtifactStore) даёт собственный URI и сюда не попадает.
+fn local_storage_uri(path: &std::path::Path) -> String {
+    let path_str = path.to_string_lossy();
+    match std::env::var("SWARM_ARTIFACTS_VOLUME") {
+        Ok(vol) if !vol.trim().is_empty() => {
+            // Отрезаем точку монтирования, оставляя относительный путь в volume.
+            let mount = std::env::var("ARTIFACTS_DIR")
+                .unwrap_or_else(|_| "/var/swarm/artifacts".to_string());
+            let rel = path_str
+                .strip_prefix(&mount)
+                .map(|r| r.trim_start_matches('/'))
+                .unwrap_or(path_str.as_ref());
+            format!("volume://{}/{}", vol.trim(), rel)
+        }
+        _ => path_str.into_owned(),
+    }
 }
 
 /// Артефакт-«ошибка»: сохраняем причину как содержимое, чтобы complete_task
