@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-11T10:18:46+07:00" generator="scripts/build_audit_bundle.py">
+<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-11T15:39:40+07:00" generator="scripts/build_audit_bundle.py">
   <project>
     <name>swarm-dispatcher</name>
-    <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-    <git is_git="true" head="b9ea4d0c2b47ee1edaa2c4e92a4750a6c72e2a06" branch="feature/v0.6-distributed-worker-mvp" dirty="true"/>
+    <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
+    <git is_git="true" head="05824b736d9d83494df156b95c88d6bcf5f225b2" branch="feature/v0.5-sandbox-hardening" dirty="true"/>
   </project>
   <manifest>
-    <files count="17" total_bytes="117228"/>
+    <files count="17" total_bytes="118973"/>
     <excluded>
       <file path=".env" reason="secrets"/>
       <file path=".env.bak.*" reason="secrets"/>
@@ -17,7 +17,7 @@
       <entry path="scripts/02-roles.sh" role="init" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-roles-2b.sh" role="init" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
       <entry path="scripts/03-role-patches.sh" role="init" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
-      <entry path="schema/schema_v0.sql" role="schema" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a"/>
+      <entry path="schema/schema_v0.sql" role="schema" lang="sql" bytes="28828" lines="563" sha256="d79340c663d053771c68d357ce590a1c5971e97e06db58079a1a94befd495782" md5="a09750fc4dd9dbde1ccdd1f8816abe74"/>
       <entry path="step2/roles.sql" role="roles" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e"/>
       <entry path="step2/roles_patch_planner_status.sql" role="roles-patch" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
       <entry path="step2/roles_patch_tool_call_audit.sql" role="roles-patch" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa"/>
@@ -116,7 +116,7 @@ for patch in /sql/roles_patch_*.sql; do
 done
 ]]></content>
     </file>
-    <file path="schema/schema_v0.sql" role="schema" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a">
+    <file path="schema/schema_v0.sql" role="schema" lang="sql" bytes="28828" lines="563" sha256="d79340c663d053771c68d357ce590a1c5971e97e06db58079a1a94befd495782" md5="a09750fc4dd9dbde1ccdd1f8816abe74">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -285,6 +285,36 @@ begin
   foreach k in array array['attempts','max_rework','max_depth','max_children','max_tasks'] loop
     if jsonb_exists(c->'budget', k) and jsonb_typeof(c->'budget'->k) <> 'number' then
       raise exception 'contract_invalid: budget.% must be number', k using errcode = 'CT001';
+    end if;
+  end loop;
+  -- F7: диапазоны. Тип-проверки выше пропускают абсурдные значения
+  -- (attempts: 1000000, min_ram_gb: 1000000). Ограничиваем жёстко.
+  if jsonb_exists(c->'budget', 'attempts')
+     and ((c->'budget'->>'attempts')::numeric < 1
+          or (c->'budget'->>'attempts')::numeric > 100) then
+    raise exception 'contract_invalid: budget.attempts out of range 1..100' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_rework')
+     and (c->'budget'->>'max_rework')::numeric > 50 then
+    raise exception 'contract_invalid: budget.max_rework out of range 0..50' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'needs', 'min_ram_gb')
+     and ((c->'needs'->>'min_ram_gb')::numeric < 0
+          or (c->'needs'->>'min_ram_gb')::numeric > 1024) then
+    raise exception 'contract_invalid: needs.min_ram_gb out of range 0..1024' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'needs', 'coder_class')
+     and ((c->'needs'->>'coder_class')::numeric < 0
+          or (c->'needs'->>'coder_class')::numeric > 100) then
+    raise exception 'contract_invalid: needs.coder_class out of range 0..100' using errcode = 'CT001';
+  end if;
+  -- F7: реестр допустимых типов проверок и предел их числа.
+  if jsonb_array_length(c->'checks') > 32 then
+    raise exception 'contract_invalid: too many checks (max 32)' using errcode = 'CT001';
+  end if;
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if lower(btrim(e->>'type')) not in ('cmd','test','lint','manual') then
+      raise exception 'contract_invalid: disallowed check type %', e->>'type' using errcode = 'CT001';
     end if;
   end loop;
 end $$;

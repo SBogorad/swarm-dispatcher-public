@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-11T10:18:46+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-11T15:39:40+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
-  <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
-  <git is_git="true" head="b9ea4d0c2b47ee1edaa2c4e92a4750a6c72e2a06"/>
+  <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
+  <git is_git="true" head="05824b736d9d83494df156b95c88d6bcf5f225b2"/>
   <manifest>
-    <files count="33" total_bytes="208985"/>
+    <files count="34" total_bytes="214855"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -20,7 +20,7 @@
       <entry path="Dockerfile" lang="dockerfile" bytes="2303" lines="45" sha256="52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e" md5="466b8862c94cac583e18d7c1cd59ee42"/>
       <entry path="LICENSE" lang="text" bytes="1104" lines="21" sha256="6a0f51d5703ca8719a56f87b7a5fb84a8c773f5e361487a1b28fe6580044dff9" md5="3b65cb8672dc4ecbcd6daad5814b0c57"/>
       <entry path="docker-compose.yml" lang="yaml" bytes="6880" lines="163" sha256="5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d" md5="c13969907289a8dc7f0125fecbafffee"/>
-      <entry path="schema/schema_v0.sql" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a"/>
+      <entry path="schema/schema_v0.sql" lang="sql" bytes="28828" lines="563" sha256="d79340c663d053771c68d357ce590a1c5971e97e06db58079a1a94befd495782" md5="a09750fc4dd9dbde1ccdd1f8816abe74"/>
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
@@ -31,6 +31,7 @@
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4"/>
       <entry path="scripts/build_project_bundle.py" lang="python" bytes="8632" lines="200" sha256="967cb9ab7656d0048692ef87ea76f28e082ab1d403a375c695869ce33a180906" md5="84ba54580f877b77f42a47d4dc3888d0"/>
       <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="6630" lines="155" sha256="b8cf1a047decb3c26d021f93ce61f0735cfd9245672f7e48be42c6d53120fc5a" md5="90547a7cafc38760ab4ad3ad65712170"/>
+      <entry path="scripts/upload_release_gdrive.sh" lang="bash" bytes="4125" lines="89" sha256="e959b61e21afaf8958512e1e1e4f79c0fa092d64c09a607aee0a69b1b99af531" md5="7c6a1dfd9501f6b148e3096e1eea28dc"/>
       <entry path="step2/roles.sql" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e"/>
       <entry path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
       <entry path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa"/>
@@ -446,7 +447,7 @@ volumes:
   swarm-artifacts:
 ]]></content>
     </file>
-    <file path="schema/schema_v0.sql" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a">
+    <file path="schema/schema_v0.sql" lang="sql" bytes="28828" lines="563" sha256="d79340c663d053771c68d357ce590a1c5971e97e06db58079a1a94befd495782" md5="a09750fc4dd9dbde1ccdd1f8816abe74">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -615,6 +616,36 @@ begin
   foreach k in array array['attempts','max_rework','max_depth','max_children','max_tasks'] loop
     if jsonb_exists(c->'budget', k) and jsonb_typeof(c->'budget'->k) <> 'number' then
       raise exception 'contract_invalid: budget.% must be number', k using errcode = 'CT001';
+    end if;
+  end loop;
+  -- F7: диапазоны. Тип-проверки выше пропускают абсурдные значения
+  -- (attempts: 1000000, min_ram_gb: 1000000). Ограничиваем жёстко.
+  if jsonb_exists(c->'budget', 'attempts')
+     and ((c->'budget'->>'attempts')::numeric < 1
+          or (c->'budget'->>'attempts')::numeric > 100) then
+    raise exception 'contract_invalid: budget.attempts out of range 1..100' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_rework')
+     and (c->'budget'->>'max_rework')::numeric > 50 then
+    raise exception 'contract_invalid: budget.max_rework out of range 0..50' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'needs', 'min_ram_gb')
+     and ((c->'needs'->>'min_ram_gb')::numeric < 0
+          or (c->'needs'->>'min_ram_gb')::numeric > 1024) then
+    raise exception 'contract_invalid: needs.min_ram_gb out of range 0..1024' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'needs', 'coder_class')
+     and ((c->'needs'->>'coder_class')::numeric < 0
+          or (c->'needs'->>'coder_class')::numeric > 100) then
+    raise exception 'contract_invalid: needs.coder_class out of range 0..100' using errcode = 'CT001';
+  end if;
+  -- F7: реестр допустимых типов проверок и предел их числа.
+  if jsonb_array_length(c->'checks') > 32 then
+    raise exception 'contract_invalid: too many checks (max 32)' using errcode = 'CT001';
+  end if;
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if lower(btrim(e->>'type')) not in ('cmd','test','lint','manual') then
+      raise exception 'contract_invalid: disallowed check type %', e->>'type' using errcode = 'CT001';
     end if;
   end loop;
 end $$;
@@ -2459,6 +2490,99 @@ fi
 md5sum "$W/allowlist.rs" "$W/sandbox.rs" "$W/agent_loop.rs"
 
 [ "$survived" -eq 0 ]
+]]></content>
+    </file>
+    <file path="scripts/upload_release_gdrive.sh" lang="bash" bytes="4125" lines="89" sha256="e959b61e21afaf8958512e1e1e4f79c0fa092d64c09a607aee0a69b1b99af531" md5="7c6a1dfd9501f6b148e3096e1eea28dc">
+      <content><![CDATA[
+#!/usr/bin/env bash
+# Выгрузка релиза/аудит-пакета swarm-dispatcher на Google Диск (rclone).
+#
+# Назначение: после закрытия контрольной точки (волны) или фиксации релиза
+# складывать бандлы, diffs и evidence в папку на Диске — свежая копия под
+# рукой с телефона/ноутбука. Код остаётся приватным (в публичный интернет не
+# уходит; Диск владельца).
+#
+# Требуется: настроенный rclone-remote `gdrive` (аккаунт владельца).
+# Проверка: `rclone lsd gdrive:` печатает список папок.
+#
+# Использование:
+#   scripts/upload_release_gdrive.sh                # авто: тег или wip-<sha>
+#   scripts/upload_release_gdrive.sh v0.5.0         # явное имя релиза
+#   DRY_RUN=1 scripts/upload_release_gdrive.sh      # показать, что уйдёт
+set -euo pipefail
+
+# Корень репозитория (скрипт лежит в scripts/).
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+# --- параметры --------------------------------------------------------------
+REMOTE="${GDRIVE_REMOTE:-gdrive}"
+# Папка на Диске. Переопределяется переменной окружения GDRIVE_FOLDER.
+TARGET_FOLDER="${GDRIVE_FOLDER:-Swarm_Dispatcher_Audit_and_Releases}"
+
+# Определяем коммит/тег.
+HEAD_COMMIT="$(git rev-parse --short HEAD)"
+TAG_NAME="${1:-$(git describe --tags --exact-match 2>/dev/null || echo "wip-${HEAD_COMMIT}")}"
+DEST="$(printf '%s:%s/release_%s' "$REMOTE" "$TARGET_FOLDER" "$TAG_NAME")"
+RCLONE_OPTS=(--progress --transfers 4 --checkers 8)
+
+echo "==> Релиз ${TAG_NAME} (${HEAD_COMMIT}) -> ${DEST}"
+
+# Проверяем доступ к remote до начала работы.
+if ! rclone lsd "${REMOTE}:" >/dev/null 2>&1; then
+    echo "ОШИБКА: remote '${REMOTE}' недоступен. Настройте rclone (rclone config)." >&2
+    echo "Проверка: rclone lsd ${REMOTE}:" >&2
+    exit 1
+fi
+
+upload_dir() { # $1=локальный путь, $2=подкаталог назначения, $3...=--include маски
+    local src="$1" sub="$2"; shift 2
+    [ -d "$src" ] || return 0
+    if [ "${DRY_RUN:-0}" = "1" ]; then
+        echo "    [dry-run] rclone copy $src -> ${DEST}/${sub} $*"
+    else
+        rclone copy "$src" "${DEST}/${sub}" "${RCLONE_OPTS[@]}" "$@"
+    fi
+}
+
+upload_file() { # $1=локальный файл, $2=подкаталог (по умолчанию — корень релиза)
+    local src="$1" sub="${2:-}"
+    [ -f "$src" ] || return 0
+    local dst="${DEST}/"
+    [ -n "$sub" ] && dst="${DEST}/${sub}/"
+    if [ "${DRY_RUN:-0}" = "1" ]; then
+        echo "    [dry-run] rclone copyto $src -> ${dst}$(basename "$src")"
+    else
+        rclone copyto "$src" "${dst}$(basename "$src")" "${RCLONE_OPTS[@]}"
+    fi
+}
+
+# 1. Собранные архивы/пакеты (если есть dist/).
+upload_dir "dist" "dist"
+
+# 2. Evidence волн (все wave*.txt + triad/find-логи).
+upload_dir "docs/audit/evidence" "evidence" --include "wave*.txt"
+
+# 3. Патчи/diffs (если каталог ведётся).
+upload_dir "docs/audit/diffs" "diffs"
+
+# 4. Сводные документы аудита (протокол, маппинг, закрытие замечаний).
+for f in docs/audit/AUDIT_PROTOCOL_*.md \
+         docs/audit/FINDINGS_SD_MAPPING_*.md \
+         docs/audit/REAUDIT_*_CLOSURE_*.md \
+         docs/audit/AUDITOR_PROMPT_*.md \
+         docs/audit/environment_versions.txt \
+         docs/research/POSITIONING_2026.md; do
+    upload_file "$f"
+done
+
+# 5. Готовые zip-пакеты аудита из outbox (если собран).
+if compgen -G "outbox/*audit*.zip" >/dev/null 2>&1; then
+    upload_dir "outbox" "bundles" --include "*audit*.zip"
+fi
+
+echo "==> Готово: ${DEST}"
+echo "    Проверка: rclone lsf \"${DEST}\""
 ]]></content>
     </file>
     <file path="step2/roles.sql" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e">
