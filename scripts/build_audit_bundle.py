@@ -30,7 +30,7 @@ FILES = [
     ("step2/roles_patch_planner_status.sql", "roles-patch", "sql"),
     ("step2/roles_patch_tool_call_audit.sql", "roles-patch", "sql"),
     ("step2b/roles_2b.sql", "roles", "sql"),
-    ("step2b/roles_2b_patch_section3.sql", "roles-patch", "sql"),
+    ("docs/history/obsolete/roles_2b_patch_section3.sql", "roles-patch-obsolete", "sql"),
     # --- контейнеризация ---
     ("Dockerfile", "container", "dockerfile"),
     ("sandbox/Dockerfile", "container", "dockerfile"),
@@ -126,8 +126,8 @@ def main() -> int:
     out.append(f"    <name>swarm-dispatcher</name>")
     out.append(f"    <root>{escape(str(REPO))}</root>")
     out.append(f"    <git is_git={quoteattr(gi['is_git'])}"
-               + (f" head={quoteattr(gi.get('head',''))} branch={quoteattr(gi.get('branch',''))} dirty={quoteattr(gi.get('dirty',''))}" if gi["is_git"] == "true" else ">")
-               + ("</git>" if gi["is_git"] == "true" else f"<note>{escape(gi.get('note',''))}</note></git>"))
+               + (f" head={quoteattr(gi.get('head',''))} branch={quoteattr(gi.get('branch',''))} dirty={quoteattr(gi.get('dirty',''))}/>" if gi["is_git"] == "true" else "")
+               + ("" if gi["is_git"] == "true" else f"><note>{escape(gi.get('note',''))}</note></git>"))
     out.append("  </project>")
     out.append("  <manifest>")
     out.append(f"    <files count=\"{len(entries)}\" total_bytes=\"{total_bytes}\"/>")
@@ -154,14 +154,17 @@ def main() -> int:
             f'sha256={quoteattr(e["sha256"])} md5={quoteattr(e["md5"])}>'
         )
         # CDATA, кроме случая когда текст содержит ]]>
-        if "]]>" in e["text"]:
-            body = escape(e["text"])
+        # Trailing blanks are stripped: embedded REPORT_*.md carry markdown
+        # hard-breaks (two trailing spaces) which would otherwise land in the
+        # bundle and trip `git diff --check` on any regenerated artifact.
+        body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+        if "]]>" in body:
             out.append("      <content encoding=\"xml-escaped\">")
-            out.append(body)
+            out.append(escape(body))
             out.append("      </content>")
         else:
             out.append("      <content><![CDATA[")
-            out.append(e["text"].rstrip("\n"))
+            out.append(body)
             out.append("]]></content>")
         out.append("    </file>")
     out.append("  </files>")

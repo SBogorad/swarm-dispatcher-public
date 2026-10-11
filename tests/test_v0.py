@@ -199,6 +199,21 @@ def test_concurrent_claims_never_double_assign(db):
 
 
 # ---------------- аренды и fencing ----------------
+def test_lease_durations_must_be_positive(db):
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select claim_task('w1', 0)")
+    assert code(e) == "CT001"
+    db.rollback()
+    r = claim(db)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select heartbeat(%s,'w1',%s,0)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+
+
 def test_heartbeat_extends_and_cannot_revive(db):
     worker(db)
     t = new_task(db)
@@ -295,6 +310,22 @@ def test_budget_exhaustion_blocks_on_complete(db):
     assert one(db, "select complete_task(%s,'w1',%s,'sha256:a',150)", t, r[2]) == "blocked"
 
 
+def test_complete_rejects_negative_tokens(db):
+    """P0-5: negative tokens must not refund/erase spent budget."""
+    worker(db)
+    t = new_task(db, cap=100)
+    ready(db, t)
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select complete_task(%s,'w1',%s,'sha256:a',-100)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+    # state and spent_tokens untouched
+    st, spent = rows(db, "select state, spent_tokens from tasks where id=%s", t)[0]
+    assert (st, spent) == ("leased", 0)
+
+
 # ---------------- ревью ----------------
 def to_review(db, t, wid="w1"):
     r = claim(db, wid)
@@ -303,8 +334,8 @@ def to_review(db, t, wid="w1"):
     db.commit()
 
 
-PASS = json.dumps([{"type": "cmd", "status": "pass", "exit_code": 0}])
-FAIL = json.dumps([{"type": "cmd", "status": "fail", "exit_code": 1}])
+PASS = json.dumps([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}])
+FAIL = json.dumps([{"type": "cmd", "run": "true", "status": "fail", "exit_code": 1}])
 
 
 def test_review_rules(db):

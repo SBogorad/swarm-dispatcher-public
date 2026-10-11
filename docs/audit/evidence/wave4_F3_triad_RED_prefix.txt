@@ -1,0 +1,20 @@
+### F3 triad — RED pre-fix  |  2026-10-11T05:29:33+07:00
+### container=w4_f3fix_2312823 port=32807  creds REDACTED
+### HEAD body: guarded by 'if session_user like swarm_worker_%' (no-op under shared role)
+
+E       AssertionError: F3: assert_worker_identity is still gated on LIKE 'swarm_worker_%' — under the shared role the check is a no-op (bypass)
+E       assert "like 'swarm_worker_%'" not in '\ndeclare v...nd if;\nend '
+E         
+E         "like 'swarm_worker_%'" is contained here:
+E           ser::text like 'swarm_worker_%' then
+E               v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
+E               if session_user::text <> v_expected then
+E                 raise exception 'worker_identity_mismatch: session_user=% expected=%',
+E                   session_user, v_expected using errcode = 'wk003';...
+E         
+E         ...Full output truncated (3 lines hidden), use '-vv' to show
+
+tests/test_worker_identity_f3.py:89: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_worker_identity_f3.py::test_f3_body_is_deny_by_default - As...
+1 failed, 4 passed in 0.83s

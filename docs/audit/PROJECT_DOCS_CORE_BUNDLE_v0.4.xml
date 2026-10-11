@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS_CORE" generated="2026-10-08T22:47:17+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS_CORE" generated="2026-10-11T10:18:46+07:00" generator="scripts/build_project_bundle.py">
   <title>Ключевая документация (ТЗ, архитектура, ограничения, отчёты)</title>
   <project>swarm-dispatcher</project>
-  <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
-  <git is_git="false"><note>not a git repository</note></git>
+  <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
+  <git is_git="true" head="b9ea4d0c2b47ee1edaa2c4e92a4750a6c72e2a06"/>
   <manifest>
-    <files count="24" total_bytes="244432"/>
+    <files count="29" total_bytes="295106"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -13,9 +13,9 @@
       <file path="*.docx|*.png" reason="binary"/>
     </excluded>
     <index>
-      <entry path="CHANGELOG.md" lang="markdown" bytes="4524" lines="95" sha256="799478b5e46cb28c06a3b8ca68e700a93ecd50701adac820d5487fa3ddc1b51a" md5="3cc2e16dc4b01ec66a002f9931d78fe5"/>
+      <entry path="CHANGELOG.md" lang="markdown" bytes="8511" lines="162" sha256="dbd85bcc16c20143a273745c3b4e9b9a7f99074a240bf92104c022863a53f3dd" md5="adc511a2797fd984584b95630585c4be"/>
       <entry path="MANIFEST.md" lang="markdown" bytes="6283" lines="139" sha256="6ccc2c3293c26aed8831fd4f917358e9cc5268db80cbb4f2b8dfb12daf070798" md5="8e61d821b12508b7a1177cebd086ad05"/>
-      <entry path="README.md" lang="markdown" bytes="8266" lines="225" sha256="15aa902e5f8726b5943708a0cf85fd66e14ee49f5d166d2c293fe075372bfb6f" md5="48d42eb35d97717c2c462fd96e21d76e"/>
+      <entry path="README.md" lang="markdown" bytes="8652" lines="230" sha256="d6720eb91f036660fef87152baa4ec133daf041f4e0b0ba56c05cd45762a5af5" md5="08355192b57973cacd0100ad1baf113d"/>
       <entry path="REPORT_docker_gap_closed.md" lang="markdown" bytes="10675" lines="143" sha256="8f6ba2f8366312e844ae755c939e28873ce941a66a78a2a74bdb05ab5de10760" md5="8525f65aba6f500d1319018bef8ed3c2"/>
       <entry path="REPORT_v0.2_step1.md" lang="markdown" bytes="9901" lines="163" sha256="75d5b685e7b18f45d606d7a1e66dbe3943d1aa774990915574ac4f406dd0376a" md5="ea4ae0776193e1ea4a2a6429d6286e83"/>
       <entry path="REPORT_v0.2_step2_native_verify.md" lang="markdown" bytes="5669" lines="112" sha256="cc098a99af0b02a2c6144d7d8b44da9c69238b6e3924834ccbee1dd0c90036bf" md5="9d9f4d6b11083bdafd27e1308b27f597"/>
@@ -24,9 +24,12 @@
       <entry path="REPORT_v0.2_step2b_v2.md" lang="markdown" bytes="8962" lines="167" sha256="ae86e556ea31c76098a2773f19de2640133a057f78be4d30dd174b2b28c76a8f" md5="1cf33804d72316b541683035138f343c"/>
       <entry path="REPORT_v0.3.1_planner_description.md" lang="markdown" bytes="12208" lines="207" sha256="8f6f8bf743261a865833aadac8bb7070e8aab86b2c675397e6c785dadb4f7182" md5="857927df4fa3607d730607aada5bdf7b"/>
       <entry path="REPORT_v0.3_llm_worker.md" lang="markdown" bytes="12201" lines="204" sha256="6a3fef555bdb9ac33e934151f4805b52c2e7f102d74f3975462271c2cf45888b" md5="40b7ddc5375229dfcf8811755a9a437b"/>
+      <entry path="REPORT_v0.4.1.md" lang="markdown" bytes="5948" lines="147" sha256="fcb4640010a5851ad3b9a464ee241a8486910bbf366dd1bbcf564b326bdbe7b4" md5="825f266d4ccc11842032120e8f0fe8b0"/>
+      <entry path="REPORT_v0.4_repairs.md" lang="markdown" bytes="9918" lines="168" sha256="36092e95e649a1cf72e07c5198b0e43e8ce0880c6f0952c9848c2052bd5e13aa" md5="e46bb838b593d2d744c63d75c3ff05f9"/>
+      <entry path="REPORT_v0.5_load_test.md" lang="markdown" bytes="6549" lines="54" sha256="25f04d076b3889356552ade608248fd60d32d3a46639eb53ac6baeed6eed0ac3" md5="21f79b88fb05d134b470123dd93e3762"/>
       <entry path="RESUME.md" lang="markdown" bytes="16782" lines="355" sha256="097dac9b7b545570b2929b92fd047f3b98cc9187073ab06d5d4f04b04d273359" md5="752cbbf3b39f16db88bc4c8fe74e962a"/>
       <entry path="docs/ARCHITECTURE.md" lang="markdown" bytes="12226" lines="381" sha256="4c800238c5ce8398b72f182c8fbb6ca81310d30b3461886d55421ca0b63caa31" md5="9af85db97ba09c8ce5c36dc2ae5bc553"/>
-      <entry path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="11215" lines="220" sha256="32e1ff6ca43d5d65a8874499aea7da4567915b9817e12e6d21ccd91fe462fe5d" md5="9f9616e95b2294447e221450148c91fe"/>
+      <entry path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="18817" lines="305" sha256="ad63b03b956216115b1f0a9a53ada04d256eae9bc889f94b5057da24b6a2a425" md5="7db2a30f626758cba9559ed14ac7d546"/>
       <entry path="docs/METHODOLOGY.md" lang="markdown" bytes="14539" lines="242" sha256="d0fdfa915879e43aff622687afd730c0b6306cfd422c92ddab0f4455404a4dcf" md5="a0144c4311bfec4f1efafeff5ba08122"/>
       <entry path="docs/PROJECT_STATE.md" lang="markdown" bytes="5027" lines="84" sha256="760f5a56059e54cde0d16921435f04d9f4f7f4376147a8ab4aa038afe5df7f97" md5="9acdeae9001bb6309ab28c8b0ccb6580"/>
       <entry path="docs/TZ_v0.2_step1_fixes.md" lang="markdown" bytes="13920" lines="398" sha256="994f7dae8362bde94e86ffc8df3ce2668b17c6de5138fbcd4b0bc042302a721a" md5="fc4a121e93d0f139e0db739bb4b01aef"/>
@@ -35,12 +38,14 @@
       <entry path="docs/TZ_v0.3.1_planner_description.md" lang="markdown" bytes="8264" lines="230" sha256="0ed36aebcb2a83a397e13d3432e874d9d0931439205b358b4026ea5b53f7420a" md5="edc494b66f2f04684fded5acb1d7f37a"/>
       <entry path="docs/TZ_v0.3_llm_worker.md" lang="markdown" bytes="11499" lines="290" sha256="b0e6cfe44bf81b7277ff6c6933705d40d265c058ee46c98132cd54cf09a01627" md5="13e95316f378ea59f7674b0eaa267b4c"/>
       <entry path="docs/TZ_v0.4_shell_tools_sandbox.md" lang="markdown" bytes="11169" lines="287" sha256="67eaa042042ecee383dc9e0ac8a6f9b4ccb131935f7123ef27ec565a0d7b036b" md5="d3c3e9850cae4d6ab414dfe325abc1c4"/>
-      <entry path="docs/VERIFICATION_LOG.md" lang="markdown" bytes="4585" lines="109" sha256="aff4b00dc511a98bc6e08ead1f33293113573538e87ab51684d83f0c7281fe57" md5="f6ba7a2d32438950cc7ca2981e4ea419"/>
+      <entry path="docs/VERIFICATION_LOG.md" lang="markdown" bytes="8512" lines="180" sha256="4479463c38933b94b3fd4a50d407f98ba8a52bda3b9b38620fb87b075cd32103" md5="bc32e73db77f51cc2c185f5bf88aa773"/>
+      <entry path="docs/audit/AUDITOR_BRIEF_v0.4.en.md" lang="markdown" bytes="7364" lines="169" sha256="319186b702ec4a26b6d3442b21cf1dda1cfacf43c91f1a40ba13e4fcd76e245e" md5="961414f68b6c20ed92b9453a550867e9"/>
       <entry path="docs/audit/AUDITOR_BRIEF_v0.4.md" lang="markdown" bytes="10541" lines="164" sha256="a50fedc370bbdebcdc991c5bd0219ff1063acdc41e409107eac53a1c623e4a8a" md5="4790fa25340db0047858d0720874da24"/>
+      <entry path="docs/audit/README_AUDIT_PACKAGE.md" lang="markdown" bytes="4993" lines="96" sha256="e822b5efd3e55a16029545708ee847232ebe7b415380a29b22b0d11042f2127d" md5="58817c038a50131822e4f22aaeb51f98"/>
     </index>
   </manifest>
   <files>
-    <file path="CHANGELOG.md" lang="markdown" bytes="4524" lines="95" sha256="799478b5e46cb28c06a3b8ca68e700a93ecd50701adac820d5487fa3ddc1b51a" md5="3cc2e16dc4b01ec66a002f9931d78fe5">
+    <file path="CHANGELOG.md" lang="markdown" bytes="8511" lines="162" sha256="dbd85bcc16c20143a273745c3b4e9b9a7f99074a240bf92104c022863a53f3dd" md5="adc511a2797fd984584b95630585c4be">
       <content><![CDATA[
 # Changelog
 
@@ -52,8 +57,75 @@
 
 ## [Unreleased]
 
-Планируется в v0.2: правки v0.1 + Planner (LLM-декомпозиция).
-См. `docs/ROADMAP.md`.
+Планируется v0.6: Distributed Worker MVP для batch-задач на разных машинах
+или виртуальных машинах. Критерии и ограничения описаны в
+`docs/DISTRIBUTED_WORKER_MVP.md`.
+
+Release-tag требует acceptance harness с `--full-workspace-test`, строгим
+`release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
+
+---
+
+## [0.4.1] — 2026-10-09
+
+- Agent Loop прерывает DSML batch при первом policy reject; причина отказа
+  передаётся LLM для исправления отдельным следующим вызовом.
+- DSML/JSON parsing стал строгим: malformed quoted strings, произвольный текст
+  вместо JSON и неоднозначные аргументы возвращают `InvalidToolCall`.
+- Prompt Agent Loop явно требует native DSML для tool calls и строгий JSON
+  `done=true` для финального ответа.
+- Перенесён неиспользуемый `step2b/roles_2b_patch_section3.sql` в
+  `docs/history/obsolete/`.
+- Проверки: 46 unit + 11 Docker integration; реальный DeepSeek Agent Loop —
+  4 итерации / 3 tool calls, `cargo test` в sandbox, `verify_chain=true`.
+
+---
+
+## [0.4.0] — 2026-10-08
+
+Shell tools + Docker sandbox (ТЗ `docs/TZ_v0.4_shell_tools_sandbox.md`).
+
+### Added
+
+- **Agent Loop** (`crates/swarm-worker/src/agent_loop.rs`): LLM в цикле
+  возвращает tool call (`run_shell`, `read_file`, `write_file`) или финальный
+  ответ; лимит итераций `WORKER_MAX_ITERATIONS` (default 20).
+- **Allowlist команд** (`allowlist.rs`): deny-by-default, env
+  `WORKER_ALLOWED_COMMANDS`, явный deny-список, запрет shell-операторов
+  (`>`, `|`, `;`, `&&`, `` ` ``, `$(`), запрет `..`, рекурсивная проверка
+  `bash -c "..."` (иначе первое слово `bash` обходило allowlist).
+- **Docker sandbox** (`sandbox.rs`): один контейнер на задачу,
+  `--cap-drop ALL`, `--read-only`, `--security-opt no-new-privileges:true`,
+  `--network none`, tmpfs `/tmp` и `/workspace`, лимиты памяти/CPU, uid 1001.
+  Таймаут команды (`WORKER_CMD_TIMEOUT_SEC`, WK005) и лимит вывода 10 MB.
+- **Аудит tool calls** (`audit.rs` + `step2/roles_patch_tool_call_audit.sql`):
+  событие `kind='tool_call'` в `events` (только hash + размер вывода).
+  Пишется через SECURITY DEFINER-функцию `record_tool_call`, потому что
+  `append_event` намеренно не выдан никому (журнал нельзя подделать снаружи).
+- **Образ песочницы** (`sandbox/Dockerfile`): ubuntu 24.04 + Rust 1.85,
+  непривилегированный пользователь 1001.
+- **Тесты:** +23 unit (`swarm-worker` 12 → 35), новый
+  `crates/swarm-worker/tests/worker_sandbox.rs` (9 integration, реальный Docker).
+- **Мутации** M1–M6: `scripts/run_mutations_v04.sh` — 6 из 6 ловятся.
+
+### Changed
+
+- Порядок применения SQL: добавлен пятый файл
+  `step2/roles_patch_tool_call_audit.sql` (README, NATIVE_SETUP, compose).
+- `swarm-worker`: `postgres` и `uuid` переведены из dev- в обычные зависимости
+  (аудит пишется отдельным соединением).
+
+### Removed
+
+- `schema/roles.sql` — заглушка, никем не применялась →
+  `docs/history/obsolete/schema_roles.sql.stub`.
+- `step2b/test_roles_2b.DELIVERED_partial.py` — обрезанный остаток доставки →
+  `docs/history/obsolete/`.
+
+### Security
+
+- `WORKER_SHELL_TOOLS=0` по умолчанию: включение требует Docker-сокета в
+  контейнере воркера (= root на хосте). См. `docs/KNOWN_LIMITATIONS.md` §5.6.
 
 ---
 
@@ -282,7 +354,7 @@ watchdog, worker-заглушка, CLI, Docker Compose.
 4. Перед PR — прочитать `docs/METHODOLOGY.md`, проверить соответствие.
 ]]></content>
     </file>
-    <file path="README.md" lang="markdown" bytes="8266" lines="225" sha256="15aa902e5f8726b5943708a0cf85fd66e14ee49f5d166d2c293fe075372bfb6f" md5="48d42eb35d97717c2c462fd96e21d76e">
+    <file path="README.md" lang="markdown" bytes="8652" lines="230" sha256="d6720eb91f036660fef87152baa4ec133daf041f4e0b0ba56c05cd45762a5af5" md5="08355192b57973cacd0100ad1baf113d">
       <content><![CDATA[
 # Swarm Dispatcher
 
@@ -310,7 +382,8 @@ Postgres-центричный диспетчер задач с канбан-по
 
 ## Требования
 
-- **Rust 1.85+** (из-за `edition2024` в транзитивных зависимостях).
+- **Rust 1.94.1+** (из-за `edition2024` в транзитивных зависимостях; MSRV
+ задан в `Cargo.toml` как `rust-version = "1.94.1"`).
 - **Postgres 16+** (проверено на 16.4 и 18.6).
 - **Docker + Docker Compose** (для production-пути).
 - ИЛИ **Linux + Postgres в user-space** (для dev-пути без root).
@@ -356,11 +429,12 @@ schema/schema_v0.sql
   → step2/roles.sql
   → step2b/roles_2b.sql
   → step2/roles_patch_planner_status.sql
+  → step2/roles_patch_tool_call_audit.sql   (v0.4: аудит tool calls)
 ```
 
 `step2/roles.sql` не меняется (принят в step 2). Новые гранты
 добавляются отдельными патч-файлами вида `step2/roles_patch_*.sql`.
-При применении вручную (без Docker) — выполнить все четыре файла
+При применении вручную (без Docker) — выполнить все пять файлов
 по порядку, иначе роли не получат нужных прав.
 
 ---
@@ -393,14 +467,17 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
 Что уже работает
 
 · Postgres 16+ — единственный источник истины.
-· 19 SQL-функций (schema_v0.sql) + `task_status` (roles.sql); всего 22
-  после применения roles.sql → roles_2b.sql → roles_patch_planner_status.sql:
+· 19 SQL-функций (schema_v0.sql) + `task_status` (roles.sql) + `record_tool_call`
+  (roles_patch_tool_call_audit.sql); всего 23 после применения
+  roles.sql → roles_2b.sql → roles_patch_planner_status.sql → roles_patch_tool_call_audit.sql:
   add_task, add_dep, claim_task, heartbeat,
   save_artifact, complete_task, submit_review, reclaim_expired,
   reopen_task, unblock_task, promote_ready, register_worker,
-  append_event, verify_chain + 5 вспомогательных.
+  append_event, verify_chain + 6 вспомогательных.
 · 26 тестов на инварианты: pytest tests/test_v0.py -q → 26 passed.
 · 8 unit + 5 integration Rust-тестов.
+· v0.4: shell tools в Docker-sandbox (allowlist deny-by-default, timeout,
+  лимит вывода, audit `tool_call`); unit 35 + integration 9.
 · Fencing token через lease_epoch — защита от зомби-воркеров.
 · Хэш-цепочка событий — non-repudiation.
 · Recursive cascade — откат всего поддерева графа.
@@ -430,7 +507,7 @@ swarm-dispatcher/
 ├── MANIFEST.md                  # карта репозитория
 ├── CHANGELOG.md                 # история версий
 ├── LICENSE                      # MIT
-├── Cargo.toml                   # workspace, rust-version = 1.85
+├── Cargo.toml                   # workspace, rust-version = 1.94.1
 ├── Dockerfile                   # rust:1.98-slim + Debian runtime
 ├── docker-compose.yml           # postgres + watchdog + 2 воркера + cli
 ├── .env.example
@@ -1909,6 +1986,387 @@ step2b/test_roles_2b.py   19 passed
 **LLM-клиент вынесен в `swarm-llm`, LLM-worker реализован и верифицирован на native под реальными ролями.** До приёмки — стоп; **v0.4 (shell tools) не начинаю.**
 ]]></content>
     </file>
+    <file path="REPORT_v0.4.1.md" lang="markdown" bytes="5948" lines="147" sha256="fcb4640010a5851ad3b9a464ee241a8486910bbf366dd1bbcf564b326bdbe7b4" md5="825f266d4ccc11842032120e8f0fe8b0">
+      <content><![CDATA[
+# Отчёт v0.4.1: строгий Agent Loop и безопасный batch
+
+**Дата:** 2026-10-09
+**Проект:** `swarm-dispatcher`
+**Основание:** два замечания внутреннего ревью после закрытия v0.4.
+
+## Итог
+
+v0.4.1 завершён. Исправлены оба замечания:
+
+1. batch tool calls прерывается на первом отклонённом allowlist-вызове;
+2. malformed DSML/JSON больше не проглатывается как допустимый текст.
+
+Дополнительно удалён из рабочего дерева неиспользуемый SQL-черновик.
+
+## 1. Batch reject
+
+В `crates/swarm-worker/src/agent_loop.rs`:
+
+- `run_tool_and_record` возвращает признак `rejected`;
+- `Step::ToolCalls` прекращает выполнение сразу после первого policy reject;
+- последующие вызовы из того же batch не выполняются;
+- причина отказа и номер шага добавляются в историю, которую получает LLM;
+- следующий запрос модели может исправить действие отдельным вызовом.
+
+Добавлен integration-тест:
+
+```text
+agent_loop_stops_batch_after_reject
+```
+
+Тест проверяет одновременно:
+
+- первый допустимый вызов выполнен;
+- запрещённый вызов отклонён;
+- третий вызов после отказа не выполнен;
+- LLM получил `REJECTED:` и сообщение о прекращении batch;
+- следующий ответ модели обработан.
+
+## 2. Strict parsing
+
+В `crates/swarm-worker/src/parse_step.rs`:
+
+- malformed quoted DSML string возвращает `InvalidToolCall`;
+- truncated quoted string возвращает `InvalidToolCall`;
+- `string` должен быть строго `true` или `false`;
+- отсутствующие обязательные атрибуты отклоняются;
+- повторяющиеся имена параметров отклоняются;
+- вложенные `invoke`/`parameter` отклоняются;
+- `args` обязан быть JSON-объектом;
+- конфликтующие аргументы отклоняются;
+- служебный параметр `tool`, который фактически добавляет relay.fast рядом
+  с `args`, игнорируется;
+- обычный JSON принимается только как полный JSON-объект или fenced JSON;
+- произвольный текст с JSON-подобными фрагментами больше не извлекается
+  эвристически.
+
+Обратная совместимость сохранена для:
+
+- старого JSON tool-call формата;
+- fenced JSON;
+- native DeepSeek DSML;
+- DSML с отдельными именованными параметрами;
+- DSML с JSON-параметром `args`.
+
+Системный prompt Agent Loop дополнен требованием: финальный ответ должен
+быть ровно JSON с `done=true`, без обычного текста и Markdown.
+
+Добавлены unit-тесты на malformed и truncated quoted strings; всего unit-тестов
+`swarm-worker`: **46**.
+
+## 3. Уборка SQL-черновика
+
+Файл:
+
+```text
+step2b/roles_2b_patch_section3.sql
+```
+
+перенесён в:
+
+```text
+docs/history/obsolete/roles_2b_patch_section3.sql
+```
+
+SHA-256 сохранён:
+
+```text
+6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7
+```
+
+Файл не применялся Docker Compose и не входил в glob `roles_patch_*.sql`.
+Причина переноса добавлена в `docs/history/obsolete/README.md`.
+
+## 4. Проверки
+
+| Проверка | Результат |
+|---|---:|
+| `cargo test -p swarm-worker --lib --locked` | **46 passed** |
+| `cargo test -p swarm-worker --test worker_sandbox --locked -- --test-threads=1` | **11 passed** |
+| `cargo build --workspace --locked` | успешно |
+| DSML batch reject integration | passed |
+| strict malformed DSML tests | passed |
+| реальный DeepSeek через relay.fast | passed |
+
+### Реальный Agent Loop после патча
+
+- LLM: `deepseek-v4-flash` через relay.fast;
+- 4 итерации;
+- 3 tool calls;
+- Rust-крейт создан и протестирован внутри Docker sandbox;
+- artifact сохранён;
+- 3 события `tool_call` записаны в PostgreSQL;
+- `verify_chain=true`;
+- после прогона sandbox-контейнеры удалены.
+
+Проверка выполнялась в отдельной временной БД `v0sandbox`; после завершения
+БД удалена. Рабочая БД `swarm` не удалялась.
+
+## 5. Состояние после v0.4.1
+
+Закрыто:
+
+- v0.4 shell tools + Docker sandbox;
+- DSML parser DeepSeek;
+- criterion 9;
+- batch reject safety;
+- strict malformed-input handling;
+- архивирование SQL-черновика.
+
+Оставлено осознанно:
+
+- `swarm-planner` в dev-dependencies `swarm-worker` — dev-only e2e-тест;
+- нативный OpenAI `tools` API — следующий этап, v0.4.1 не требует;
+- нагрузочный тест — следующий шаг;
+- git worktree — v0.5.
+
+## 6. Артефакты
+
+- `crates/swarm-worker/src/parse_step.rs`
+- `crates/swarm-worker/src/agent_loop.rs`
+- `crates/swarm-worker/src/prompt.rs`
+- `crates/swarm-worker/tests/worker_sandbox.rs`
+- `docs/history/obsolete/roles_2b_patch_section3.sql`
+- `docs/history/obsolete/README.md`
+- `docs/VERIFICATION_LOG.md`
+- `CHANGELOG.md`
+]]></content>
+    </file>
+    <file path="REPORT_v0.4_repairs.md" lang="markdown" bytes="9918" lines="168" sha256="36092e95e649a1cf72e07c5198b0e43e8ce0880c6f0952c9848c2052bd5e13aa" md5="e46bb838b593d2d744c63d75c3ff05f9">
+      <content><![CDATA[
+# Ремонт пакета и кода: итоги внешнего аудита v0.4
+
+**Дата:** 2026-10-09
+**Кто:** Арго (агент), по вердикту внешнего аудитора
+**Репозиторий:** `/home/d88u525/Projects/rust/swarm-dispatcher` (не git — файловая копия)
+**Источник замечаний:** вердикт аудитора по пакету
+`PROJECT_CODE_BUNDLE_v0.4.xml` + `PROJECT_INFRA_BUNDLE_v0.4.xml` + `PROJECT_DOCS_BUNDLE_v0.4.xml`
+(100 файлов, 914 КБ, sha256/md5 по каждому).
+
+Аудитор дал общий вердикт «пакет корректен» и три конкретных дефекта.
+Ниже — что сделано по каждому, что нашлось попутно, и что осталось открытым.
+
+---
+
+## 1. Три замечания аудитора
+
+### 1.1. `schema/roles.sql` — заглушка
+
+- **Было:** файл из одной строки-комментария, никем не применялся.
+  `docker-compose.yml` монтирует как `/sql/roles.sql` именно `step2/roles.sql`.
+- **Риск:** аудитор спотыкается о файл-обманку, принимая его за актуальные роли.
+- **Сделано:** перенесён в `docs/history/obsolete/schema_roles.sql.stub`
+  (ничего не удалено безвозвратно).
+- **Проверка:** `schema/` теперь содержит только `schema_v0.sql`.
+
+```
+24d154d1c1c3ec534b69cb7736dc454e944918630d2ca049f4bf05dc2761b979  schema_roles.sql.stub
+```
+
+### 1.2. `step2b/test_roles_2b.DELIVERED_partial.py` — обрезанный остаток
+
+- **Было:** 3477 Б против 8859 Б у полного `step2b/test_roles_2b.py`
+  (остаток от прерванной доставки, тесты 5–16 отсутствовали).
+- **Сделано:** перенесён в `docs/history/obsolete/test_roles_2b.DELIVERED_partial.py`.
+  Исторический след сохранён; упоминания в `REPORT_v0.2_step2b*.md` остаются
+  валидными — там зафиксирован именно этот md5.
+
+```
+156146fb1bc1df3392c7b3bec215510db62dd7e4c910e8653c364a36a00d7a94  test_roles_2b.DELIVERED_partial.py
+```
+
+### 1.3. `swarm-worker` dev-depends on `swarm-planner` — **открыто**
+
+```toml
+[dev-dependencies]
+swarm-planner = { path = "../swarm-planner" }
+```
+
+- **Где используется:** ровно один e2e-тест
+  (`crates/swarm-worker/tests/worker_integration.rs:381`,
+  `worker_receives_description_from_planner_e2e`).
+- **Почему не тронуто:** правка = перенос теста в отдельный крейт
+  (`swarm-e2e`) либо в workspace-уровневый `tests/`. Это меняет структуру
+  workspace, а решение по структуре — за владельцем. Формально дефект
+  косметический (dev-only, в прод-сборку не попадает).
+- **Решение:** оставлено как есть, вынесено в вопросы (см. §5).
+
+---
+
+## 2. Найдено попутно: файл-сирота в SQL-порядке
+
+`step2b/roles_2b_patch_section3.sql` (1579 Б) — **никем не применяется**.
+
+- `docker-compose.yml` его не монтирует (`grep roles_2b_patch_section3 → пусто`).
+- В `scripts/03-role-patches.sh` под glob `roles_patch_*` он не попадает:
+  glob ищет в `/sql/`, а файл лежит в `step2b/` и назван `roles_2b_patch_*`.
+- **Содержимое:** секция «3. Роли для тестов» — построчная копия той же
+  секции из `step2b/roles_2b.sql` (сверено `comm`: 25 строк / 25 строк,
+  различий нет).
+
+**Вывод:** это исторический черновик, уже влитый в `roles_2b.sql`.
+Функционального вреда нет, но он попал в аудит-пакет и в «порядок применения»
+из саммари аудитора — то есть **вводит в заблуждение** (создаёт видимость
+пятого обязательного шага).
+
+**Рекомендация:** перенести в `docs/history/obsolete/` либо оставить,
+но убрать из аудит-индекса и из списка порядка применения.
+Требует решения владельца (правка состава пакета).
+
+```
+6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7  step2b/roles_2b_patch_section3.sql
+```
+
+---
+
+## 3. Дефекты, найденные при реализации v0.4 (не аудитом)
+
+Реализация shell-tools + Docker-песочницы вскрыла два реальных дефекта
+изоляции, которых в ТЗ не было. Оба ломали `cargo test` внутри песочницы.
+
+### 3.1. tmpfs `/workspace` монтировался `root:root 0755`
+
+- **Симптом:** запись артефакта под uid 1001 → `Permission denied`.
+- **Причина:** `--tmpfs /workspace:…` без `uid/gid/mode` → Docker монтирует
+  как root.
+- **Фикс:** `/workspace:rw,exec,nosuid,size=1g,uid=1001,gid=1001,mode=0700`.
+- **Регресс-тест:** `run_args_have_security_flags` проверяет наличие
+  `mode=0700` в аргументах.
+
+### 3.2. Docker добавляет `noexec` к `--tmpfs`
+
+- **Симптом:** `cargo test` собирал бинарник, но не мог его запустить.
+- **Причина:** Docker по умолчанию монтирует tmpfs с `noexec`.
+- **Фикс:** явный `exec` в опциях `/workspace`.
+- **Обоснование допустимости:** песочница без capabilities, без сети,
+  с read-only корнем; исполнить можно только то, что туда положил сам воркер.
+  Зафиксировано в `docs/KNOWN_LIMITATIONS.md` §5.7.
+
+---
+
+## 4. Проверки после ремонта
+
+| Проверка | Результат |
+|---|---|
+| `cargo build --workspace --locked` | 0 ошибок / 0 предупреждений |
+| `cargo test --lib` (все крейты) | 8 + 2 + 16 + **35** |
+| `cargo test --test worker_integration` | 10 passed |
+| `cargo test --test planner_integration` | 9 passed |
+| `cargo test --test worker_sandbox` (реальный Docker) | **9 passed** |
+| `pytest tests/test_v0.py` | 26 passed |
+| `pytest step2/test_roles.py` | 30 passed |
+| `pytest step2b/test_roles_2b.py` | 19 passed |
+| Мутации M1–M6 (`scripts/run_mutations_v04.sh`) | **6 из 6 поймано** |
+
+Мутации: M1 allowlist, M2 timeout, M3 `--cap-drop ALL`, M4 `--network none`,
+M5 `--read-only`, M6 audit-событие. После прогона исходники восстановлены,
+md5 совпадают с эталоном:
+
+```
+4fe03dc01488508709120bc6c67b11b9  crates/swarm-worker/src/allowlist.rs
+443e785d2c357d5326fd637466cb56e4  crates/swarm-worker/src/sandbox.rs
+79c8ad46c0e46ecaa163c63233bf9540  crates/swarm-worker/src/agent_loop.rs
+```
+
+Ручной smoke подтвердил изоляцию: `CapEff: 0000000000000000` (нет
+capabilities), сеть не резолвится, корень read-only, таймаут даёт exit 124.
+
+Убраны 11 утёкших sandbox-контейнеров, оставшихся после прерванного прогона.
+
+---
+
+## 5. Открытые вопросы (ждут решения владельца)
+
+1. **Tool calls и провайдер.** `deepseek-v4-flash` через relay.fast отвечает
+   tool calls в DSML-разметке DeepSeek (`<｜｜DSML｜｜ invoke name=…>`), а не в
+   JSON. Парсер ждёт `{"tool": …, "args": {…}}` → `InvalidToolCall`;
+   в API-ответе `tool_calls: null`, `finish_reason: stop`.
+   Варианты: (а) DSML-парсер в `parse_step` (~40 строк + тесты);
+   (б) сменить модель; (в) нативный `tools` API (правка `swarm-llm`, ТЗ §0
+   просит не трогать). Критерий 9 закрыт после добавления DSML-парсера; подробности — в `docs/VERIFICATION_LOG.md` §V-005.
+2. **Замечание 1.3** — выносить ли e2e-тест из `swarm-worker` в `swarm-e2e`.
+3. **Файл-сирота** `roles_2b_patch_section3.sql` — в `obsolete/` или вон из индекса.
+
+---
+
+### 5.4. DSML-парсер — закрыто
+
+Добавлен `crates/swarm-worker/src/parse_step.rs`: поддержаны native DSML DeepSeek, JSON `args`, именованные параметры, несколько `invoke`, escaped quotes, ошибки malformed input и прежний JSON-формат. `agent_loop.rs` использует parser и выполняет batch-вызовы с аудитом.
+
+Проверено: 42 unit-теста и 10 Docker integration-тестов; реальный `deepseek-v4-flash` выполнил 4 tool calls, создал и протестировал Rust-крейт, сохранил artifact, `verify_chain=true`.
+
+## 6. Ссылки
+
+- `docs/history/obsolete/README.md` — что и почему перенесено.
+- `docs/audit/AUDITOR_BRIEF_v0.4.md` — задание аудитору.
+- `docs/KNOWN_LIMITATIONS.md` §5.6, §5.7 — shell tools и tmpfs-монтирование.
+- `CHANGELOG.md` [0.4.0] — что вошло в релиз.
+- `docs/TZ_v0.4_shell_tools_sandbox.md` — ТЗ, по которому реализовано.
+]]></content>
+    </file>
+    <file path="REPORT_v0.5_load_test.md" lang="markdown" bytes="6549" lines="54" sha256="25f04d076b3889356552ade608248fd60d32d3a46639eb53ac6baeed6eed0ac3" md5="21f79b88fb05d134b470123dd93e3762">
+      <content><![CDATA[
+# Нагрузочное тестирование v0.5 — результаты
+
+Дата выполнения: 2026-10-09. Все нагрузки выполнялись в disposable БД, не в `swarm`. До и после тестов в production-like БД `swarm` оставалась одна задача в состоянии `review`.
+
+## Сводка
+
+| Сценарий | Результат | Оценка |
+|---|---|---|
+| C1 — 1000 mock-задач, 50 workers | 1000 завершено; 200,26 tasks/s в schema-only прогоне; claim p99 1,040 с | throughput в целевом диапазоне 100–500 tasks/s, p99 <100 мс не выполнен; полноценный role-aware baseline ещё нужен |
+| C2 — 100 задач, 10 реальных workers, Gemini 3.8 Flash через relay.fast | 100/100 `review`, 0 ошибок; 0,389 tasks/s; claim-to-completion p50/p95/p99 18,756/43,128/44,676 с | технически завершено; целевой throughput 2–5 tasks/s не достигнут |
+| C3 — 1000 mock-задач, 10 workers, отказ 1 worker после claim | 1000/1000 `review`, 1 lease reclaimed, все verify_chain=true | lease recovery подтверждён; отказ был симулирован DB-клиентом, не убийством реального процесса/контейнера |
+
+## C2 — реальный LLM worker
+
+- Модель: `gemini-3.8-flash`, endpoint relay.fast, OpenAI-compatible API.
+- База: отдельная `c2_gemini`, схема и роли проекта; worker credentials — `swarm_worker_w1`.
+- Запрос: 100 независимых задач; 10 реальных процессов Rust `swarm-worker`.
+- Результат: 100/100 задач в `review`; 100 completion events; timeout=false; 0 worker warnings/errors.
+- Длительность: 257,128 с; throughput: 0,3889 задач/с.
+- Claim-to-completion latency (события БД): p50=18,756 с, p95=43,128 с, p99=44,676 с (100 samples).
+- В `tasks.spent_tokens` записано суммарно 193 695 токенов. Это usage, доступное через worker/БД; runner не получает детальную тарификацию relay.fast.
+- Полный JSON: `bench/results/c2/a384eeecfd20.json`; логи процессов оставлены локально в `/tmp/swarm-c2/<run-id>/`.
+- Однозадачный smoke до полного C2: run `9448dc26c991`, задача `review`, 2257 usage tokens, claim-to-completion 23,995 с.
+
+Порог C2 из ТЗ (2–5 tasks/s) не выполнен: измерено около 0,39 tasks/s. Это локальный прогон на данном хосте и через relay.fast, а не универсальная оценка Gemini. Секретов или DSN в артефактах нет.
+
+### Расходы
+
+Зафиксировано 193 695 токенов по внутреннему счётчику worker. Стоимость в USD по этому числу вычислить нельзя: публично подтверждённый тариф relay.fast для выбранной модели и фактический provider-side usage breakdown не зафиксированы. Следовательно, нельзя утверждать, что расход уложился в лимит пользователя `$1.30`; перед повторными платными прогонами нужно сверить фактическое списание/тариф в relay.fast.
+
+## C1 — DB/mock baseline
+
+Schema-only C1: 1000/1000 завершены, 200,26 tasks/s, claim p50/p95/p99 = 0,077/0,348/1,040 с, пик 51 соединение. В более позднем диагностическом прогоне на DB с ролями было 53,07 tasks/s и p99 2,089 с, но workers подключались через admin DSN и прогон шёл на ранее использованной тестовой БД. Эти цифры не считать чистым role-aware baseline.
+
+**Не выполнено:** отдельный чистый C1 с каждым worker под своей ролью; claim p99 <100 мс не достигнут. Существующий диагностический прогон не заменяет требуемого baseline.
+
+## C3 — восстановление после отказа
+
+На `c3_loadtest` сценарий завершил 1000/1000 задач, одна lease была отозвана watchdog и задача повторно завершена; все verify_chain=true. Прогон подтвердил восстановление lease через настоящие SQL-функции, однако worker process/container фактически не убивался: mock worker просто закрыл DB-соединение после claim. Поэтому критерий о реальном падении 10% процессов и сравнении throughput с сопоставимым baseline остаётся неподтверждённым.
+
+## Вывод и ограничения приёмки
+
+1. C2 на Gemini 3.8 Flash успешно обработал 100 задач без ошибок, но throughput ниже целевого в ~5–13 раз; p95 и p99 заметно выше нескольких секунд.
+2. По 193 695 usage tokens нельзя вывести стоимость без тарифа/биллинга relay.fast; лимит `$1.30` не подтверждён.
+3. C1 p99 threshold не пройден и чистый role-aware baseline не выполнен.
+4. C3 проверил lease recovery, но не реальный crash worker/container.
+5. Не оптимизировать production-код по этим данным до профилирования и закрытия методологических пробелов. UI v0.6 не начинать до приёмки нагрузочных критериев.
+
+## Артефакты и воспроизведение
+
+- C1: `bench/results/c1/8837b7477dc1.json` и CSV.
+- C2: `bench/results/c2/a384eeecfd20.json`.
+- C3: `bench/results/c3/7b52c3efa8e1.json` и CSV.
+- Запуск runner описан в `bench/README.md`. C2 credentials передавать только через переменные окружения; результаты и production-крейты не включают секреты.
+]]></content>
+    </file>
     <file path="RESUME.md" lang="markdown" bytes="16782" lines="355" sha256="097dac9b7b545570b2929b92fd047f3b98cc9187073ab06d5d4f04b04d273359" md5="752cbbf3b39f16db88bc4c8fe74e962a">
       <content><![CDATA[
 # RESUME: точка восстановления проекта Swarm Dispatcher
@@ -2652,7 +3110,7 @@ graph TB
 · S3 для артефактов — v1.0 (в v0.x локальная ФС).
 ]]></content>
     </file>
-    <file path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="11215" lines="220" sha256="32e1ff6ca43d5d65a8874499aea7da4567915b9817e12e6d21ccd91fe462fe5d" md5="9f9616e95b2294447e221450148c91fe">
+    <file path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="18817" lines="305" sha256="ad63b03b956216115b1f0a9a53ada04d256eae9bc889f94b5057da24b6a2a425" md5="7db2a30f626758cba9559ed14ac7d546">
       <content><![CDATA[
 # Известные ограничения v0.1
 
@@ -2666,28 +3124,31 @@ graph TB
 
 ## 1. Функциональные ограничения
 
-### 1.1. Worker — заглушка, реального LLM нет
+### 1.1. Worker — реальный LLM-воркер (обновлено 2026-10-11, F16a)
 
-- **Что:** `swarm-worker` вместо работы вызывает `sleep(WORK_SECONDS)`.
-  Не подключается к LLM, не генерирует артефакты.
-- **Почему:** v0.1 — проверка инфраструктуры, не интеллекта.
-- **Когда:** v0.3 (см. `docs/ROADMAP.md`).
-- **Обход:** для проверки flow использовать `WORK_SECONDS=1`.
+- **Актуально:** `swarm-worker` вызывает LLM (`call_llm_with_retries`),
+  пишет артефакт на диск, делает `save_artifact`/`complete_task`, ведёт
+  фоновый heartbeat. Режим «sleep(WORK_SECONDS)» остался только как тестовый
+  (`work_sec`) — не как основное поведение.
+- **Устаревшая формулировка (v0.1):** «Worker — заглушка, реального LLM нет».
+  Оставлена как история: тезис больше неверен.
+- **См.:** `crates/swarm-worker/src/worker.rs`, `docs/ROADMAP.md`.
 
-### 1.2. Planner отсутствует
+### 1.2. Planner реализован (обновлено 2026-10-11, F16a)
 
-- **Что:** задачи создаются вручную (`cli seed` или через `add_task`).
-  Автоматической LLM-декомпозиции большой задачи на граф контрактов нет.
-- **Почему:** v0.1 — фундамент. Planner — следующий шаг.
-- **Когда:** v0.2 (см. `TZ_v0.2_step2_planner.md`).
+- **Актуально:** `swarm-planner` есть: LLM-декомпозиция задачи в граф
+  контрактов (`crates/swarm-planner`), ручной seed тоже доступен.
+- **Устаревшая формулировка (v0.1):** «Planner отсутствует» — более неверна.
+- **См.:** `crates/swarm-planner/`, `TZ_v0.2_step2_planner.md`.
 
-### 1.3. Артефакты не пишутся на диск
+### 1.3. Артефакты пишутся на диск и видимы потребителю (обновлено 2026-10-11, F1)
 
-- **Что:** `save_artifact` пишет metadata в БД (`storage_path`,
-  `content_type`, `size_bytes`), но **файл по этому пути не создаётся**.
-- **Почему:** by design в v0.1 — проверка жизненного цикла, не хранения.
-- **Когда:** v0.3 (одновременно с реальным LLM-воркером).
-- **Обход:** для демонстрации flow — можно игнорировать.
+- **Актуально:** `save_artifact` записывает файл; в compose артефакты лежат в
+  **общем именованном volume** `swarm-artifacts` (`storage_path` =
+  `volume://swarm-artifacts/<ref>`), видимом всем контейнерам.
+- **Устаревшая формулировка (v0.1):** «Файл по этому пути не создаётся» —
+  более неверна. Исторический дефект F1 (per-container tmpfs) закрыт, см. §5.9.
+- **Обход:** не требуется.
 
 ### 1.4. Git-интеграция отсутствует
 
@@ -2840,14 +3301,96 @@ graph TB
   совпал с ref) → review (роль `swarm_cli`) → `done`, `verify_chain` = true.
 - **Статус:** закрыта.
 
+### 5.6. v0.4: shell tools и Docker sandbox — реализовано, но выключено по умолчанию
+
+- **Что:** Agent Loop (`run_shell` / `read_file` / `write_file`) с запуском
+  команд в Docker-контейнере реализован (`allowlist.rs`, `sandbox.rs`,
+  `agent_loop.rs`), проверен 35 unit + 9 integration тестами, мутации M1–M6
+  ловятся 6 из 6.
+- **Компиляционный бан (FIND-01, 2026-10-11):** модули `agent_loop`,
+  `sandbox`, `allowlist`, `audit` (+ agent-промпты, `parse_step`, shell-tools
+  варианты `WorkerError`) скрыты за feature **`shell-tools`**, выключенной по
+  умолчанию. Бинарь `swarm-worker` её **не** включает, поэтому shell-tools
+  физически **не компилируются** в бинарь воркера — бан в КОДЕ, а не в
+  переписке. Проверяется арбитром в `scripts/acceptance_harness.sh`
+  (`shell_tools_ban`): строит бинарь без feature и убеждается, что символы
+  `AllowlistRejected` / `agent_system_prompt` / `run_shell` и т.п. отсутствуют.
+  Включить для тестов/примеров: `--features swarm-worker/shell-tools`.
+- **Что НЕ включено по умолчанию:** `WORKER_SHELL_TOOLS=0`. Чтобы воркер мог
+  создавать sandbox-контейнеры, ему нужен доступ к Docker-демону.
+- **Почему это риск:** единственный способ дать воркеру Docker — смонтировать
+  `/var/run/docker.sock` в его контейнер. Это фактически root на хосте:
+  через сокет можно создать привилегированный контейнер и выйти наружу.
+  Изоляция самого sandbox (`cap_drop ALL`, `read_only`, `network none`,
+  `no-new-privileges`) защищает от **команд LLM**, но не от
+  скомпрометированного воркера.
+- **Как включить (осознанно):** добавить воркеру сервису
+  `volumes: ["/var/run/docker.sock:/var/run/docker.sock"]` и
+  `WORKER_SHELL_TOOLS=1`, предварительно собрав образ
+  `docker build -t agent-sandbox:1.85 sandbox/`.
+- **Когда:** в v0.4+/v1.0 — когда появится отдельный runner-хост или
+  rootless-вариант (Podman / Docker rootless / sysbox).
+- **Обход для проверки:** запускать `worker_sandbox`-тесты с хоста, где Docker
+  доступен напрямую (именно так проверено: 9/9 passed).
+
+### 5.7. Дублирование `submit_review` устранено — ✅ ЗАКРЫТА (2026-10-11, F16г)
+
+- **Что было:** `submit_review` определялась **дважды** — в
+  `schema/schema_v0.sql` и в `step2/roles_patch_submit_review.sql`. Патч
+  применялся после схемы (`04-role-patches.sh`) и **перекрывал** её тело
+  устаревшей версией. Любой фикс в схеме был мёртвым кодом: initdb побеждал
+  патчем (подтверждено на свежем initdb: `has_f2_key=f`).
+- **Почему это дефект:** первопричина скрытых регрессий (F16г из аудита):
+  один объект имел два источника истины. Патч не нёс уникальной полезной
+  нагрузки — `GRANT EXECUTE ... TO swarm_reviewer` уже в `step2/roles.sql:79`,
+  а тело gate было устаревшим (обходится по `type`, см. F2).
+- **Решение:** `step2/roles_patch_submit_review.sql` **удалён**; монтирование
+  и вызов убраны из `scripts/acceptance_harness.sh` (в `docker-compose.yml`
+  его и не было). Единственный источник истины для `submit_review` и
+  `validate_contract` — `schema/schema_v0.sql`.
+- **Статус:** закрыто 2026-10-11 вместе с фиксом F2/F15 (строгий review-gate:
+  ключ проверки `coalesce(id, type||'|'||run)`, `type` обязателен, `id`
+  опционален). Триады RED→GREEN→RED в `docs/audit/evidence/`.
+
+### 5.8. tmpfs `/workspace` монтируется с `exec`
+
+- **Что:** в sandbox `/workspace` — tmpfs с `exec` (иначе `cargo test`
+  не может запустить собранный бинарник: Docker по умолчанию добавляет
+  `noexec`).
+- **Почему допустимо:** `exec` внутри изолированного контейнера без
+  capabilities, без сети, с read-only корнем; выполнять можно только то,
+  что воркер туда положил.
+- **Когда пересмотреть:** если в sandbox появится код из недоверенного
+  источника, а не только из LLM-итерации.
+
+### 5.9. Артефакты: общий volume только в пределах одного хоста — ✅ ЗАКРЫТА частично (2026-10-11, F1)
+
+- **Что (было):** в `docker-compose.yml` `/var/swarm/artifacts` монтировался как
+  **per-container tmpfs**. Файл, записанный `worker-1`, был невидим `worker-2`,
+  `cli` и любому потребителю: `storage_path` указывал на container-локальный
+  путь. F1 [CRITICAL].
+- **Стало:** общий **именованный volume** `swarm-artifacts`, смонтированный в
+  `worker-1`, `worker-2` и `cli` (потребитель). `storage_path` пишется как URI
+  `volume://swarm-artifacts/<ref>` (см. `local_storage_uri` в
+  `crates/swarm-worker/src/worker.rs`). Арбитр:
+  `tests/test_f1_artifact_visibility.sh` — завершает задачу, перезапускает
+  воркер, читает артефакт **из другого контейнера** и сверяет sha256.
+- **Честный пробел (S3):** общий volume работает **только на одном хосте**.
+  Для distributed-ветки (воркеры на разных машинах) нужен S3-совместимый
+  store: `SWARM_ARTIFACT_S3_*` в `crates/swarm-worker/src/storage.rs`.
+  По умолчанию не сконфигурирован — это осознанное ограничение, а не баг.
+- **Когда пересмотреть:** при выносе воркеров на несколько хостов — включить
+  S3 и заменить `ARTIFACTS_DIR`-volume на S3-режим.
+
 ---
 
 ## 6. Совместимость
 
-### 6.1. Rust 1.85+ обязателен
+### 6.1. Rust 1.94.1+ обязателен
 
-- **Что:** MSRV поднят с 1.75 до 1.85 из-за `edition2024` в транзитивной
-  `block-buffer 0.12`.
+- **Что:** MSRV поднят с 1.75 до **1.94.1** (задан в `Cargo.toml`
+  как `rust-version = "1.94.1"`) из-за `edition2024` в транзитивной
+  `block-buffer 0.12`. Ранее доки ошибочно указывали 1.85 — см. FIND-09.
 - **Почему:** эволюция crates.io.
 - **Обход:** обновить toolchain (`rustup update`).
 
@@ -3910,7 +4453,7 @@ ready to execute: 1
 5. pytest step2/test_roles.py — 30 passed.
 6. pytest step2b/test_roles_2b.py — 19 passed.
 7. Мутации M1–M4 — 4 из 4 ловятся, с указанием упавших тестов.
-8. Демонстрация на реальном Postgres с mock: 
+8. Демонстрация на реальном Postgres с mock:
    swarm-planner "test task" создаёт граф, swarm-cli status его
    показывает.
 9. Docker/compose — если доступен sudo; иначе отметить как отложенный
@@ -4961,7 +5504,7 @@ REPORT_v0.4_shell_tools_sandbox.md:
 Не переходить к v0.5 без приёмки.
 ]]></content>
     </file>
-    <file path="docs/VERIFICATION_LOG.md" lang="markdown" bytes="4585" lines="109" sha256="aff4b00dc511a98bc6e08ead1f33293113573538e87ab51684d83f0c7281fe57" md5="f6ba7a2d32438950cc7ca2981e4ea419">
+    <file path="docs/VERIFICATION_LOG.md" lang="markdown" bytes="8512" lines="180" sha256="4479463c38933b94b3fd4a50d407f98ba8a52bda3b9b38620fb87b075cd32103" md5="bc32e73db77f51cc2c185f5bf88aa773">
       <content><![CDATA[
 # Журнал независимых верификаций
 
@@ -5061,6 +5604,77 @@ REPORT_v0.4_shell_tools_sandbox.md:
 
 ---
 
+## V-005: v0.4 shell tools + DSML Agent Loop
+
+**Дата:** 2026-10-09
+**Кто:** OpenClaw / агент на ноутбуке (nouthp88)
+**Платформы:** Omarchy, Docker Engine, compose Postgres 16.4-alpine; отдельная
+тестовая БД `v0sandbox` в том же Postgres-контейнере.
+
+**Что проверено:**
+- DSML-парсер DeepSeek: native `<｜｜DSML｜｜ invoke ...>` с `args` JSON,
+  именованные параметры, escaped quotes, несколько invoke, malformed input.
+- Обратная совместимость с JSON tool calls.
+- Agent Loop с реальным Docker sandbox.
+- Audit `tool_call` через SECURITY DEFINER-функцию и `verify_chain`.
+- Полный пример с реальным `deepseek-v4-flash` через relay.fast.
+
+**Результат:**
+- `cargo test -p swarm-worker --lib --locked`: **42 passed**.
+- `cargo test -p swarm-worker --test worker_sandbox --locked -- --test-threads=1`:
+  **10 passed, 0 failed**.
+- Полный Agent Loop с реальным LLM: **5 итераций, 4 tool calls**, sandbox
+  выполнил `cargo init`, запись кода, `cargo test`; итоговый artifact сохранён.
+- `tool_call` в БД: **4 события**.
+- `verify_chain`: **true**.
+- Artifact: `sha256:74898478772be1e807cdb14cfec025568c6c34d590106124280d8c5ad593c50d`
+  (524 Б, `/tmp/demo_artifacts_v04/...txt`).
+- После прогона тестовые sandbox-контейнеры удалены: **0 осталось**.
+
+**Артефакты:**
+- `crates/swarm-worker/src/parse_step.rs` — DSML + JSON parser.
+- `crates/swarm-worker/tests/worker_sandbox.rs` — DSML integration test.
+- `crates/swarm-worker/examples/agent_loop_demo.rs` — воспроизводимое демо.
+- `step2/roles_patch_tool_call_audit.sql` — audit function.
+
+**Ограничение:** полный compose e2e для запуска shell tools внутри контейнера
+воркера не выполнялся; compose worker по умолчанию имеет `WORKER_SHELL_TOOLS=0`,
+а Docker socket намеренно не монтируется. Проверка sandbox выполнена с хоста,
+где Docker доступен напрямую.
+
+---
+
+## V-006: v0.4.1 strict parsing и batch rejection
+
+**Дата:** 2026-10-09
+**Кто:** OpenClaw / агент на ноутбуке (nouthp88)
+
+**Что проверено:**
+- DSML batch прерывается на первом policy reject.
+- Следующий запрос LLM получает `REJECTED:` и сообщение о том, что
+  оставшиеся вызовы batch не выполнялись.
+- Некорректные quoted DSML strings дают `InvalidToolCall`.
+- Truncated quoted strings дают `InvalidToolCall`.
+- Строгий JSON-режим не извлекает JSON из произвольной прозы.
+- Relay.fast metadata-параметр `tool` рядом с JSON-параметром `args`
+  поддерживается без ослабления остальных проверок.
+- Исторический SQL-черновик перенесён в `docs/history/obsolete/`.
+
+**Результат:**
+- `cargo test -p swarm-worker --lib --locked`: **46 passed**.
+- `cargo test -p swarm-worker --test worker_sandbox --locked -- --test-threads=1`:
+  **11 passed, 0 failed**.
+- `cargo build --workspace --locked`: успешно.
+- Реальный `deepseek-v4-flash` через relay.fast: **4 итерации, 3 tool calls**,
+  `cargo test` внутри sandbox, artifact сохранён, **3 audit-события**,
+  `verify_chain=true`.
+- После проверки: временная БД `v0sandbox` удалена, sandbox-контейнеров **0**.
+
+**Артефакты:** `REPORT_v0.4.1.md`,
+`docs/history/obsolete/roles_2b_patch_section3.sql`.
+
+---
+
 ## Как добавить новую верификацию
 
 1. Скопировать шаблон выше.
@@ -5073,6 +5687,179 @@ REPORT_v0.4_shell_tools_sandbox.md:
 - Верификация должна быть **воспроизводимой**. Все команды — в отчёте.
 - Верификация должна быть **честной**. Если что-то не прошло — записать.
 ]]></content>
+    </file>
+    <file path="docs/audit/AUDITOR_BRIEF_v0.4.en.md" lang="markdown" bytes="7364" lines="169" sha256="319186b702ec4a26b6d3442b21cf1dda1cfacf43c91f1a40ba13e4fcd76e245e" md5="961414f68b6c20ed92b9453a550867e9">
+      <content encoding="xml-escaped">
+# Audit brief: `swarm-dispatcher` v0.4
+
+**To:** an independent auditor (an LLM with no repository access).
+**Input:** XML volumes with the full source code, infrastructure, and documentation.
+**Task:** find correctness, security, and concurrency defects — with evidence from the code.
+
+---
+
+## 1. What this project is
+
+`swarm-dispatcher` is a distributed task scheduler on PostgreSQL. The queue, the
+state machine, and the access rules live **in the database** (`SECURITY DEFINER`
+SQL functions), not in the application. The Rust processes are thin clients of
+that queue.
+
+Components (crates):
+
+| Crate | Role |
+|-------|------|
+| `swarm-core` | Data model, dispatcher, transactions, types |
+| `swarm-planner` | Task decomposition via an LLM (Planner) |
+| `swarm-worker` | Subtask execution, artifacts, retry |
+| `swarm-watchdog` | Returns expired leases to the queue |
+| `swarm-cli` | Operator interface, review |
+| `swarm-llm` | LLM provider client |
+
+**Project constraints (respect them in your findings):**
+- **Synchronous** code only, no async/tokio.
+- PostgreSQL only. The DB schema is the source of truth.
+- The public `swarm-core` API must not change (audit, not refactoring).
+
+---
+
+## 2. How to read the package
+
+Volumes (all inside the ZIP next to this brief):
+
+| Volume | File | Contents |
+|--------|------|----------|
+| `CODE` | `PROJECT_CODE_BUNDLE_v0.4.xml` | Rust: 6 crates, src + tests + fixtures, Cargo |
+| `INFRA` | `PROJECT_INFRA_BUNDLE_v0.4.xml` | SQL (schema/roles/patches), init scripts, Dockerfile, compose, `.env.example` |
+| `DOCS_CORE` | `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml` | Specs, architecture, known limitations, reports |
+| `DOCS` | `PROJECT_DOCS_BUNDLE_v0.4.xml` | The above + methodology, decision history, correspondence |
+
+**Recommended order:**
+1. `INFRA` → `schema/schema_v0.sql`, `step2/roles.sql`, `step2b/roles_2b.sql` — first understand
+   the state machine and the privileges.
+2. `CODE` → `swarm-core` (dispatcher), then `swarm-worker`, `swarm-watchdog`, `swarm-planner`.
+3. `DOCS_CORE` → `ARCHITECTURE.md`, `KNOWN_LIMITATIONS.md` — what the authors **claim**.
+4. The rest as needed.
+
+**Integrity:** `CHECKSUMS_v0.4.txt` (sha256 per volume). Every file inside a volume carries
+`sha256` and `md5` in `&lt;manifest&gt;`; the full text is in `&lt;content&gt;`.
+
+**Format:** `&lt;file path="…" sha256="…"&gt;&lt;content&gt;&lt;![CDATA[ …text… ]]&gt;&lt;/content&gt;&lt;/file&gt;`.
+
+---
+
+## 3. What to check
+
+### 3.1. State machine and DB invariants
+Files: `schema/schema_v0.sql`, `step2/roles.sql`, `step2b/roles_2b.sql`, `crates/swarm-core/src/dispatcher.rs`.
+
+- Are **orphan states** possible: a task `claimed` with no live lease, `done` without an artifact,
+  `failed` without a reason?
+- Are there transitions the function **allows** but the state machine should not?
+- Is `claim` atomic? Check `FOR UPDATE SKIP LOCKED` and the selection predicate — is there a window
+  between selecting the row and updating it?
+- Can one task be handed to **two workers**?
+- Are `lease_expires_at` and the system clock consistent (time-skew vulnerability)?
+
+### 3.2. Concurrency: watchdog vs worker
+Files: `crates/swarm-watchdog/src/main.rs`, `crates/swarm-worker/src/worker.rs`.
+
+- Can the watchdog **steal** a task from a live worker (false timeout)?
+- What happens if the worker finishes **after** the watchdog requeued the task?
+  A duplicate artifact write? A lost result?
+- Is there protection against a "zombie" worker (process alive but not progressing)?
+
+### 3.3. Role privileges (least privilege)
+Files: `schema/roles.sql`, `step2/roles.sql`, `step2/roles_patch_planner_status.sql`, `step2b/roles_2b.sql`.
+
+- Does each role have **only what it needs**? Is there a direct `INSERT`/`UPDATE` into tables that
+  bypasses the functions?
+- `SECURITY DEFINER` functions: is `search_path` pinned? Otherwise — privilege escalation via object
+  shadowing.
+- Can `swarm_worker_w1` call the planner functions (`swarm_planner`)?
+- The grant patch ships as a separate file — **check the order** `schema → roles → roles_2b →
+  roles_patch_planner_status` and that, without the patch, nothing breaks except what is expected.
+
+### 3.4. Planner: trust in the LLM
+Files: `crates/swarm-planner/src/parse.rs`, `lib.rs`, `prompt.rs`.
+
+- What happens on **garbage/incomplete** JSON from the model? Is there a retry? Can it be an
+  infinite loop?
+- **Prompt injection**: the task text goes into the prompt inside `&lt;untrusted&gt;…&lt;/untrusted&gt;` and is
+  stripped from the JSON contract. Is that enough? Find a path where the description influences the
+  plan structure.
+- Cyclic dependencies in the plan: are they checked?
+- Is there a cap on the number of subtasks (protection against a "10,000-step plan")?
+
+### 3.5. Worker: artifacts and retry
+Files: `crates/swarm-worker/src/artifacts.rs`, `worker.rs`, `retry.rs`, `prompt.rs`.
+
+- Is the artifact `sha256` computed **before** the DB write? Can the DB and the disk diverge (artifact
+  written, hash not — and vice versa)?
+- Retry: how many attempts? What happens on a failure **mid-way** — is a partial artifact left behind?
+- Is the artifact of a previous attempt overwritten?
+
+### 3.6. Tests: honesty of coverage
+Files: `crates/*/tests/*.rs`, `tests/test_v0.py`, `step2/test_roles.py`, `step2b/test_roles_2b.py`.
+
+- Do the integration tests really hit PostgreSQL, or do they substitute mocks?
+- Are there **concurrency** tests (two workers, watchdog + worker), or is everything sequential?
+- The reports claim mutation testing M1–M7. Check against the tests: is it reproducible? Which
+  mutants **survive** (the tests do not catch them)?
+- Find claims in the reports that the code **does not support**.
+
+### 3.7. Documentation vs code
+Files: `README.md`, `docs/KNOWN_LIMITATIONS.md`, `docs/ARCHITECTURE.md`, `REPORT_*.md`.
+
+- Verify the **honesty** of the claims. Particular attention: `KNOWN_LIMITATIONS.md` — are all
+  limitations really listed, or is something withheld?
+- `docs/TZ_v0.4_shell_tools_sandbox.md` — the spec for shell tools and the Docker sandbox.
+  **Its implementation is not in this bundle** (expected; next version). Check only that the spec is
+  self-consistent.
+
+---
+
+## 4. What not to do
+
+- Do not rewrite the code wholesale, do not propose general refactoring.
+- Do not comment on style, formatting, or naming.
+- Do not invent problems without a **quote from the code**.
+- Do not equate "tests pass" with "code is correct". Inspect the tests themselves.
+
+---
+
+## 5. Answer format
+
+One finding — one block:
+
+```
+### [SEVERITY] Short title
+- File: path:line
+- Essence: what is wrong and why it is a defect
+- Evidence: code quote (5–15 lines)
+- Reproduction / verification: how to confirm it
+- Proposal: the minimal fix
+```
+
+`SEVERITY`: `CRITICAL` (data loss/corruption, privilege escalation) · `HIGH` (race, invariant bypass) ·
+`MEDIUM` (error handling, resources) · `LOW` (minor) · `INFO` (observation).
+
+At the end — a summary: how many findings per severity, and the **three main risks** of the project.
+
+If a section has no findings, say so explicitly: "checked, clean".
+
+---
+
+## 6. Package verification
+
+```bash
+sha256sum -c CHECKSUMS_v0.4.txt          # volume integrity
+unzip -l swarm-dispatcher_audit_v0.4.zip # contents
+```
+
+The volumes are reproducible from the repository:
+`python3 scripts/build_project_bundle.py &amp;&amp; python3 scripts/build_audit_index.py`.
+      </content>
     </file>
     <file path="docs/audit/AUDITOR_BRIEF_v0.4.md" lang="markdown" bytes="10541" lines="164" sha256="a50fedc370bbdebcdc991c5bd0219ff1063acdc41e409107eac53a1c623e4a8a" md5="4790fa25340db0047858d0720874da24">
       <content encoding="xml-escaped">
@@ -5240,8 +6027,107 @@ unzip -l swarm-dispatcher_audit_v0.4.zip # состав
 
 Тома пересобираемы из репозитория:
 `python3 scripts/build_project_bundle.py &amp;&amp; python3 scripts/build_audit_index.py`.
-
       </content>
+    </file>
+    <file path="docs/audit/README_AUDIT_PACKAGE.md" lang="markdown" bytes="4993" lines="96" sha256="e822b5efd3e55a16029545708ee847232ebe7b415380a29b22b0d11042f2127d" md5="58817c038a50131822e4f22aaeb51f98">
+      <content><![CDATA[
+# Audit package: `swarm-dispatcher` v0.4 / Аудит-пакет: `swarm-dispatcher` v0.4
+
+**README — RU/EN.** Both languages are provided for the whole package.
+**README — RU/EN.** Обе версии приведены для всего пакета.
+
+---
+
+## EN
+
+### What this is
+
+A self-contained, machine-readable snapshot of the `swarm-dispatcher` repository
+for an **independent external auditor** (an LLM), together with a brief describing
+what to look for. Content is shipped as XML volumes; every file carries a full
+text body and two hashes (`sha256`, `md5`); secrets are excluded.
+
+### Files in this package
+
+| File | Language | Purpose |
+|------|----------|---------|
+| `AUDITOR_BRIEF_v0.4.md` | RU | The brief: scope, what to check, answer format |
+| `AUDITOR_BRIEF_v0.4.en.md` | EN | The same brief, in English |
+| `PROJECT_CODE_BUNDLE_v0.4.xml` | — | Rust: 6 crates (src, tests, fixtures, Cargo) |
+| `PROJECT_INFRA_BUNDLE_v0.4.xml` | — | SQL (schema/roles/patches), init scripts, Docker/compose, config |
+| `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml` | RU | Core docs (specs, architecture, limitations, reports) |
+| `PROJECT_DOCS_BUNDLE_v0.4.xml` | RU | Core docs + methodology, decision history, correspondence |
+| `SCRIPTS_BUNDLE_v0.4.xml` | — | All repository scripts (SQL/bash/py) |
+| `AUDIT_PACKAGE_INDEX_v0.4.md` | RU | Index of the pack with per-volume hashes |
+| `AUDIT_BUNDLE_REPORT_v0.4.md` | RU | Report on the scripts bundle |
+| `CHECKSUMS_v0.4.txt` | — | `sha256` per volume |
+
+### Revision under audit
+
+- Branch: `feature/v0.6-distributed-worker-mvp`
+- HEAD (`git rev-parse`): recorded in each volume as `<git head="…"/>`
+  and in `AUDIT_PACKAGE_INDEX_v0.4.md`.
+- The bundle head **must equal** the git HEAD you were given; if not, the package
+  is stale — ask for a rebuild.
+
+### How to start
+
+1. Read `AUDITOR_BRIEF_v0.4.en.md` (or the RU original).
+2. Verify integrity: `sha256sum -c CHECKSUMS_v0.4.txt`.
+3. Follow the recommended reading order in the brief (§2).
+
+### Language note
+
+The brief is available in **Russian and English**. The source code, SQL, and
+commit messages are in English; the project documentation (in the volumes) is
+primarily Russian. Findings may be reported in either language.
+
+---
+
+## RU
+
+### Что это
+
+Самодостаточный машиночитаемый снимок репозитория `swarm-dispatcher` для
+**внешнего независимого аудитора** (LLM), вместе с брифом о том, что проверять.
+Содержимое — XML-тома; каждый файл с полным текстом и двумя хешами
+(`sha256`, `md5`); секреты исключены.
+
+### Состав пакета
+
+| Файл | Язык | Назначение |
+|------|------|------------|
+| `AUDITOR_BRIEF_v0.4.md` | RU | Бриф: рамки, что проверять, формат ответа |
+| `AUDITOR_BRIEF_v0.4.en.md` | EN | Тот же бриф на английском |
+| `PROJECT_CODE_BUNDLE_v0.4.xml` | — | Rust: 6 крейтов (src, тесты, фикстуры, Cargo) |
+| `PROJECT_INFRA_BUNDLE_v0.4.xml` | — | SQL (схема/роли/патчи), init-скрипты, Docker/compose, конфиг |
+| `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml` | RU | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) |
+| `PROJECT_DOCS_BUNDLE_v0.4.xml` | RU | Ключевая документация + методология, история решений, переписка |
+| `SCRIPTS_BUNDLE_v0.4.xml` | — | Все скрипты репозитория (SQL/bash/py) |
+| `AUDIT_PACKAGE_INDEX_v0.4.md` | RU | Индекс пакета с хешами по томам |
+| `AUDIT_BUNDLE_REPORT_v0.4.md` | RU | Отчёт по бандлу скриптов |
+| `CHECKSUMS_v0.4.txt` | — | `sha256` по томам |
+
+### Ревизия под аудитом
+
+- Ветка: `feature/v0.6-distributed-worker-mvp`
+- HEAD (`git rev-parse`): записан в каждом томе как `<git head="…"/>`
+  и в `AUDIT_PACKAGE_INDEX_v0.4.md`.
+- Head бандла **обязан совпадать** с выданным git HEAD; если нет — пакет устарел,
+  запросите пересборку.
+
+### Как начать
+
+1. Прочитайте `AUDITOR_BRIEF_v0.4.md` (или английскую версию).
+2. Проверьте целостность: `sha256sum -c CHECKSUMS_v0.4.txt`.
+3. Идите по рекомендуемому порядку в брифе (§2).
+
+### О языке
+
+Бриф доступен **на русском и английском**. Исходный код, SQL и сообщения коммитов —
+на английском; документация проекта (в томах) — преимущественно на русском.
+Находки можно оформлять на любом из двух языков.
+]]></content>
     </file>
   </files>
 </audit-volume>

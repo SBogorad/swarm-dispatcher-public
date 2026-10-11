@@ -4,28 +4,63 @@
 //!   TEST_DATABASE_URL=postgres://swarm:pw@localhost:5432/swarm \
 //!     cargo test -p swarm-core --test integration -- --ignored --test-threads=1
 //!
-//! Без `TEST_DATABASE_URL` тесты пропускаются.
+//! Без `TEST_DATABASE_URL` тесты падают (FIND-08: не молчаливый пропуск).
 
-use swarm_core::{
-    Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict,
-};
+use swarm_core::{Budget, DispatcherError, Needs, SwarmDispatcher, TaskContract, Verdict};
 use uuid::Uuid;
 
 fn dsn() -> Option<String> {
     std::env::var("TEST_DATABASE_URL").ok()
 }
 
+/// FIND-08: отсутствие DSN — это ОШИБКА (тест не должен "проходить" молча).
+/// Раньше было `let dsn = require_dsn();` — провал pre-condition
+/// давал ложный PASS. Теперь — panic (FAIL) с явным сообщением. Запускать эти
+/// тесты надо с `--ignored` и заданным TEST_DATABASE_URL.
+fn require_dsn() -> String {
+    dsn().unwrap_or_else(|| {
+        panic!(
+            "BLOCKED/FAIL: TEST_DATABASE_URL не задан; integration-тесты требуют \
+             живую тестовую БД (prefix test_/v0/c2_). Запуск: \
+             TEST_DATABASE_URL=... cargo test -- --ignored"
+        )
+    })
+}
+
+/// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
+/// ... CASCADE` не должен уметь снести рабочую базу).
+fn assert_disposable_db(dsn: &str) {
+    let name = db_name(dsn);
+    let ok = name.starts_with("test_") || name.starts_with("v0") || name.starts_with("c2_");
+    assert!(
+        ok,
+        "refusing to TRUNCATE non-disposable database {name:?} \
+         (allowed prefixes: test_, v0, c2_); point TEST_DATABASE_URL at a throwaway DB"
+    );
+}
+
+/// Имя БД из DSN: key=value (`dbname=...`) или URI (`postgres://.../db`).
+fn db_name(dsn: &str) -> String {
+    if let Some(rest) = dsn
+        .strip_prefix("postgres://")
+        .or_else(|| dsn.strip_prefix("postgresql://"))
+    {
+        let after_host = rest.split('/').nth(1).unwrap_or("");
+        return after_host.split('?').next().unwrap_or("").to_string();
+    }
+    dsn.split_whitespace()
+        .find_map(|p| p.strip_prefix("dbname="))
+        .unwrap_or("")
+        .to_string()
+}
+
 fn truncate(d: &mut SwarmDispatcher) {
     // Прямой SQL: fixture-очистка. Не через методы, чтобы не зависеть от кода.
-    let mut client = postgres::Client::connect(
-        &std::env::var("TEST_DATABASE_URL").unwrap(),
-        postgres::NoTls,
-    )
-    .unwrap();
+    let dsn = std::env::var("TEST_DATABASE_URL").unwrap();
+    assert_disposable_db(&dsn);
+    let mut client = postgres::Client::connect(&dsn, postgres::NoTls).unwrap();
     client
-        .batch_execute(
-            "TRUNCATE events, reviews, task_deps, artifacts, tasks, workers CASCADE",
-        )
+        .batch_execute("TRUNCATE events, reviews, task_deps, artifacts, tasks, workers CASCADE")
         .unwrap();
     // Принудительно возвращаем d в чистое состояние.
     *d = SwarmDispatcher::connect(&std::env::var("TEST_DATABASE_URL").unwrap()).unwrap();
@@ -44,7 +79,7 @@ fn contract(kind: &str) -> TaskContract {
 #[test]
 #[ignore]
 fn add_task_and_list() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -61,7 +96,7 @@ fn add_task_and_list() {
 #[test]
 #[ignore]
 fn add_dep_cycle_rejected() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -72,13 +107,16 @@ fn add_dep_cycle_rejected() {
 
     d.add_dep(b, a).unwrap();
     let err = d.add_dep(a, b).unwrap_err();
-    assert!(matches!(err, DispatcherError::CycleDetected), "got: {err:?}");
+    assert!(
+        matches!(err, DispatcherError::CycleDetected),
+        "got: {err:?}"
+    );
 }
 
 #[test]
 #[ignore]
 fn claim_and_fencing() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -116,7 +154,7 @@ fn claim_and_fencing() {
 #[test]
 #[ignore]
 fn complete_and_review_self_rejected() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -132,7 +170,8 @@ fn complete_and_review_self_rejected() {
     assert_eq!(state, "review");
 
     // Рецензент = автор → SelfReview.
-    let checks = serde_json::json!([{"type": "cmd", "status": "pass"}]);
+    // F2: ключ проверки = coalesce(id, type||'|'||run) — отчёт совпадает по run.
+    let checks = serde_json::json!([{"type": "cmd", "run": "true", "status": "pass"}]);
     let err = d
         .submit_review(id, "sha256:x", "w1", Verdict::Approved, &checks)
         .unwrap_err();
@@ -148,7 +187,7 @@ fn complete_and_review_self_rejected() {
 #[test]
 #[ignore]
 fn verify_chain_after_operations() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
 
@@ -175,7 +214,10 @@ fn raw(dsn: &str) -> postgres::Client {
 
 fn count(dsn: &str, ids: &[Uuid]) -> i64 {
     raw(dsn)
-        .query_one("select count(*) from tasks where id = any($1)", &[&ids.to_vec()])
+        .query_one(
+            "select count(*) from tasks where id = any($1)",
+            &[&ids.to_vec()],
+        )
         .unwrap()
         .get(0)
 }
@@ -187,7 +229,7 @@ fn count(dsn: &str, ids: &[Uuid]) -> i64 {
 #[test]
 #[ignore]
 fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
@@ -219,7 +261,7 @@ fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
 #[test]
 #[ignore]
 fn concurrent_claims_are_disjoint() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     for i in 0..8 {
@@ -260,7 +302,7 @@ fn concurrent_claims_are_disjoint() {
 #[test]
 #[ignore]
 fn with_transaction_rolls_back_on_error() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
@@ -284,7 +326,7 @@ fn with_transaction_rolls_back_on_error() {
 #[test]
 #[ignore]
 fn with_transaction_rolls_back_on_sql_error_midway() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let (a, b) = (Uuid::new_v4(), Uuid::new_v4());
@@ -303,7 +345,7 @@ fn with_transaction_rolls_back_on_sql_error_midway() {
 #[test]
 #[ignore]
 fn with_transaction_commits_whole_graph_atomically() {
-    let Some(dsn) = dsn() else { return };
+    let dsn = require_dsn();
     let mut d = SwarmDispatcher::connect(&dsn).unwrap();
     truncate(&mut d);
     let ids: Vec<Uuid> = (0..4).map(|_| Uuid::new_v4()).collect();

@@ -26,13 +26,17 @@ create or replace function assert_worker_identity(p_worker text)
 returns void language plpgsql as $$
 declare v_expected text;
 begin
-  if session_user::text like 'swarm_worker_%' then
-    v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
-    if session_user::text <> v_expected then
-      raise exception 'worker_identity_mismatch: session_user=% expected=%',
-        session_user, v_expected using errcode = 'WK003';
-    end if;
-  end if;
+  -- F3: идентификация закрыта по умолчанию (deny-by-default).
+  -- Пропуск ТОЛЬКО при строгом совпадении session_user с ожидаемой
+  -- per-worker ролью либо для суперпользователя. Раньше проверка была
+  -- завёрнута в `if session_user like 'swarm_worker_%'`, поэтому под
+  -- общей ролью swarm_worker (единственной, кому выданы обёртки) она
+  -- молча ничего не проверяла — bypass. См. reference_fix_wave4.sql (F3).
+  v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
+  if session_user::text = v_expected then return; end if;
+  if (select rolsuper from pg_roles where rolname = session_user) then return; end if;
+  raise exception 'worker_identity_mismatch: session_user=% expected=%', session_user, v_expected
+    using errcode = 'WK003';
 end $$;
 
 alter function normalize_worker_id(text) owner to swarm_owner;
@@ -42,7 +46,6 @@ alter function assert_worker_identity(text) security definer set search_path = p
 
 revoke all on function normalize_worker_id(text) from public;
 revoke all on function assert_worker_identity(text) from public;
-grant execute on function normalize_worker_id(text) to public;  -- безвредная, для отладки
 -- assert_worker_identity — не выдаём никому; вызывается только из обёрток.
 
 -- ============================================================
@@ -73,6 +76,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
@@ -110,6 +116,9 @@ create or replace function heartbeat(p_task uuid, p_worker text, p_epoch bigint,
                                      p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec),
                    updated_at = now()
@@ -143,6 +152,9 @@ declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_worker_identity(p_worker);
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
@@ -197,3 +209,34 @@ grant swarm_worker to swarm_worker_w1;
 grant swarm_worker to swarm_worker_w2;
 grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
+
+-- F4: fail_task — честный отказ воркera. Грант выдаётся ТОЛЬКО per-worker
+-- login-ролям, НЕ общей swarm_worker: общая роль — не identity (см. F3),
+-- и обёртки отказа должен вызывать только реальный воркер.
+grant execute on function fail_task(uuid, text, bigint, text, text)
+  to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+
+-- ============================================================
+-- 3b. Defense-in-depth: каждой per-worker роли запрещён SET на
+--     чужую роль (включая саму общую swarm_worker).
+--
+--     Без этого PG16 по умолчанию выдаёт set_option = true при
+--     grant, и компрометация одной роли позволяет SET ROLE на
+--     другую. Защита identity и так держится на session_user
+--     (см. assert_worker_identity), но мы убираем и сам механизм.
+--
+--     Синтаксис проверен на PostgreSQL 16.15:
+--       revoke set option for <role> from <role>
+--     (не "REVOKE SET ON ROLE" — такого варианта в PG16 нет).
+-- ============================================================
+revoke set option for swarm_worker from swarm_worker_w1;
+revoke set option for swarm_worker from swarm_worker_w2;
+revoke set option for swarm_worker from swarm_worker_w_1;
+revoke set option for swarm_worker from swarm_worker_gpu_1;
+
+-- Перекрёстный запрет: ни одна worker-роль не имеет SET на любую
+-- другую worker-роль (матрица N x N, включая саму себя).
+revoke set option for swarm_worker_w1    from swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w2    from swarm_worker_w1, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w_1   from swarm_worker_w1, swarm_worker_w2, swarm_worker_gpu_1;
+revoke set option for swarm_worker_gpu_1 from swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1;

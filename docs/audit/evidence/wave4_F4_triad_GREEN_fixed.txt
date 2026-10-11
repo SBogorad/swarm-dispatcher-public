@@ -1,0 +1,6 @@
+### F4 triad — GREEN on fix  |  2026-10-11T05:42:28+07:00
+### container=w4_f4_fix_2466349 port=32809  creds REDACTED
+### fix: fail_task (per-worker grant) + unblock_task(p_new_budget_cap default null)
+
+........                                                                 [100%]
+8 passed in 0.41s

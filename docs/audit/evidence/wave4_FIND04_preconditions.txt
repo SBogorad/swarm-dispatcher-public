@@ -1,0 +1,62 @@
+### wave4 FIND-04 preconditions  |  2026-10-11T04:41:12+07:00  |  HEAD a836508
+### container: swarm-dispatcher-postgres-1  image: postgres:16.4-alpine
+
+=== P1: assert_worker_identity body on live PG ===
+                                    prosrc                                    
+------------------------------------------------------------------------------
+                                                                             +
+ declare v_expected text;                                                    +
+ begin                                                                       +
+   if session_user::text like 'swarm_worker_%' then                          +
+     v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);         +
+     if session_user::text <> v_expected then                                +
+       raise exception 'worker_identity_mismatch: session_user=% expected=%',+
+         session_user, v_expected using errcode = 'WK003';                   +
+     end if;                                                                 +
+   end if;                                                                   +
+ end 
+(1 row)
+
+
+=== P2: record_tool_call — how many definitions live? ===
+ proname | args | has_identity 
+---------+------+--------------
+(0 rows)
+
+
+=== P2c: does record_tool_call currently call assert_worker_identity? ===
+ prosrc 
+--------
+(0 rows)
+
+
+=== P3: ACL on record_tool_call — who has execute? ===
+ proacl 
+--------
+(0 rows)
+
+
+=== P4: worker roles + canlogin + membership ===
+      rolname       | rolcanlogin 
+--------------------+-------------
+ swarm_worker       | t
+ swarm_worker_gpu_1 | t
+ swarm_worker_w1    | t
+ swarm_worker_w2    | t
+ swarm_worker_w_1   | t
+(5 rows)
+
+    member_of     |  role_name   
+------------------+--------------
+ swarm_worker_w1  | swarm_worker
+ swarm_worker_w2  | swarm_worker
+ swarm_worker_w_1 | swarm_worker
+(3 rows)
+
+
+=== P5: live session_user check — impersonation under w1 vs w2 ===
+ session_user | current_user 
+--------------+--------------
+ swarm        | swarm
+(1 row)
+

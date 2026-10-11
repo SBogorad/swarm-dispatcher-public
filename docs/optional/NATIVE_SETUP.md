@@ -23,6 +23,7 @@ Omarchy (Arch Linux) с Postgres 18.6 в user-space.
 - Linux / macOS (проверено на Arch).
 - Postgres 16+ (16.4 или 18.6).
 - Rust 1.85+.
+- Для acceptance-проверок: Docker, `shellcheck`, `python3` и `sha256sum`.
 - `~/.local/bin` в `$PATH`.
 - ~500 МБ свободного места.
 

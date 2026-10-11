@@ -72,7 +72,7 @@ impl ToolAuditSink for PgAuditSink {
 /// Посчитать события `tool_call` по задаче (для тестов/диагностики).
 pub fn count_tool_calls(dsn: &str, task_id: Uuid) -> Result<i64> {
     let mut c = Client::connect(dsn, NoTls)
-        .map_err(|e| WorkerError::Sandbox(format!("audit connect: {e}")))?;
+        .map_err(|e| WorkerError::Database(swarm_core::DispatcherError::from_pg(e)))?;
     let row = c
         .query_one(
             "select count(*) from events where task_id = $1 and kind = 'tool_call'",

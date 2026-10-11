@@ -1,5 +1,7 @@
 //! CLI: seed / status / review / reopen / unblock.
 
+use std::process::ExitCode;
+
 use clap::{Parser, Subcommand};
 use swarm_core::{Budget, Needs, SwarmDispatcher, TaskContract, Verdict};
 use uuid::Uuid;
@@ -23,6 +25,13 @@ enum Cmd {
         artifact_ref: String,
         #[arg(value_parser = ["approve", "changes", "reject"])]
         verdict: String,
+        /// JSON-массив реально наблюдённых проверок.
+        ///
+        /// Обязателен для `approve`: CLI не выдумывает проходящий набор
+        /// checks (иначе строгий review-gate в `submit_review` обходится
+        /// фиктивным успехом). Для `changes`/`reject` не нужен.
+        #[arg(long)]
+        checks: Option<String>,
     },
     /// Переоткрыть завершённую задачу (каскадный откат).
     Reopen { task_id: Uuid, actor: String },
@@ -30,40 +39,104 @@ enum Cmd {
     Unblock { task_id: Uuid, actor: String },
 }
 
-fn main() {
-    let dsn = std::env::var("DATABASE_URL").expect("DATABASE_URL required");
+fn main() -> ExitCode {
     let cli = Cli::parse();
-    let mut d = SwarmDispatcher::connect(&dsn).expect("connect to Postgres");
 
-    match cli.command {
+    let dsn = match std::env::var("DATABASE_URL") {
+        Ok(v) => v,
+        Err(_) => {
+            eprintln!("error: DATABASE_URL required");
+            return ExitCode::FAILURE;
+        }
+    };
+    let mut d = match SwarmDispatcher::connect(&dsn) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("error: connect to Postgres: {e}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    // Ненулевой код возврата на любой ошибке: вызывающие скрипты не должны
+    // принимать неуспех за успех (аудит: exit-code семантика CLI).
+    let outcome: Result<(), String> = match cli.command {
         Cmd::Seed => seed(&mut d),
         Cmd::Status => status(&mut d),
-        Cmd::Review { task_id, artifact_ref, verdict } => {
-            let v = match verdict.as_str() {
-                "approve" => Verdict::Approved,
-                "changes" => Verdict::ChangesRequested,
-                _ => Verdict::Rejected,
-            };
-            let checks = serde_json::json!([
-                {"type": "cmd", "status": "pass", "exit_code": 0}
-            ]);
-            match d.submit_review(task_id, &artifact_ref, "cli-reviewer", v, &checks) {
-                Ok(state) => println!("new state: {state}"),
-                Err(e) => eprintln!("error: {e}"),
+        Cmd::Review {
+            task_id,
+            artifact_ref,
+            verdict,
+            checks,
+        } => review(&mut d, task_id, &artifact_ref, &verdict, checks.as_deref()),
+        Cmd::Reopen { task_id, actor } => match d.reopen(task_id, &actor) {
+            Ok(n) => {
+                println!("blocked {n} descendants");
+                Ok(())
             }
-        }
-        Cmd::Reopen { task_id, actor } => {
-            match d.reopen(task_id, &actor) {
-                Ok(n) => println!("blocked {n} descendants"),
-                Err(e) => eprintln!("error: {e}"),
+            Err(e) => Err(e.to_string()),
+        },
+        Cmd::Unblock { task_id, actor } => match d.unblock(task_id, &actor) {
+            Ok(state) => {
+                println!("new state: {state}");
+                Ok(())
             }
+            Err(e) => Err(e.to_string()),
+        },
+    };
+
+    match outcome {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("error: {e}");
+            ExitCode::FAILURE
         }
-        Cmd::Unblock { task_id, actor } => {
-            match d.unblock(task_id, &actor) {
-                Ok(state) => println!("new state: {state}"),
-                Err(e) => eprintln!("error: {e}"),
+    }
+}
+
+/// Оставить ревью.
+///
+/// Набор проверок (`--checks`) приходит от оператора и не выдумывается: для
+/// `approve` он обязателен, иначе CLI отказывает (fail-closed). Это закрывает
+/// обход строгого review-gate в `submit_review`, который раньше «проходил» на
+/// жёстко зашитом `[{"type":"cmd","status":"pass"}]` независимо от контракта.
+fn review(
+    d: &mut SwarmDispatcher,
+    task_id: Uuid,
+    artifact_ref: &str,
+    verdict: &str,
+    checks_json: Option<&str>,
+) -> Result<(), String> {
+    let v = match verdict {
+        "approve" => Verdict::Approved,
+        "changes" => Verdict::ChangesRequested,
+        _ => Verdict::Rejected,
+    };
+
+    let checks = match checks_json {
+        Some(raw) => {
+            let parsed: serde_json::Value = serde_json::from_str(raw)
+                .map_err(|e| format!("--checks is not valid JSON: {e}"))?;
+            if !parsed.is_array() {
+                return Err("--checks must be a JSON array".to_string());
             }
+            parsed
         }
+        None if verdict == "approve" => {
+            return Err(
+                "approve requires --checks <json>: the CLI will not fabricate a \
+                 passing check set; supply the checks actually observed"
+                    .to_string(),
+            );
+        }
+        None => serde_json::json!([]),
+    };
+
+    match d.submit_review(task_id, artifact_ref, "cli-reviewer", v, &checks) {
+        Ok(state) => {
+            println!("new state: {state}");
+            Ok(())
+        }
+        Err(e) => Err(e.to_string()),
     }
 }
 
@@ -77,35 +150,37 @@ fn contract(kind: &str) -> TaskContract {
     }
 }
 
-fn seed(d: &mut SwarmDispatcher) {
+fn seed(d: &mut SwarmDispatcher) -> Result<(), String> {
     let root = Uuid::new_v4();
     d.add_task(root, &contract("root"), None, 10_000, 10)
-        .expect("add root");
+        .map_err(|e| format!("add root: {e}"))?;
 
     for i in 1..=2 {
         let child = Uuid::new_v4();
-        d.add_task(child, &contract(&format!("child-{i}")), Some(root), 10_000, 5)
-            .expect("add child");
-        d.add_dep(child, root).expect("add dep");
+        d.add_task(
+            child,
+            &contract(&format!("child-{i}")),
+            Some(root),
+            10_000,
+            5,
+        )
+        .map_err(|e| format!("add child: {e}"))?;
+        d.add_dep(child, root)
+            .map_err(|e| format!("add dep: {e}"))?;
         println!("created child {} depends on root {}", child, root);
     }
     println!("seed done, root = {root}");
+    Ok(())
 }
 
-fn status(d: &mut SwarmDispatcher) {
+fn status(d: &mut SwarmDispatcher) -> Result<(), String> {
     // Чтение через task_status(): прямой SELECT к tasks сервисным ролям закрыт
     // после roles.sql.
-    let tasks = match d.list_task_status(200) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("error: {e}");
-            return;
-        }
-    };
+    let tasks = d.list_task_status(200).map_err(|e| e.to_string())?;
 
     if tasks.is_empty() {
         println!("(no tasks)");
-        return;
+        return Ok(());
     }
 
     println!(
@@ -126,5 +201,5 @@ fn status(d: &mut SwarmDispatcher) {
             println!("    blocked: {reason}");
         }
     }
+    Ok(())
 }
-

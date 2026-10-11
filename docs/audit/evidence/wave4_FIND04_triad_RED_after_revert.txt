@@ -1,0 +1,26 @@
+### FIND-04 triad — RED after revert (CORRECT revert: original patch file re-applied)  |  2026-10-11T04:50:07+07:00
+### container=w4_find04_1892894 port=32803  creds REDACTED
+### reverted by re-applying git HEAD:step2/roles_patch_tool_call_audit.sql (owner=swarm_owner, security definer)
+### state: has_identity=f secdef=t
+### expectation: case1 RED again (spoof passes), case2/case3 GREEN (legit path intact)
+
+    def test_case1_w1_cannot_forge_event_as_w2(admin):
+        """w1 пишет tool_call на аренде w2, указав p_worker='w2'.
+    
+        ДО фикса: вызов проходит, событие атрибутируется w2 -> assert падает (КРАСНЫЙ).
+        ПОСЛЕ:    WK003 worker_identity_mismatch -> зелёный.
+        """
+        task_w2, epoch_w2 = _make_leased_task(admin, "w2")
+    
+        w1 = _worker_conn("w1")
+        try:
+            cur = w1.cursor()
+            forged = json.dumps({"tool": "run_shell", "command": "spoofed_by_w1"})
+>           with pytest.raises(psycopg2.DatabaseError) as e:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE DatabaseError
+
+tests/test_find04_record_tool_call_identity.py:127: Failed
+=========================== short test summary info ============================
+FAILED tests/test_find04_record_tool_call_identity.py::test_case1_w1_cannot_forge_event_as_w2
+1 failed, 2 passed in 0.35s

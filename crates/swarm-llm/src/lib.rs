@@ -44,7 +44,9 @@ impl LlmConfig {
                 "API key required for this provider".into(),
             ));
         }
-        let model = var("MODEL").or_else(|_| legacy("MODEL")).unwrap_or_else(|_| "mock".into());
+        let model = var("MODEL")
+            .or_else(|_| legacy("MODEL"))
+            .unwrap_or_else(|_| "mock".into());
         let base_url = var("BASE_URL").or_else(|_| legacy("BASE_URL")).ok();
         if provider == "openai-compatible" && base_url.is_none() {
             return Err(LlmError::Config(
@@ -197,7 +199,14 @@ impl HttpLlmClient {
         let max_tokens = req.max_tokens.unwrap_or(self.cfg.max_tokens);
         match self.cfg.provider.as_str() {
             "mock" => self.mock_response(),
-            "openai" => self.openai_chat(req, max_tokens, self.cfg.base_url.as_deref().unwrap_or("https://api.openai.com")),
+            "openai" => self.openai_chat(
+                req,
+                max_tokens,
+                self.cfg
+                    .base_url
+                    .as_deref()
+                    .unwrap_or("https://api.openai.com"),
+            ),
             "openai-compatible" | "relayfast" => {
                 let base = self
                     .cfg
@@ -227,13 +236,24 @@ impl HttpLlmClient {
         })
     }
 
-    fn openai_chat(&self, req: &LlmRequest, max_tokens: u32, base: &str) -> Result<LlmResponse, LlmError> {
+    fn openai_chat(
+        &self,
+        req: &LlmRequest,
+        max_tokens: u32,
+        base: &str,
+    ) -> Result<LlmResponse, LlmError> {
         let url = format!("{}/v1/chat/completions", base.trim_end_matches('/'));
         let body = OpenAiRequest {
             model: &self.cfg.model,
             messages: vec![
-                ChatMessage { role: "system", content: &req.system },
-                ChatMessage { role: "user", content: &req.user },
+                ChatMessage {
+                    role: "system",
+                    content: &req.system,
+                },
+                ChatMessage {
+                    role: "user",
+                    content: &req.user,
+                },
             ],
             max_tokens,
             temperature: req.temperature.unwrap_or(0.2),
@@ -244,7 +264,9 @@ impl HttpLlmClient {
         }
         let resp = r.send().map_err(|e| LlmError::Transport(e.to_string()))?;
         let status = resp.status();
-        let text = resp.text().map_err(|e| LlmError::Transport(e.to_string()))?;
+        let text = resp
+            .text()
+            .map_err(|e| LlmError::Transport(e.to_string()))?;
         if !status.is_success() {
             return Err(LlmError::Http {
                 status: status.as_u16(),
@@ -253,7 +275,10 @@ impl HttpLlmClient {
         }
         let parsed: OpenAiResponse = serde_json::from_str(&text)
             .map_err(|e| LlmError::InvalidJson(format!("{e}: {}", truncate(&text, 400))))?;
-        let usage = parsed.usage.unwrap_or(OpenAiUsage { prompt_tokens: 0, completion_tokens: 0 });
+        let usage = parsed.usage.unwrap_or(OpenAiUsage {
+            prompt_tokens: 0,
+            completion_tokens: 0,
+        });
         parsed
             .choices
             .into_iter()
@@ -268,13 +293,20 @@ impl HttpLlmClient {
     }
 
     fn anthropic_chat(&self, req: &LlmRequest, max_tokens: u32) -> Result<LlmResponse, LlmError> {
-        let base = self.cfg.base_url.as_deref().unwrap_or("https://api.anthropic.com");
+        let base = self
+            .cfg
+            .base_url
+            .as_deref()
+            .unwrap_or("https://api.anthropic.com");
         let url = format!("{}/v1/messages", base.trim_end_matches('/'));
         let body = AnthropicRequest {
             model: &self.cfg.model,
             max_tokens,
             system: &req.system,
-            messages: vec![ChatMessage { role: "user", content: &req.user }],
+            messages: vec![ChatMessage {
+                role: "user",
+                content: &req.user,
+            }],
         };
         let key = self
             .cfg
@@ -290,7 +322,9 @@ impl HttpLlmClient {
             .send()
             .map_err(|e| LlmError::Transport(e.to_string()))?;
         let status = resp.status();
-        let text = resp.text().map_err(|e| LlmError::Transport(e.to_string()))?;
+        let text = resp
+            .text()
+            .map_err(|e| LlmError::Transport(e.to_string()))?;
         if !status.is_success() {
             return Err(LlmError::Http {
                 status: status.as_u16(),
@@ -299,7 +333,10 @@ impl HttpLlmClient {
         }
         let parsed: AnthropicResponse = serde_json::from_str(&text)
             .map_err(|e| LlmError::InvalidJson(format!("{e}: {}", truncate(&text, 400))))?;
-        let usage = parsed.usage.unwrap_or(AnthropicUsage { input_tokens: 0, output_tokens: 0 });
+        let usage = parsed.usage.unwrap_or(AnthropicUsage {
+            input_tokens: 0,
+            output_tokens: 0,
+        });
         parsed
             .content
             .into_iter()

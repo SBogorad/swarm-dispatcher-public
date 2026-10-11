@@ -33,8 +33,13 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
-    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+        env_name = "SWARM_PW_" + suffix.upper()
+    else:
+        suffix = role.split("_", 1)[1]
+        env_name = "SWARM_PW_" + suffix.upper()
+    return connect(role, os.environ.get(env_name, "pw_" + suffix))
 
 
 def attempt(conn, sql):
@@ -184,10 +189,32 @@ def test_15_watchdog_role_unaffected(admin):
     assert attempt(wd, "select reclaim_expired()") is None
 
 
-def test_16_common_worker_role_unchanged(admin):
-    """Общая роль swarm_worker не начинается с swarm_worker_ → проверка не срабатывает."""
-    w = as_role("swarm_worker")
-    assert attempt(w, "select register_worker('any-id', '{\"ram_gb\":16}'::jsonb)") is None
+def test_16_common_worker_role_cannot_login_or_call(admin):
+    """Общая роль swarm_worker не может быть worker identity (F3).
+
+    Две линии защиты, обе обязаны держаться:
+      1) NOLOGIN — вход под swarm_worker запрещён Postgres;
+      2) даже если бы вход состоялся (или через SET ROLE), session_user
+         ('swarm_worker') != 'swarm_worker_'||normalize(p_worker), поэтому
+         assert_worker_identity внутри обёрток вернул бы WK003.
+    """
+    cur = admin.cursor()
+    cur.execute("select rolcanlogin from pg_roles where rolname = 'swarm_worker'")
+    assert cur.fetchone()[0] is False
+    cur.execute("select has_function_privilege('swarm_worker', 'claim_task(text, integer)', 'execute')")
+    assert cur.fetchone()[0] is True
+    with pytest.raises(psycopg2.Error) as exc:
+        connect("swarm_worker", os.environ.get("SWARM_PW_WORKER", "pw_worker"))
+    assert "is not permitted to log in" in str(exc.value)
+    # F3: тело assert больше не завёрнуто в LIKE-гейт -> под общей ролью
+    # проверка активна (deny-by-default), а не молча пропускается.
+    cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
+    # Снимаем -- комментарии: F3-объяснение может упоминать старый гейт как историю.
+    body = "\n".join(line.split("--", 1)[0] for line in cur.fetchone()[0].splitlines()).lower()
+    assert "like 'swarm_worker_%'" not in body, (
+        "F3: assert_worker_identity всё ещё под LIKE-гейтом (bypass под общей ролью)"
+    )
+    assert "rolsuper" in body, "F3: единственный обход — явный rolsuper-lookup"
 
 
 # ---------- Каталог ----------
@@ -222,3 +249,71 @@ def test_18_assert_worker_identity_not_granted_to_public(admin):
         select has_function_privilege('swarm_worker', 'assert_worker_identity(text)', 'execute')
     """)
     assert cur.fetchone()[0] is False
+
+    cur.execute("select has_function_privilege('public', 'normalize_worker_id(text)', 'execute')")
+    assert cur.fetchone()[0] is False
+
+
+# ---------- Defense-in-depth: SET ROLE на чужую роль запрещён ----------
+
+ALL_WORKER_ROLES = [
+    "swarm_worker_w1",
+    "swarm_worker_w2",
+    "swarm_worker_w_1",
+    "swarm_worker_gpu_1",
+]
+
+
+def test_19_no_set_option_on_shared_worker_role(admin):
+    """G3: PG16 по умолчанию ставит set_option=true при grant.
+
+    roles_2b.sql явно делает REVOKE SET OPTION FOR swarm_worker FROM
+    каждой per-worker роли. Проверяем по каталогу pg_auth_members, что
+    set_option == false — иначе компрометация одной роли позволила бы
+    SET ROLE на общую worker-роль.
+    """
+    cur = admin.cursor()
+    for role in ALL_WORKER_ROLES:
+        cur.execute(
+            """
+            select am.set_option
+              from pg_auth_members am
+              join pg_roles m on m.oid = am.member
+              join pg_roles r on r.oid = am.roleid
+             where m.rolname = %s and r.rolname = 'swarm_worker'
+            """,
+            (role,),
+        )
+        row = cur.fetchone()
+        assert row is not None, f"{role}: нет membership на swarm_worker"
+        assert row[0] is False, f"{role}: set_option на swarm_worker должен быть false (G3)"
+
+
+def test_20_no_cross_worker_set_option(admin):
+    """G3: ни одна worker-роль не имеет SET на любую другую worker-роль."""
+    cur = admin.cursor()
+    for member in ALL_WORKER_ROLES:
+        others = [r for r in ALL_WORKER_ROLES if r != member]
+        for target in others:
+            cur.execute(
+                """
+                select coalesce(max(case when am.set_option then 1 else 0 end), 0)
+                  from pg_auth_members am
+                  join pg_roles m on m.oid = am.member
+                  join pg_roles r on r.oid = am.roleid
+                 where m.rolname = %s and r.rolname = %s
+                """,
+                (member, target),
+            )
+            assert cur.fetchone()[0] == 0, f"{member}: set_option на {target} должен отсутствовать"
+
+
+def test_21_set_role_spoofing_is_denied(admin):
+    """G3 end-to-end: SET ROLE на чужую worker-роль реально отбит Postgres.
+
+    Без set_option попытка SET ROLE завершается ошибкой прав (42501),
+    а не только перехватывается session_user-проверкой внутри функции.
+    """
+    w = as_role("swarm_worker_w1")
+    assert attempt(w, "set role swarm_worker_w2") == DENIED
+    assert attempt(w, "set role swarm_worker") == DENIED

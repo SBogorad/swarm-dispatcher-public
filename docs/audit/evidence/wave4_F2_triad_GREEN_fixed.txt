@@ -1,0 +1,6 @@
+### F2 triad — GREEN on fix (patch removed, schema single source)  |  2026-10-11T05:08:30+07:00
+### container=w4_f2f15_fix_2099503 port=32806  creds REDACTED
+### fix: key = coalesce(id, type||'|'||run), count(pass) >= req.n (schema_v0.sql)
+
+.....                                                                    [100%]
+5 passed in 0.36s

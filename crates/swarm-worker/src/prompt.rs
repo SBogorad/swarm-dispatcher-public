@@ -60,6 +60,7 @@ pub fn user_prompt(contract: &serde_json::Value) -> String {
 ///
 /// В отличие от v0.3 промпт описывает доступные инструменты и allowlist.
 /// Список команд берётся из env/конфига и **не** может быть расширен LLM.
+#[cfg(feature = "shell-tools")]
 pub fn agent_system_prompt(allowlist: &crate::allowlist::Allowlist) -> String {
     let allowed = allowlist.list().join(", ");
     format!(
@@ -86,6 +87,7 @@ pub fn agent_system_prompt(allowlist: &crate::allowlist::Allowlist) -> String {
 }
 
 /// Пользовательский промпт Agent Loop: контракт + description + история tool calls.
+#[cfg(feature = "shell-tools")]
 pub fn agent_user_prompt(contract: &serde_json::Value, history: &[String]) -> String {
     let mut out = user_prompt(contract);
     if !history.is_empty() {
@@ -121,6 +123,7 @@ mod tests {
     }
 
     // v0.4 §6: промпт Agent Loop перечисляет инструменты и allowlist.
+    #[cfg(feature = "shell-tools")]
     #[test]
     fn agent_system_prompt_lists_tools_and_allowlist() {
         let al = crate::allowlist::Allowlist::default();
@@ -132,6 +135,7 @@ mod tests {
         assert!(p.contains("<untrusted>"));
     }
 
+    #[cfg(feature = "shell-tools")]
     #[test]
     fn agent_user_prompt_includes_history() {
         let c = json!({"kind": "code.generate", "checks": [{"type":"cmd","run":"true"}]});

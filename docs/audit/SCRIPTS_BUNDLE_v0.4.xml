@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-08T21:41:58+07:00" generator="scripts/build_audit_bundle.py">
+<audit-bundle schema="swarm-dispatcher.audit-bundle.v1" generated="2026-10-11T10:18:46+07:00" generator="scripts/build_audit_bundle.py">
   <project>
     <name>swarm-dispatcher</name>
-    <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
-    <git is_git="false"><note>not a git repository</note></git>
+    <root>/home/d88u525/Projects/rust/swarm-dispatcher-integration</root>
+    <git is_git="true" head="b9ea4d0c2b47ee1edaa2c4e92a4750a6c72e2a06" branch="feature/v0.6-distributed-worker-mvp" dirty="true"/>
   </project>
   <manifest>
-    <files count="17" total_bytes="98471"/>
+    <files count="17" total_bytes="117228"/>
     <excluded>
       <file path=".env" reason="secrets"/>
       <file path=".env.bak.*" reason="secrets"/>
@@ -17,19 +17,19 @@
       <entry path="scripts/02-roles.sh" role="init" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-roles-2b.sh" role="init" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
       <entry path="scripts/03-role-patches.sh" role="init" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
-      <entry path="schema/schema_v0.sql" role="schema" lang="sql" bytes="22375" lines="458" sha256="04792f46abe134f216b1dff4ad07d36041559d787441d1b6a99eb3b8f4362ecf" md5="a45e28945b5b967289b88eeb834866d3"/>
-      <entry path="schema/roles.sql" role="roles" lang="sql" bytes="151" lines="1" sha256="24d154d1c1c3ec534b69cb7736dc454e944918630d2ca049f4bf05dc2761b979" md5="9e98b5ff604055990e6e68aac54129a3"/>
-      <entry path="step2/roles.sql" role="roles" lang="sql" bytes="5122" lines="77" sha256="65ed077ccee3eb515d3585c1e7a168c52d9798735b97f4d8f482fa606ebe5274" md5="fba1f83b96f54880ea608f46b5aaf56b"/>
+      <entry path="schema/schema_v0.sql" role="schema" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a"/>
+      <entry path="step2/roles.sql" role="roles" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e"/>
       <entry path="step2/roles_patch_planner_status.sql" role="roles-patch" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
-      <entry path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="10409" lines="199" sha256="2798101331f945e5e4dce66e881de1742c7d0799893fd51df0c8d6e3fce93297" md5="0cb5c0b4d176e3a13c2cc13689f25233"/>
-      <entry path="step2b/roles_2b_patch_section3.sql" role="roles-patch" lang="sql" bytes="1579" lines="26" sha256="6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7" md5="163c97a1368fe023c59ff914b48a2a34"/>
-      <entry path="Dockerfile" role="container" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8"/>
-      <entry path="docker-compose.yml" role="container" lang="yaml" bytes="4907" lines="133" sha256="4d08704c506630428606fb3386965e698988d6e9cb3691b886cadcd49ba39162" md5="229661245c945eb66e16a99fb115d487"/>
-      <entry path="tests/test_v0.py" role="test" lang="python" bytes="17483" lines="488" sha256="fa27fcb25b4ffa9d6ea37877f5e8441a2b00307ceba00ae569c5281e8952e53f" md5="e920b59abbd37db1861908a20f7ffe89"/>
-      <entry path="step2/test_roles.py" role="test" lang="python" bytes="11162" lines="238" sha256="48b4e2c6c0592aff876660936ea07a323e9a318d241f41380eb0d9fcaeb8f2f2" md5="18d576fe36f26af828bc66e4f8e1f04d"/>
-      <entry path="step2b/test_roles_2b.py" role="test" lang="python" bytes="8859" lines="224" sha256="49670ce179dbd56db352527cf9699ae08a706a20a468c49d9a600e7ae46d2356" md5="fddca7ccf11bb6ae2728c4331471013b"/>
-      <entry path="step2b/test_roles_2b.DELIVERED_partial.py" role="test" lang="python" bytes="3477" lines="97" sha256="156146fb1bc1df3392c7b3bec215510db62dd7e4c910e8653c364a36a00d7a94" md5="6176c13bcba716db0b171c5ad4cbc5f6"/>
-      <entry path=".env.example" role="config" lang="dotenv" bytes="740" lines="17" sha256="ae9b238982794808c38b9856e9268dfedb732555a7ffc6ba697f41176977ad14" md5="881eda95ee6ba793c4433a38767a7641"/>
+      <entry path="step2/roles_patch_tool_call_audit.sql" role="roles-patch" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa"/>
+      <entry path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="13448" lines="242" sha256="37216bd7987df7be1a2875ffd21a709ed6f2fe5a532cc3e83ec919c9cd2e7082" md5="97b4c9fa0e7d2458bad7fa706c4c6af0"/>
+      <entry path="docs/history/obsolete/roles_2b_patch_section3.sql" role="roles-patch-obsolete" lang="sql" bytes="1579" lines="26" sha256="6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7" md5="163c97a1368fe023c59ff914b48a2a34"/>
+      <entry path="Dockerfile" role="container" lang="dockerfile" bytes="2303" lines="45" sha256="52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e" md5="466b8862c94cac583e18d7c1cd59ee42"/>
+      <entry path="sandbox/Dockerfile" role="container" lang="dockerfile" bytes="2171" lines="45" sha256="ba734449566e19a9e925843690fe2ad2bd81c3c360ba45e446679fae5a78f85b" md5="67172e86a9f7b19137d345d847da54d6"/>
+      <entry path="docker-compose.yml" role="container" lang="yaml" bytes="6880" lines="163" sha256="5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d" md5="c13969907289a8dc7f0125fecbafffee"/>
+      <entry path="tests/test_v0.py" role="test" lang="python" bytes="18567" lines="519" sha256="2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09" md5="f4cca84f63ec2615869e4364e76897b1"/>
+      <entry path="step2/test_roles.py" role="test" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726"/>
+      <entry path="step2b/test_roles_2b.py" role="test" lang="python" bytes="13409" lines="319" sha256="9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645" md5="d8b6a10a9be420a1dd6c90343dfdba51"/>
+      <entry path=".env.example" role="config" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077"/>
       <entry path="rust_fixes/dispatcher.rs" role="patch" lang="rust" bytes="7030" lines="161" sha256="672cb96dde154bdefd7576a84d8a0ffdd4fe849e76985c02c9e5a3684f05d9e2" md5="0e095b8e92951a36facaafbd49025a04"/>
     </index>
   </manifest>
@@ -116,7 +116,7 @@ for patch in /sql/roles_patch_*.sql; do
 done
 ]]></content>
     </file>
-    <file path="schema/schema_v0.sql" role="schema" lang="sql" bytes="22375" lines="458" sha256="04792f46abe134f216b1dff4ad07d36041559d787441d1b6a99eb3b8f4362ecf" md5="a45e28945b5b967289b88eeb834866d3">
+    <file path="schema/schema_v0.sql" role="schema" lang="sql" bytes="27083" lines="533" sha256="0349a8e214da802e6f4ecff26e0686865ea9b93a518ac49d232ec4ba3797a087" md5="62111662feb99c19d69b21428c674e0a">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -257,11 +257,23 @@ begin
 end $$;
 
 create function validate_contract(c jsonb) returns void language plpgsql immutable as $$
-declare k text;
+declare k text; e jsonb;
 begin
   if jsonb_typeof(c->'checks') is distinct from 'array' or jsonb_array_length(c->'checks') = 0 then
     raise exception 'contract_invalid: checks required' using errcode = 'CT001';
   end if;
+  -- F15: каждый элемент checks — объект с непустым строковым type; id опционален,
+  -- но если задан — непустая строка. Без этого задача без type не одобряется вечно.
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if jsonb_typeof(e) <> 'object'
+       or jsonb_typeof(e->'type') is distinct from 'string' or btrim(e->>'type') = '' then
+      raise exception 'contract_invalid: every check must be an object with non-empty string type'
+        using errcode = 'CT001';
+    end if;
+    if jsonb_exists(e, 'id') and (jsonb_typeof(e->'id') <> 'string' or btrim(e->>'id') = '') then
+      raise exception 'contract_invalid: check id must be a non-empty string' using errcode = 'CT001';
+    end if;
+  end loop;
   foreach k in array array['min_ram_gb','coder_class'] loop
     if jsonb_exists(c->'needs', k) and jsonb_typeof(c->'needs'->k) <> 'number' then
       raise exception 'contract_invalid: needs.% must be number', k using errcode = 'CT001';
@@ -380,6 +392,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
 
@@ -415,6 +430,9 @@ end $$;
 create function heartbeat(p_task uuid, p_worker text, p_epoch bigint, p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec), updated_at = now()
    where id = p_task and state = 'leased' and lease_owner = p_worker
      and lease_epoch = p_epoch and lease_until > now();
@@ -451,6 +469,9 @@ returns text language plpgsql as $$
 declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
@@ -466,9 +487,32 @@ begin
   return v_new;
 end $$;
 
+-- F4: честный отказ воркера. Раньше не-транзиентная ошибка LLM выставлялась
+-- через complete_task() с подделанным overspend (worker.rs), чтобы SQL сам
+-- перевёл задачу в blocked. Это ложь в журнале (spent_tokens врёт) и хрупко:
+-- зависит от '>' в complete_task. Теперь отказ — явная операция с reason.
+create function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                          p_result_ref text, p_reason text) returns text
+language plpgsql as $$
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+  return 'blocked';
+end $$;
+
 create function submit_review(p_task uuid, p_ref text, p_reviewer text,
                               p_verdict text, p_checks jsonb)
-returns text language plpgsql as $$
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
 declare t tasks%rowtype; v_creator text; v_new text;
 begin
   select * into t from tasks where id = p_task for update;
@@ -479,10 +523,25 @@ begin
   select created_by into v_creator from artifacts where task_id = p_task and ref = p_ref;
   if v_creator = p_reviewer then raise exception 'self_review' using errcode = 'RV002'; end if;
   if p_verdict = 'approved' then
-    if jsonb_typeof(p_checks) <> 'array'
-       or jsonb_array_length(p_checks) < jsonb_array_length(t.contract->'checks')
-       or exists (select 1 from jsonb_array_elements(p_checks) e
-                  where e->>'status' is distinct from 'pass') then
+    if jsonb_typeof(p_checks) <> 'array' then
+      raise exception 'checks_failed' using errcode = 'RV003';
+    end if;
+    -- Строгий review-gate (F2, вариант A): ключ проверки =
+    --   coalesce(id, type || '|' || run).
+    -- Для каждого ключа число pass в отчёте >= числа требований контракта с этим
+    -- ключом. Сопоставление только по type обходилось: контракт с двумя cmd
+    -- (cargo test, cargo clippy) закрывался одним generic {"type":"cmd","status":"pass"}.
+    -- Учёт run разводит такие проверки на разные ключи.
+    if exists (
+      select 1 from (
+        select coalesce(c->>'id', (c->>'type') || '|' || coalesce(c->>'run', '')) as k,
+               count(*) as n
+          from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+         group by 1) req
+       where (select count(*) from jsonb_array_elements(p_checks) p
+               where coalesce(p->>'id', (p->>'type') || '|' || coalesce(p->>'run', '')) = req.k
+                 and p->>'status' = 'pass') < req.n
+    ) then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
   end if;
@@ -565,25 +624,36 @@ begin
   return v_n;
 end $$;
 
-create function unblock_task(p_task uuid, p_actor text) returns text language plpgsql as $$
-declare v_epoch bigint;
+-- F4: восстановимый unblock. Раньше задача из blocked возвращалась без учёта
+-- бюджета: если он уже исчерпан, unblock не помогал — задача снова уходила в
+-- blocked на первом же complete. Теперь оператор может явно поднять
+-- budget_cap, а при исчерпанном бюджете без явного cap функция отказывает
+-- (CT001) — вместо тихого нерабочего разблокирования.
+create function unblock_task(p_task uuid, p_actor text, p_new_budget_cap bigint default null)
+returns text language plpgsql as $$
+declare v_epoch bigint; t tasks%rowtype;
 begin
-  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
-         lease_epoch = lease_epoch + 1, updated_at = now()
-   where id = p_task and state = 'blocked' returning lease_epoch into v_epoch;
+  select * into t from tasks where id = p_task and state = 'blocked' for update;
   if not found then raise exception 'not_blocked' using errcode = 'GR009'; end if;
-  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor);
+  if p_new_budget_cap is not null then
+    if p_new_budget_cap <= t.spent_tokens then
+      raise exception 'budget cap must exceed spent_tokens' using errcode = 'CT001';
+    end if;
+  elsif t.spent_tokens >= t.budget_cap then
+    raise exception 'budget_exhausted: pass p_new_budget_cap' using errcode = 'CT001';
+  end if;
+  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
+         lease_epoch = lease_epoch + 1, budget_cap = coalesce(p_new_budget_cap, budget_cap),
+         updated_at = now()
+   where id = p_task returning lease_epoch into v_epoch;
+  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor,
+                       jsonb_build_object('new_budget_cap', p_new_budget_cap));
   perform promote_ready();
   return (select state from tasks where id = p_task);
 end $$;
 ]]></content>
     </file>
-    <file path="schema/roles.sql" role="roles" lang="sql" bytes="151" lines="1" sha256="24d154d1c1c3ec534b69cb7736dc454e944918630d2ca049f4bf05dc2761b979" md5="9e98b5ff604055990e6e68aac54129a3">
-      <content><![CDATA[
--- roles.sql: не предоставлен в документе (v0 использует единственного пользователя swarm).
-]]></content>
-    </file>
-    <file path="step2/roles.sql" role="roles" lang="sql" bytes="5122" lines="77" sha256="65ed077ccee3eb515d3585c1e7a168c52d9798735b97f4d8f482fa606ebe5274" md5="fba1f83b96f54880ea608f46b5aaf56b">
+    <file path="step2/roles.sql" role="roles" lang="sql" bytes="5678" lines="84" sha256="aedd115b03b5c5dcb754bb5a8025c6b063c7f7484066234aea9f11ef5048d01f" md5="bb765c87a97b51a88488848d60055d9e">
       <content><![CDATA[
 -- swarm roles v0.2: горизонтальное разделение прав.
 -- Запуск (суперпользователем, ПОСЛЕ schema_v0.sql):
@@ -603,6 +673,9 @@ select format('create role %I login nosuperuser nocreatedb nocreaterole', r)
   from unnest(array['swarm_worker','swarm_watchdog','swarm_planner',
                     'swarm_reviewer','swarm_operator','swarm_cli']) r
  where not exists (select 1 from pg_roles where rolname = r) \gexec
+
+-- Общая worker-роль содержит права-членство, но не является login identity.
+alter role swarm_worker nologin;
 
 alter role swarm_worker   password :'worker_pw';
 alter role swarm_watchdog password :'watchdog_pw';
@@ -661,7 +734,11 @@ grant execute on function claim_task, heartbeat, save_artifact, complete_task, r
 grant execute on function reclaim_expired, promote_ready to swarm_watchdog;
 grant execute on function add_task, add_dep, promote_ready to swarm_planner;
 grant execute on function submit_review, verify_chain to swarm_reviewer;
-grant execute on function reopen_task, unblock_task, verify_chain, task_status to swarm_operator;
+grant execute on function reopen_task, verify_chain, task_status to swarm_operator;
+-- F4: unblock_task получил новый параметр (p_new_budget_cap) — перевыдаём по
+-- новой сигнатуре (старый грант висел на прежнем OID и после CREATE OR REPLACE
+-- новой формы стал бы висеть на несуществующей функции).
+grant execute on function unblock_task(uuid, text, bigint) to swarm_operator;
 ]]></content>
     </file>
     <file path="step2/roles_patch_planner_status.sql" role="roles-patch" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41">
@@ -680,7 +757,52 @@ grant execute on function reopen_task, unblock_task, verify_chain, task_status t
 grant execute on function task_status(int) to swarm_planner;
 ]]></content>
     </file>
-    <file path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="10409" lines="199" sha256="2798101331f945e5e4dce66e881de1742c7d0799893fd51df0c8d6e3fce93297" md5="0cb5c0b4d176e3a13c2cc13689f25233">
+    <file path="step2/roles_patch_tool_call_audit.sql" role="roles-patch" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa">
+      <content><![CDATA[
+-- roles_patch_tool_call_audit.sql — v0.4 §7: аудит tool calls (shell tools).
+--
+-- ПОЧЕМУ ПАТЧ, А НЕ ПРАВКА schema_v0.sql:
+--   schema_v0.sql неприкосновенен (ТЗ v0.4 §0 «Неприкосновенно»).
+--
+-- ПОЧЕМУ ФУНКЦИЯ, А НЕ ПРЯМОЙ INSERT В events:
+--   step2/roles.sql §6 явно закрывает внутренние функции (append_event, assert_lease,
+--   lock_root, validate_contract, event_hash, c_num) — «журнал нельзя подделать снаружи».
+--   Прямой insert в events от имени swarm_worker нарушил бы это свойство. Поэтому
+--   воркер получает одну контролируемую точку входа: она проверяет, что аренда жива
+--   и принадлежит этому воркеру, и только затем пишет событие от имени swarm_owner.
+--
+-- Применять ПОСЛЕ: schema_v0.sql → step2/roles.sql → step2b/roles_2b.sql.
+-- Идемпотентен.
+
+-- 1. Разрешить kind='tool_call' (констрейнт расширяется, старые значения сохранены).
+alter table events drop constraint if exists events_kind_check;
+alter table events add constraint events_kind_check check (kind in (
+  'created', 'dep_added', 'promoted', 'claimed', 'artifact_saved', 'completed',
+  'review_submitted', 'reclaimed', 'reopened', 'cascade_blocked', 'unblocked',
+  'tool_call'));
+
+-- 2. Точка входа аудита: только для живого владельца аренды.
+create or replace function record_tool_call(
+  p_task uuid, p_worker text, p_epoch bigint, p_event_id text, p_payload jsonb)
+returns boolean language plpgsql as $$
+begin
+  -- FIND-04: session_user обязан соответствовать p_worker (иначе WK003).
+  -- Без этой строки воркер w1 мог записать событие от имени w2 на его аренде.
+  perform assert_worker_identity(p_worker);
+  -- Аренда жива и принадлежит этому воркеру? Иначе GR-ошибка.
+  perform assert_lease(p_task, p_worker, p_epoch);
+  return append_event(p_task, p_event_id, 'tool_call', p_worker, p_payload);
+end $$;
+
+-- 3. Права: владелец-не-суперпользователь, исполнение от его имени, доступ только воркеру.
+alter function record_tool_call(uuid, text, bigint, text, jsonb) owner to swarm_owner;
+alter function record_tool_call(uuid, text, bigint, text, jsonb)
+  security definer set search_path = public, pg_temp;
+revoke all on function record_tool_call(uuid, text, bigint, text, jsonb) from public;
+grant execute on function record_tool_call(uuid, text, bigint, text, jsonb) to swarm_worker;
+]]></content>
+    </file>
+    <file path="step2b/roles_2b.sql" role="roles" lang="sql" bytes="13448" lines="242" sha256="37216bd7987df7be1a2875ffd21a709ed6f2fe5a532cc3e83ec919c9cd2e7082" md5="97b4c9fa0e7d2458bad7fa706c4c6af0">
       <content><![CDATA[
 -- swarm roles 2b v0.2: идентификация воркера.
 -- Запуск ПОСЛЕ schema_v0.sql и roles.sql (суперпользователем):
@@ -710,13 +832,17 @@ create or replace function assert_worker_identity(p_worker text)
 returns void language plpgsql as $$
 declare v_expected text;
 begin
-  if session_user::text like 'swarm_worker_%' then
-    v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
-    if session_user::text <> v_expected then
-      raise exception 'worker_identity_mismatch: session_user=% expected=%',
-        session_user, v_expected using errcode = 'WK003';
-    end if;
-  end if;
+  -- F3: идентификация закрыта по умолчанию (deny-by-default).
+  -- Пропуск ТОЛЬКО при строгом совпадении session_user с ожидаемой
+  -- per-worker ролью либо для суперпользователя. Раньше проверка была
+  -- завёрнута в `if session_user like 'swarm_worker_%'`, поэтому под
+  -- общей ролью swarm_worker (единственной, кому выданы обёртки) она
+  -- молча ничего не проверяла — bypass. См. reference_fix_wave4.sql (F3).
+  v_expected := 'swarm_worker_' || normalize_worker_id(p_worker);
+  if session_user::text = v_expected then return; end if;
+  if (select rolsuper from pg_roles where rolname = session_user) then return; end if;
+  raise exception 'worker_identity_mismatch: session_user=% expected=%', session_user, v_expected
+    using errcode = 'WK003';
 end $$;
 
 alter function normalize_worker_id(text) owner to swarm_owner;
@@ -726,7 +852,6 @@ alter function assert_worker_identity(text) security definer set search_path = p
 
 revoke all on function normalize_worker_id(text) from public;
 revoke all on function assert_worker_identity(text) from public;
-grant execute on function normalize_worker_id(text) to public;  -- безвредная, для отладки
 -- assert_worker_identity — не выдаём никому; вызывается только из обёрток.
 
 -- ============================================================
@@ -757,6 +882,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
@@ -794,6 +922,9 @@ create or replace function heartbeat(p_task uuid, p_worker text, p_epoch bigint,
                                      p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   perform assert_worker_identity(p_worker);
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec),
                    updated_at = now()
@@ -827,6 +958,9 @@ declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_worker_identity(p_worker);
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
@@ -881,9 +1015,40 @@ grant swarm_worker to swarm_worker_w1;
 grant swarm_worker to swarm_worker_w2;
 grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
+
+-- F4: fail_task — честный отказ воркera. Грант выдаётся ТОЛЬКО per-worker
+-- login-ролям, НЕ общей swarm_worker: общая роль — не identity (см. F3),
+-- и обёртки отказа должен вызывать только реальный воркер.
+grant execute on function fail_task(uuid, text, bigint, text, text)
+  to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+
+-- ============================================================
+-- 3b. Defense-in-depth: каждой per-worker роли запрещён SET на
+--     чужую роль (включая саму общую swarm_worker).
+--
+--     Без этого PG16 по умолчанию выдаёт set_option = true при
+--     grant, и компрометация одной роли позволяет SET ROLE на
+--     другую. Защита identity и так держится на session_user
+--     (см. assert_worker_identity), но мы убираем и сам механизм.
+--
+--     Синтаксис проверен на PostgreSQL 16.15:
+--       revoke set option for <role> from <role>
+--     (не "REVOKE SET ON ROLE" — такого варианта в PG16 нет).
+-- ============================================================
+revoke set option for swarm_worker from swarm_worker_w1;
+revoke set option for swarm_worker from swarm_worker_w2;
+revoke set option for swarm_worker from swarm_worker_w_1;
+revoke set option for swarm_worker from swarm_worker_gpu_1;
+
+-- Перекрёстный запрет: ни одна worker-роль не имеет SET на любую
+-- другую worker-роль (матрица N x N, включая саму себя).
+revoke set option for swarm_worker_w1    from swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w2    from swarm_worker_w1, swarm_worker_w_1, swarm_worker_gpu_1;
+revoke set option for swarm_worker_w_1   from swarm_worker_w1, swarm_worker_w2, swarm_worker_gpu_1;
+revoke set option for swarm_worker_gpu_1 from swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1;
 ]]></content>
     </file>
-    <file path="step2b/roles_2b_patch_section3.sql" role="roles-patch" lang="sql" bytes="1579" lines="26" sha256="6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7" md5="163c97a1368fe023c59ff914b48a2a34">
+    <file path="docs/history/obsolete/roles_2b_patch_section3.sql" role="roles-patch-obsolete" lang="sql" bytes="1579" lines="26" sha256="6dff73f212efba97a30d36c7fec7ee0bf2e46be8bff3dd714201d10ac8d6c0b7" md5="163c97a1368fe023c59ff914b48a2a34">
       <content><![CDATA[
 -- ============================================================
 -- 3. Роли для тестов
@@ -913,7 +1078,7 @@ grant swarm_worker to swarm_worker_w_1;
 grant swarm_worker to swarm_worker_gpu_1;
 ]]></content>
     </file>
-    <file path="Dockerfile" role="container" lang="dockerfile" bytes="1477" lines="35" sha256="add45b22cb1a278bdce041848d4ff43fe12e30f6e5f6b0d63f1df8968e71ce0c" md5="6f42122a37fa891b6b5d18bca645c3b8">
+    <file path="Dockerfile" role="container" lang="dockerfile" bytes="2303" lines="45" sha256="52ab907ac0ec615b9daa2de24ac838d9c96beaf27b7508ee618953c9cebc1c3e" md5="466b8862c94cac583e18d7c1cd59ee42">
       <content><![CDATA[
 # Stage 1: builder
 # ВНИМАНИЕ: образ поднят с 1.80 до 1.98.
@@ -932,12 +1097,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cargo build --release --locked --bins
 
 # Stage 2: runtime
-FROM debian:bookworm-slim
+# База СОВПАДАЕТ с builder (trixie): иначе динамически слинкованный бинарь
+# требует GLIBC из trixie (2.38/2.39+), а bookworm-slim даёт только 2.36 —
+# контейнер падает с "version `GLIBC_2.38' not found".
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates libssl3 \
+    ca-certificates libssl3t64 \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd -u 1001 -m -s /bin/bash swarm
+    && useradd -u 1001 -m -s /bin/bash swarm \
+    && mkdir -p /var/swarm/artifacts \
+    && chown -R 1001:1001 /var/swarm
 
 USER 1001
 WORKDIR /app
@@ -947,12 +1117,66 @@ COPY --from=builder /build/target/release/swarm-worker   /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-cli      /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-planner  /usr/local/bin/
 
+# F1: /var/swarm/artifacts уже создан выше (владелец 1001), поэтому именованный
+# volume, смонтированный сюда впервые, наследует uid 1001. Без этого volume
+# создаётся root-owned, и worker (USER 1001) не может писать артефакт
+# (tmpfs раньше давал uid=1001 через опции монтирования — у volume их нет).
+
 # Для worker: изоляция
 # cap_drop, read_only, no-new-privileges задаются в compose
 CMD ["swarm-watchdog"]
 ]]></content>
     </file>
-    <file path="docker-compose.yml" role="container" lang="yaml" bytes="4907" lines="133" sha256="4d08704c506630428606fb3386965e698988d6e9cb3691b886cadcd49ba39162" md5="229661245c945eb66e16a99fb115d487">
+    <file path="sandbox/Dockerfile" role="container" lang="dockerfile" bytes="2171" lines="45" sha256="ba734449566e19a9e925843690fe2ad2bd81c3c360ba45e446679fae5a78f85b" md5="67172e86a9f7b19137d345d847da54d6">
+      <content><![CDATA[
+# sandbox/Dockerfile — образ песочницы для shell tools (ТЗ v0.4 §3).
+#
+# Один образ — много контейнеров: `docker run ... agent-sandbox:1.85 sleep infinity`.
+# Изоляция задаётся флагами запуска (см. crates/swarm-worker/src/sandbox.rs):
+#   --cap-drop ALL --read-only --network none --security-opt no-new-privileges:true
+#   --tmpfs /workspace --memory 2g --cpus 2 -u 1001:1001
+#
+# Сборка:  docker build -t agent-sandbox:1.85 sandbox/
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Минимальный набор инструментов. curl — только на время установки rustup,
+# затем удаляется (его нет в allowlist и он не нужен в песочнице).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        bash coreutils git ca-certificates build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Непривилегированный пользователь (uid совпадает с -u 1001:1001 в worker).
+RUN useradd -u 1001 -m -s /bin/bash swarm
+
+# Rust toolchain ставим ОТ ИМЕНИ swarm — иначе /root/.cargo недоступен пользователю 1001.
+USER 1001
+ENV HOME=/home/swarm
+ENV RUSTUP_HOME=/home/swarm/.rustup
+ENV CARGO_HOME=/home/swarm/.cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --default-toolchain 1.85 --profile minimal \
+    && /home/swarm/.cargo/bin/cargo --version \
+    && /home/swarm/.cargo/bin/rustc --version
+ENV PATH="/home/swarm/.cargo/bin:${PATH}"
+
+# curl больше не нужен (и не должен быть доступен из песочницы).
+USER root
+RUN apt-get purge -y curl && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+USER 1001
+
+# Корень образа read-only, поэтому кэш/сборка должны жить в writable tmpfs.
+# Воркер переопределяет эти переменные на /workspace (см. build_run_args).
+ENV CARGO_TARGET_DIR=/workspace/target
+
+WORKDIR /workspace
+CMD ["sleep", "infinity"]
+]]></content>
+    </file>
+    <file path="docker-compose.yml" role="container" lang="yaml" bytes="6880" lines="163" sha256="5d06db44f4dfe8ab7d5a30116a1c6d2f141d436602f5ee89ddb78267a4d9294d" md5="c13969907289a8dc7f0125fecbafffee">
       <content><![CDATA[
 services:
   postgres:
@@ -979,6 +1203,7 @@ services:
       - ./step2b/roles_2b.sql:/sql/roles_2b.sql:ro
       - ./scripts/03-roles-2b.sh:/docker-entrypoint-initdb.d/03-roles-2b.sh:ro
       - ./step2/roles_patch_planner_status.sql:/sql/roles_patch_planner_status.sql:ro
+      - ./step2/roles_patch_tool_call_audit.sql:/sql/roles_patch_tool_call_audit.sql:ro
       - ./scripts/03-role-patches.sh:/docker-entrypoint-initdb.d/04-role-patches.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
@@ -1010,10 +1235,22 @@ services:
       LEASE_SEC: "10"
       CRASH_AFTER_CLAIM: "0"
       ARTIFACTS_DIR: /var/swarm/artifacts
+      # F1: storage_path пишется как volume://<name>/<relpath> — видим потребителю.
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      # Мок-провайдер (default) читает текст ответа из {prefix}MOCK_RESPONSE_FILE,
+      # где prefix = LLM_ (по умолчанию воркера), т.е. LLM_MOCK_RESPONSE_FILE.
+      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
+      # v0.4: shell tools + Docker sandbox.
+      # ВНИМАНИЕ: 1 требует доступа к Docker-сокету (docs/KNOWN_LIMITATIONS.md §6).
+      WORKER_SHELL_TOOLS: ${WORKER_SHELL_TOOLS:-0}
+      SANDBOX_IMAGE: ${SANDBOX_IMAGE:-agent-sandbox:1.85}
+      WORKER_ALLOWED_COMMANDS: ${WORKER_ALLOWED_COMMANDS:-bash,cargo,git,cat,ls,echo,mkdir,touch}
+      WORKER_CMD_TIMEOUT_SEC: ${WORKER_CMD_TIMEOUT_SEC:-60}
+      WORKER_MAX_ITERATIONS: ${WORKER_MAX_ITERATIONS:-20}
       RUST_LOG: swarm_worker=info
     security_opt:
       - no-new-privileges:true
@@ -1022,7 +1259,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
+    # Раньше /var/swarm/artifacts был приватным tmpfs: файл от worker-1 не был
+    # виден worker-2, cli и другим потребителям (F1 CRITICAL).
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
+      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -1037,10 +1279,12 @@ services:
       LEASE_SEC: "10"
       CRASH_AFTER_CLAIM: "1"
       ARTIFACTS_DIR: /var/swarm/artifacts
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
       RUST_LOG: swarm_worker=info
     security_opt:
       - no-new-privileges:true
@@ -1049,7 +1293,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
+      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -1059,6 +1306,10 @@ services:
     # command НЕ указывать — иначе compose подменяет entrypoint образа.
     environment:
       DATABASE_URL: postgres://swarm_cli:${SWARM_PW_CLI}@postgres:5432/swarm
+      ARTIFACTS_DIR: /var/swarm/artifacts
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
     profiles: ["tools"]
     depends_on:
       postgres:
@@ -1087,9 +1338,12 @@ services:
 
 volumes:
   postgres_data:
+  # F1: общий volume артефактов (один хост). Для distributed-ветки нужен S3 —
+  # см. docs/KNOWN_LIMITATIONS.md и SWARM_ARTIFACT_S3_* в storage.rs.
+  swarm-artifacts:
 ]]></content>
     </file>
-    <file path="tests/test_v0.py" role="test" lang="python" bytes="17483" lines="488" sha256="fa27fcb25b4ffa9d6ea37877f5e8441a2b00307ceba00ae569c5281e8952e53f" md5="e920b59abbd37db1861908a20f7ffe89">
+    <file path="tests/test_v0.py" role="test" lang="python" bytes="18567" lines="519" sha256="2547bdf9305b7d1481ea39c0ac41491b377df51d447b0f72ad5cf6d08c380f09" md5="f4cca84f63ec2615869e4364e76897b1">
       <content><![CDATA[
 """Тесты инвариантов schema_v0.sql на реальном Postgres 16.
 
@@ -1292,6 +1546,21 @@ def test_concurrent_claims_never_double_assign(db):
 
 
 # ---------------- аренды и fencing ----------------
+def test_lease_durations_must_be_positive(db):
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select claim_task('w1', 0)")
+    assert code(e) == "CT001"
+    db.rollback()
+    r = claim(db)
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select heartbeat(%s,'w1',%s,0)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+
+
 def test_heartbeat_extends_and_cannot_revive(db):
     worker(db)
     t = new_task(db)
@@ -1388,6 +1657,22 @@ def test_budget_exhaustion_blocks_on_complete(db):
     assert one(db, "select complete_task(%s,'w1',%s,'sha256:a',150)", t, r[2]) == "blocked"
 
 
+def test_complete_rejects_negative_tokens(db):
+    """P0-5: negative tokens must not refund/erase spent budget."""
+    worker(db)
+    t = new_task(db, cap=100)
+    ready(db, t)
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute("select complete_task(%s,'w1',%s,'sha256:a',-100)", (t, r[2]))
+    assert code(e) == "CT001"
+    db.rollback()
+    # state and spent_tokens untouched
+    st, spent = rows(db, "select state, spent_tokens from tasks where id=%s", t)[0]
+    assert (st, spent) == ("leased", 0)
+
+
 # ---------------- ревью ----------------
 def to_review(db, t, wid="w1"):
     r = claim(db, wid)
@@ -1396,8 +1681,8 @@ def to_review(db, t, wid="w1"):
     db.commit()
 
 
-PASS = json.dumps([{"type": "cmd", "status": "pass", "exit_code": 0}])
-FAIL = json.dumps([{"type": "cmd", "status": "fail", "exit_code": 1}])
+PASS = json.dumps([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}])
+FAIL = json.dumps([{"type": "cmd", "run": "true", "status": "fail", "exit_code": 1}])
 
 
 def test_review_rules(db):
@@ -1581,7 +1866,7 @@ def test_tampering_breaks_chain(db):
     assert one(db, "select verify_chain(%s)", t) is False
 ]]></content>
     </file>
-    <file path="step2/test_roles.py" role="test" lang="python" bytes="11162" lines="238" sha256="48b4e2c6c0592aff876660936ea07a323e9a318d241f41380eb0d9fcaeb8f2f2" md5="18d576fe36f26af828bc66e4f8e1f04d">
+    <file path="step2/test_roles.py" role="test" lang="python" bytes="11297" lines="241" sha256="3dcd56ff42d4c400f7d5267358525f9ab36cbbeee5ca8c71d1bb40c6a22d544d" md5="29a8dc8db9673dfd867ca6e31d870726">
       <content><![CDATA[
 """Тесты разделения ролей (roles.sql) на реальном Postgres 16.
 
@@ -1604,7 +1889,7 @@ DB = os.environ.get("ROLES_DB", "v0roles")
 HOST = os.environ.get("ROLES_HOST", "localhost")
 PORT = int(os.environ.get("ROLES_PORT", "5432"))
 ADMIN_PW = os.environ.get("ADMIN_PW", "pw")
-ROLES = ["swarm_worker", "swarm_watchdog", "swarm_planner",
+ROLES = ["swarm_worker_w1", "swarm_watchdog", "swarm_planner",
          "swarm_reviewer", "swarm_operator", "swarm_cli"]
 DENIED = "42501"
 
@@ -1616,7 +1901,10 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+    else:
+        suffix = role.split("_", 1)[1]
     return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
 
 
@@ -1666,9 +1954,9 @@ INTERNAL = {
 }
 
 ALLOWED = {
-    "swarm_worker":   {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
+    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
     "swarm_watchdog": {"reclaim_expired", "promote_ready"},
-    "swarm_planner":  {"add_task", "add_dep", "promote_ready"},
+    "swarm_planner":  {"add_task", "add_dep", "promote_ready", "task_status"},
     "swarm_reviewer": {"submit_review", "verify_chain"},
     "swarm_operator": {"reopen_task", "unblock_task", "verify_chain", "task_status"},
 }
@@ -1716,7 +2004,7 @@ def test_no_ddl_in_public(admin, role):
 
 def test_worker_cannot_approve_own_work(admin):
     """Главное следствие ролей: самоприёмка закрыта на уровне БД, а не только проверкой created_by."""
-    assert attempt(as_role("swarm_worker"),
+    assert attempt(as_role("swarm_worker_w1"),
                    f"select submit_review({U}, 'sha256:a', 'w1', 'approved', '[]'::jsonb)") == DENIED
 
 
@@ -1747,7 +2035,7 @@ def test_temp_table_cannot_hijack_security_definer(admin):
     t = str(uuid.uuid4())
     cur.execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
     cur.execute("select promote_ready()")
-    w = as_role("swarm_worker")
+    w = as_role("swarm_worker_w1")
     wc = w.cursor()
     wc.execute("create temp table tasks (id uuid, state text)")
     wc.execute("create temp table workers (id text)")
@@ -1758,7 +2046,7 @@ def test_temp_table_cannot_hijack_security_definer(admin):
 def test_full_workflow_uses_only_role_permissions(admin):
     """Реальный сценарий целиком, каждый шаг от своей роли, без суперпользователя."""
     pl, wk, rv, wd, op = (as_role(r) for r in
-                          ["swarm_planner", "swarm_worker", "swarm_reviewer", "swarm_watchdog", "swarm_operator"])
+                          ["swarm_planner", "swarm_worker_w1", "swarm_reviewer", "swarm_watchdog", "swarm_operator"])
     root, child = str(uuid.uuid4()), str(uuid.uuid4())
     c = pl.cursor()
     c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (root, CONTRACT))
@@ -1823,7 +2111,7 @@ def test_task_status_shows_state_but_not_contract(admin):
     assert cols[:3] == ["id", "root_id", "state"]
 ]]></content>
     </file>
-    <file path="step2b/test_roles_2b.py" role="test" lang="python" bytes="8859" lines="224" sha256="49670ce179dbd56db352527cf9699ae08a706a20a468c49d9a600e7ae46d2356" md5="fddca7ccf11bb6ae2728c4331471013b">
+    <file path="step2b/test_roles_2b.py" role="test" lang="python" bytes="13409" lines="319" sha256="9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645" md5="d8b6a10a9be420a1dd6c90343dfdba51">
       <content><![CDATA[
 """Тесты идентификации воркера (roles_2b.sql). Полная версия.
 
@@ -1860,8 +2148,13 @@ def connect(user, pw):
 
 
 def as_role(role):
-    suffix = role.split("_", 1)[1]
-    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
+    if role.startswith("swarm_worker_"):
+        suffix = role.removeprefix("swarm_worker_")
+        env_name = "SWARM_PW_" + suffix.upper()
+    else:
+        suffix = role.split("_", 1)[1]
+        env_name = "SWARM_PW_" + suffix.upper()
+    return connect(role, os.environ.get(env_name, "pw_" + suffix))
 
 
 def attempt(conn, sql):
@@ -2011,10 +2304,32 @@ def test_15_watchdog_role_unaffected(admin):
     assert attempt(wd, "select reclaim_expired()") is None
 
 
-def test_16_common_worker_role_unchanged(admin):
-    """Общая роль swarm_worker не начинается с swarm_worker_ → проверка не срабатывает."""
-    w = as_role("swarm_worker")
-    assert attempt(w, "select register_worker('any-id', '{\"ram_gb\":16}'::jsonb)") is None
+def test_16_common_worker_role_cannot_login_or_call(admin):
+    """Общая роль swarm_worker не может быть worker identity (F3).
+
+    Две линии защиты, обе обязаны держаться:
+      1) NOLOGIN — вход под swarm_worker запрещён Postgres;
+      2) даже если бы вход состоялся (или через SET ROLE), session_user
+         ('swarm_worker') != 'swarm_worker_'||normalize(p_worker), поэтому
+         assert_worker_identity внутри обёрток вернул бы WK003.
+    """
+    cur = admin.cursor()
+    cur.execute("select rolcanlogin from pg_roles where rolname = 'swarm_worker'")
+    assert cur.fetchone()[0] is False
+    cur.execute("select has_function_privilege('swarm_worker', 'claim_task(text, integer)', 'execute')")
+    assert cur.fetchone()[0] is True
+    with pytest.raises(psycopg2.Error) as exc:
+        connect("swarm_worker", os.environ.get("SWARM_PW_WORKER", "pw_worker"))
+    assert "is not permitted to log in" in str(exc.value)
+    # F3: тело assert больше не завёрнуто в LIKE-гейт -> под общей ролью
+    # проверка активна (deny-by-default), а не молча пропускается.
+    cur.execute("select prosrc from pg_proc where proname = 'assert_worker_identity'")
+    # Снимаем -- комментарии: F3-объяснение может упоминать старый гейт как историю.
+    body = "\n".join(line.split("--", 1)[0] for line in cur.fetchone()[0].splitlines()).lower()
+    assert "like 'swarm_worker_%'" not in body, (
+        "F3: assert_worker_identity всё ещё под LIKE-гейтом (bypass под общей ролью)"
+    )
+    assert "rolsuper" in body, "F3: единственный обход — явный rolsuper-lookup"
 
 
 # ---------- Каталог ----------
@@ -2049,110 +2364,77 @@ def test_18_assert_worker_identity_not_granted_to_public(admin):
         select has_function_privilege('swarm_worker', 'assert_worker_identity(text)', 'execute')
     """)
     assert cur.fetchone()[0] is False
+
+    cur.execute("select has_function_privilege('public', 'normalize_worker_id(text)', 'execute')")
+    assert cur.fetchone()[0] is False
+
+
+# ---------- Defense-in-depth: SET ROLE на чужую роль запрещён ----------
+
+ALL_WORKER_ROLES = [
+    "swarm_worker_w1",
+    "swarm_worker_w2",
+    "swarm_worker_w_1",
+    "swarm_worker_gpu_1",
+]
+
+
+def test_19_no_set_option_on_shared_worker_role(admin):
+    """G3: PG16 по умолчанию ставит set_option=true при grant.
+
+    roles_2b.sql явно делает REVOKE SET OPTION FOR swarm_worker FROM
+    каждой per-worker роли. Проверяем по каталогу pg_auth_members, что
+    set_option == false — иначе компрометация одной роли позволила бы
+    SET ROLE на общую worker-роль.
+    """
+    cur = admin.cursor()
+    for role in ALL_WORKER_ROLES:
+        cur.execute(
+            """
+            select am.set_option
+              from pg_auth_members am
+              join pg_roles m on m.oid = am.member
+              join pg_roles r on r.oid = am.roleid
+             where m.rolname = %s and r.rolname = 'swarm_worker'
+            """,
+            (role,),
+        )
+        row = cur.fetchone()
+        assert row is not None, f"{role}: нет membership на swarm_worker"
+        assert row[0] is False, f"{role}: set_option на swarm_worker должен быть false (G3)"
+
+
+def test_20_no_cross_worker_set_option(admin):
+    """G3: ни одна worker-роль не имеет SET на любую другую worker-роль."""
+    cur = admin.cursor()
+    for member in ALL_WORKER_ROLES:
+        others = [r for r in ALL_WORKER_ROLES if r != member]
+        for target in others:
+            cur.execute(
+                """
+                select coalesce(max(case when am.set_option then 1 else 0 end), 0)
+                  from pg_auth_members am
+                  join pg_roles m on m.oid = am.member
+                  join pg_roles r on r.oid = am.roleid
+                 where m.rolname = %s and r.rolname = %s
+                """,
+                (member, target),
+            )
+            assert cur.fetchone()[0] == 0, f"{member}: set_option на {target} должен отсутствовать"
+
+
+def test_21_set_role_spoofing_is_denied(admin):
+    """G3 end-to-end: SET ROLE на чужую worker-роль реально отбит Postgres.
+
+    Без set_option попытка SET ROLE завершается ошибкой прав (42501),
+    а не только перехватывается session_user-проверкой внутри функции.
+    """
+    w = as_role("swarm_worker_w1")
+    assert attempt(w, "set role swarm_worker_w2") == DENIED
+    assert attempt(w, "set role swarm_worker") == DENIED
 ]]></content>
     </file>
-    <file path="step2b/test_roles_2b.DELIVERED_partial.py" role="test" lang="python" bytes="3477" lines="97" sha256="156146fb1bc1df3392c7b3bec215510db62dd7e4c910e8653c364a36a00d7a94" md5="6176c13bcba716db0b171c5ad4cbc5f6">
-      <content><![CDATA[
-"""Тесты идентификации воркера (roles_2b.sql).
-
-Запуск (БД с schema_v0.sql + roles.sql + roles_2b.sql):
-  ROLES_DB=swarm ROLES_HOST=127.0.0.1 ADMIN_PW=pw \
-  SWARM_PW_W1=pw_w1 SWARM_PW_W2=pw_w2 \
-  pytest -q step2b/test_roles_2b.py
-
-Правило: 42501 — недостаточно прав (роль); WK003 — несоответствие
-session_user и p_worker. Другие доменные ошибки (GRxxx, LS001) —
-доступ есть, дошли до логики функции.
-"""
-import json
-import os
-import uuid
-
-import psycopg2
-import pytest
-
-DB = os.environ.get("ROLES_DB", "swarm")
-HOST = os.environ.get("ROLES_HOST", "127.0.0.1")
-PORT = int(os.environ.get("ROLES_PORT", "5432"))
-ADMIN_PW = os.environ.get("ADMIN_PW", "pw")
-DENIED = "42501"
-MISMATCH = "WK003"
-U = "'00000000-0000-0000-0000-000000000001'"
-CONTRACT = json.dumps({"kind": "t", "checks": [{"type": "cmd"}], "budget": {"attempts": 3}})
-
-
-def connect(user, pw):
-    c = psycopg2.connect(host=HOST, port=PORT, dbname=DB, user=user, password=pw)
-    c.autocommit = True
-    return c
-
-
-def as_role(role):
-    suffix = role.split("_", 1)[1]
-    return connect(role, os.environ.get("SWARM_PW_" + suffix.upper(), "pw_" + suffix))
-
-
-def attempt(conn, sql):
-    """None если выполнено; иначе SQLSTATE."""
-    try:
-        conn.cursor().execute(sql)
-        return None
-    except psycopg2.Error as e:
-        return e.pgcode
-
-
-@pytest.fixture
-def admin():
-    c = connect("postgres", ADMIN_PW)
-    c.cursor().execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
-    yield c
-    c.close()
-
-
-# ---------- Позитивные: своя роль, своё имя ----------
-
-def test_w1_register_self(admin):
-    w = as_role("swarm_worker_w1")
-    assert attempt(w, "select register_worker('w1', '{\"ram_gb\":16}'::jsonb)") is None
-
-
-def test_w1_claim_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-    admin.cursor().execute("select promote_ready()")
-    w = as_role("swarm_worker_w1")
-    assert attempt(w, "select claim_task('w1', 60)") is None
-
-
-def test_w1_heartbeat_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-    admin.cursor().execute("select promote_ready()")
-    admin.cursor().execute("select claim_task('w1', 60)")
-    w = as_role("swarm_worker_w1")
-    # epoch после claim = 1
-    assert attempt(w, f"select heartbeat('{t}', 'w1', 1, 60)") is None
-
-
-def test_w1_save_artifact_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-    admin.cursor().execute("select promote_ready()")
-    admin.cursor().execute("select claim_task('w1', 60)")
-    w = as_role("swarm_worker_w1")
-    assert attempt(w, f"select save_artifact('{t}', 'w1', 1, 'sha256:a', '/p')") is None
-
-
-def test_w1_complete_self(admin):
-    admin.cursor().execute("select register_worker('w1', '{\"ram_gb\":16}'::jsonb)")
-    t = str(uuid.uuid4())
-    admin.cursor().execute("select add_task(%s, null, %s::jsonb, 100, 0)", (t, CONTRACT))
-]]></content>
-    </file>
-    <file path=".env.example" role="config" lang="dotenv" bytes="740" lines="17" sha256="ae9b238982794808c38b9856e9268dfedb732555a7ffc6ba697f41176977ad14" md5="881eda95ee6ba793c4433a38767a7641">
+    <file path=".env.example" role="config" lang="dotenv" bytes="1175" lines="26" sha256="2fec247f468cf38696499cb9e683f245a990f0f9b4e82264e9fea6eec354c416" md5="99cc1efa120aa2ef52209a9e3b90f077">
       <content><![CDATA[
 # Обязательно
 DB_PASSWORD=<замените на 64-символьный пароль>
@@ -2171,6 +2453,15 @@ SWARM_PW_W1=<замените>
 SWARM_PW_W2=<замените>
 SWARM_PW_W_1=<замените>
 SWARM_PW_GPU_1=<замените>
+
+# --- v0.4: shell tools + Docker sandbox (необязательно) ---
+# WORKER_SHELL_TOOLS=1 включает Agent Loop с shell-командами.
+# ВНИМАНИЕ: требует доступа к Docker-сокету (см. docs/KNOWN_LIMITATIONS.md §6).
+WORKER_SHELL_TOOLS=0
+SANDBOX_IMAGE=agent-sandbox:1.85
+WORKER_ALLOWED_COMMANDS=bash,cargo,git,cat,ls,echo,mkdir,touch
+WORKER_CMD_TIMEOUT_SEC=60
+WORKER_MAX_ITERATIONS=20
 ]]></content>
     </file>
     <file path="rust_fixes/dispatcher.rs" role="patch" lang="rust" bytes="7030" lines="161" sha256="672cb96dde154bdefd7576a84d8a0ffdd4fe849e76985c02c9e5a3684f05d9e2" md5="0e095b8e92951a36facaafbd49025a04">

@@ -1,0 +1,10 @@
+### F4 — Python regression on F4-fixed stand (F2/F15/F3/F4 + step2b)  |  2026-10-11T05:55:08+07:00
+### container=w4_f4_fix_2466349 port=32809  creds REDACTED
+
+--- wave-4 PG arbiters ---
+............................                                             [100%]
+28 passed in 1.55s
+
+--- step2b regression suite ---
+......................                                                   [100%]
+22 passed in 4.37s

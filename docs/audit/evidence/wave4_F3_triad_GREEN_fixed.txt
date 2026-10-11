@@ -1,0 +1,6 @@
+### F3 triad — GREEN on fix  |  2026-10-11T05:29:56+07:00
+### container=w4_f3fix_2312823 port=32807  creds REDACTED
+### fix: deny-by-default; bypass only session_user==swarm_worker_<norm> or rolsuper (step2b/roles_2b.sql)
+
+.....                                                                    [100%]
+5 passed in 0.74s

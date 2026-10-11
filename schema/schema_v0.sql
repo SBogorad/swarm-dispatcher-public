@@ -137,11 +137,23 @@ begin
 end $$;
 
 create function validate_contract(c jsonb) returns void language plpgsql immutable as $$
-declare k text;
+declare k text; e jsonb;
 begin
   if jsonb_typeof(c->'checks') is distinct from 'array' or jsonb_array_length(c->'checks') = 0 then
     raise exception 'contract_invalid: checks required' using errcode = 'CT001';
   end if;
+  -- F15: каждый элемент checks — объект с непустым строковым type; id опционален,
+  -- но если задан — непустая строка. Без этого задача без type не одобряется вечно.
+  for e in select * from jsonb_array_elements(c->'checks') loop
+    if jsonb_typeof(e) <> 'object'
+       or jsonb_typeof(e->'type') is distinct from 'string' or btrim(e->>'type') = '' then
+      raise exception 'contract_invalid: every check must be an object with non-empty string type'
+        using errcode = 'CT001';
+    end if;
+    if jsonb_exists(e, 'id') and (jsonb_typeof(e->'id') <> 'string' or btrim(e->>'id') = '') then
+      raise exception 'contract_invalid: check id must be a non-empty string' using errcode = 'CT001';
+    end if;
+  end loop;
   foreach k in array array['min_ram_gb','coder_class'] loop
     if jsonb_exists(c->'needs', k) and jsonb_typeof(c->'needs'->k) <> 'number' then
       raise exception 'contract_invalid: needs.% must be number', k using errcode = 'CT001';
@@ -260,6 +272,9 @@ returns table (out_task_id uuid, out_contract jsonb, out_epoch bigint,
 language plpgsql as $$
 declare v_id uuid; v_epoch bigint;
 begin
+  if p_lease_sec <= 0 then
+    raise exception 'lease duration must be positive' using errcode = 'CT001';
+  end if;
   update workers set last_seen = now() where id = p_worker;
   if not found then raise exception 'worker_unknown' using errcode = 'WK002'; end if;
 
@@ -295,6 +310,9 @@ end $$;
 create function heartbeat(p_task uuid, p_worker text, p_epoch bigint, p_extend_sec int default 300)
 returns boolean language plpgsql as $$
 begin
+  if p_extend_sec <= 0 then
+    raise exception 'lease extension must be positive' using errcode = 'CT001';
+  end if;
   update tasks set lease_until = now() + make_interval(secs => p_extend_sec), updated_at = now()
    where id = p_task and state = 'leased' and lease_owner = p_worker
      and lease_epoch = p_epoch and lease_until > now();
@@ -331,6 +349,9 @@ returns text language plpgsql as $$
 declare v_new text; v_spent bigint; v_cap bigint;
 begin
   perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then
+    raise exception 'tokens must be non-negative' using errcode = 'CT001';
+  end if;
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
@@ -346,9 +367,32 @@ begin
   return v_new;
 end $$;
 
+-- F4: честный отказ воркера. Раньше не-транзиентная ошибка LLM выставлялась
+-- через complete_task() с подделанным overspend (worker.rs), чтобы SQL сам
+-- перевёл задачу в blocked. Это ложь в журнале (spent_tokens врёт) и хрупко:
+-- зависит от '>' в complete_task. Теперь отказ — явная операция с reason.
+create function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                          p_result_ref text, p_reason text) returns text
+language plpgsql as $$
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+  return 'blocked';
+end $$;
+
 create function submit_review(p_task uuid, p_ref text, p_reviewer text,
                               p_verdict text, p_checks jsonb)
-returns text language plpgsql as $$
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
 declare t tasks%rowtype; v_creator text; v_new text;
 begin
   select * into t from tasks where id = p_task for update;
@@ -359,10 +403,25 @@ begin
   select created_by into v_creator from artifacts where task_id = p_task and ref = p_ref;
   if v_creator = p_reviewer then raise exception 'self_review' using errcode = 'RV002'; end if;
   if p_verdict = 'approved' then
-    if jsonb_typeof(p_checks) <> 'array'
-       or jsonb_array_length(p_checks) < jsonb_array_length(t.contract->'checks')
-       or exists (select 1 from jsonb_array_elements(p_checks) e
-                  where e->>'status' is distinct from 'pass') then
+    if jsonb_typeof(p_checks) <> 'array' then
+      raise exception 'checks_failed' using errcode = 'RV003';
+    end if;
+    -- Строгий review-gate (F2, вариант A): ключ проверки =
+    --   coalesce(id, type || '|' || run).
+    -- Для каждого ключа число pass в отчёте >= числа требований контракта с этим
+    -- ключом. Сопоставление только по type обходилось: контракт с двумя cmd
+    -- (cargo test, cargo clippy) закрывался одним generic {"type":"cmd","status":"pass"}.
+    -- Учёт run разводит такие проверки на разные ключи.
+    if exists (
+      select 1 from (
+        select coalesce(c->>'id', (c->>'type') || '|' || coalesce(c->>'run', '')) as k,
+               count(*) as n
+          from jsonb_array_elements(coalesce(t.contract->'checks', '[]'::jsonb)) c
+         group by 1) req
+       where (select count(*) from jsonb_array_elements(p_checks) p
+               where coalesce(p->>'id', (p->>'type') || '|' || coalesce(p->>'run', '')) = req.k
+                 and p->>'status' = 'pass') < req.n
+    ) then
       raise exception 'checks_failed' using errcode = 'RV003';
     end if;
   end if;
@@ -445,14 +504,30 @@ begin
   return v_n;
 end $$;
 
-create function unblock_task(p_task uuid, p_actor text) returns text language plpgsql as $$
-declare v_epoch bigint;
+-- F4: восстановимый unblock. Раньше задача из blocked возвращалась без учёта
+-- бюджета: если он уже исчерпан, unblock не помогал — задача снова уходила в
+-- blocked на первом же complete. Теперь оператор может явно поднять
+-- budget_cap, а при исчерпанном бюджете без явного cap функция отказывает
+-- (CT001) — вместо тихого нерабочего разблокирования.
+create function unblock_task(p_task uuid, p_actor text, p_new_budget_cap bigint default null)
+returns text language plpgsql as $$
+declare v_epoch bigint; t tasks%rowtype;
 begin
-  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
-         lease_epoch = lease_epoch + 1, updated_at = now()
-   where id = p_task and state = 'blocked' returning lease_epoch into v_epoch;
+  select * into t from tasks where id = p_task and state = 'blocked' for update;
   if not found then raise exception 'not_blocked' using errcode = 'GR009'; end if;
-  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor);
+  if p_new_budget_cap is not null then
+    if p_new_budget_cap <= t.spent_tokens then
+      raise exception 'budget cap must exceed spent_tokens' using errcode = 'CT001';
+    end if;
+  elsif t.spent_tokens >= t.budget_cap then
+    raise exception 'budget_exhausted: pass p_new_budget_cap' using errcode = 'CT001';
+  end if;
+  update tasks set state = 'pending', attempts = 0, rework = 0, block_reason = null,
+         lease_epoch = lease_epoch + 1, budget_cap = coalesce(p_new_budget_cap, budget_cap),
+         updated_at = now()
+   where id = p_task returning lease_epoch into v_epoch;
+  perform append_event(p_task, 'unblock:' || p_task || ':' || v_epoch, 'unblocked', p_actor,
+                       jsonb_build_object('new_budget_cap', p_new_budget_cap));
   perform promote_ready();
   return (select state from tasks where id = p_task);
 end $$;

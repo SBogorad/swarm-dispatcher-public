@@ -1,0 +1,29 @@
+### F2 triad — RED on pre-fix  |  2026-10-11T05:01:35+07:00  |  HEAD e8b9744ee984759c5a87b5ef4a35b111cec9c4f4
+### container=w4_f2f15_2030943 port=32804  creds REDACTED
+### pre-fix submit_review: EXISTS match by type only
+
+
+tests/test_review_gate_f2.py:91: Failed
+_______________________ test_f2_two_ids_need_two_passes ________________________
+
+conn = <connection object at 0x72ae29683600; dsn: 'user=postgres password=[REDACTED] dbname=c2_swarm host=127.0.0.1 port=32804', closed: 0>
+
+    def test_f2_two_ids_need_two_passes(conn):
+        """checks с id: для каждого id нужен свой pass."""
+        cur = conn.cursor()
+        t = _mk_task_in_review(
+            cur,
+            [
+                {"type": "cmd", "id": "unit", "run": "cargo test"},
+                {"type": "cmd", "id": "lint", "run": "cargo clippy"},
+            ],
+        )
+>       with pytest.raises(psycopg2.DatabaseError) as e:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE DatabaseError
+
+tests/test_review_gate_f2.py:107: Failed
+=========================== short test summary info ============================
+FAILED tests/test_review_gate_f2.py::test_f2_two_checks_same_type_need_two_passes
+FAILED tests/test_review_gate_f2.py::test_f2_two_ids_need_two_passes - Failed...
+2 failed, 2 passed in 0.37s

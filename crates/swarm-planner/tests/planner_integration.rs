@@ -33,14 +33,45 @@ fn mock_cfg(fixture_name: &str) -> LlmConfig {
 
 fn planner(fixture_name: &str, max_tasks: u32) -> Planner {
     let cfg = PlannerConfig {
-        limits: swarm_planner::Limits { max_tasks, max_depth: 5, max_children: 10 },
+        limits: swarm_planner::Limits {
+            max_tasks,
+            max_depth: 5,
+            max_children: 10,
+        },
     };
     Planner::new(cfg, LlmClient::new(mock_cfg(fixture_name)).unwrap())
+}
+
+/// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
+/// ... CASCADE` не должен уметь снести рабочую базу).
+fn assert_disposable_db(dsn: &str) {
+    let name = db_name(dsn);
+    assert!(
+        name.starts_with("test_") || name.starts_with("v0") || name.starts_with("c2_"),
+        "refusing to TRUNCATE non-disposable database {name:?} \
+         (allowed prefixes: test_, v0, c2_)"
+    );
+}
+
+/// Имя БД из DSN: key=value (`dbname=...`) или URI (`postgres://.../db`).
+fn db_name(dsn: &str) -> String {
+    if let Some(rest) = dsn
+        .strip_prefix("postgres://")
+        .or_else(|| dsn.strip_prefix("postgresql://"))
+    {
+        let after_host = rest.split('/').nth(1).unwrap_or("");
+        return after_host.split('?').next().unwrap_or("").to_string();
+    }
+    dsn.split_whitespace()
+        .find_map(|p| p.strip_prefix("dbname="))
+        .unwrap_or("")
+        .to_string()
 }
 
 /// Очистка таблиц прямым SQL (тест-пользователь swarm — суперпользователь).
 fn clear() {
     let dsn = dsn();
+    assert_disposable_db(&dsn);
     let mut client = postgres::Client::connect(&dsn, postgres::NoTls).expect("raw connect");
     client
         .batch_execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
@@ -185,9 +216,14 @@ fn e2e_planner_to_review() {
     let out = p.plan(&mut d, "задача-7").unwrap();
     assert_eq!(out.ready_to_execute, 1);
 
-    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[]).unwrap();
-    let lease = d.claim("w1", 60).unwrap().expect("корень должен быть выдан");
-    d.save_artifact(&lease, "sha256:root", "/p", None, None).unwrap();
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let lease = d
+        .claim("w1", 60)
+        .unwrap()
+        .expect("корень должен быть выдан");
+    d.save_artifact(&lease, "sha256:root", "/p", None, None)
+        .unwrap();
     let state = d.complete(&lease, "sha256:root", 1).unwrap();
     assert_eq!(state, "review");
 
@@ -197,13 +233,12 @@ fn e2e_planner_to_review() {
             "sha256:root",
             "reviewer",
             swarm_core::Verdict::Approved,
-            &serde_json::json!([{"type": "cmd", "status": "pass", "exit_code": 0}]),
+            &serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]),
         )
         .unwrap();
     assert_eq!(st, "done");
     assert!(d.verify_chain(out.root_id).unwrap());
 }
-
 
 // 9. §6.4 (v0.3.1): description доезжает до БД — у корня (текст задачи)
 //    и у подзадач (из ответа LLM).

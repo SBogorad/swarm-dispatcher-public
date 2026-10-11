@@ -84,8 +84,8 @@ pub struct LlmClient {
 
 impl LlmClient {
     pub fn new(cfg: LlmConfig) -> Result<Self> {
-        let inner = HttpLlmClient::new(cfg.to_swarm_llm())
-            .map_err(|e| PlannerError::Llm(e.to_string()))?;
+        let inner =
+            HttpLlmClient::new(cfg.to_swarm_llm()).map_err(|e| PlannerError::Llm(e.to_string()))?;
         Ok(Self { inner, cfg })
     }
 
@@ -101,10 +101,7 @@ impl LlmClient {
             max_tokens: None,
             temperature: None,
         };
-        self.inner
-            .complete(&req)
-            .map(|r| r.text)
-            .map_err(map_err)
+        self.inner.complete(&req).map(|r| r.text).map_err(map_err)
     }
 }
 

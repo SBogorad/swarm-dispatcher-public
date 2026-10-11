@@ -1,0 +1,85 @@
+name: release-gate
+
+# STRICT acceptance gate — mirrors scripts/acceptance_harness.sh --full-workspace-test.
+# Runs on GitHub-hosted runners with a disposable PostgreSQL 16 service
+# container; nothing persists between jobs.
+#
+# Cost note: this job is the only thing that consumes GitHub Actions minutes
+# for this (private) repository. See docs/ci/CI_COST.md for the estimate and
+# how to make it cheaper (path filters, fast lane, self-hosted runner).
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+jobs:
+  gate:
+    name: STRICT gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the harness diffs BASE..HEAD
+
+      - name: Install Rust toolchain (MSRV 1.94.1)
+        uses: dtolnay/rust-toolchain@1.94.1
+        with:
+          components: rustfmt
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install uv (for pytest venv)
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build sandbox image (agent-sandbox:1.85)
+        run: docker build -t agent-sandbox:1.85 sandbox/
+
+      # The harness provisions its OWN disposable database via `docker run`
+      # (postgres:16-alpine) and removes it in an EXIT trap, so it needs a
+      # Docker daemon — GitHub-hosted ubuntu runners provide one.
+      - name: Run STRICT acceptance harness
+        run: |
+          bash scripts/acceptance_harness.sh \
+            --base "${{ github.event.pull_request.base.sha || github.event.before }}" \
+            --branch HEAD \
+            --full-workspace-test \
+            --allowlist-file scripts/acceptance_allowlist.txt
+
+      - name: Upload gate logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-logs-${{ github.run_id }}
+          path: /tmp/swarm-dispatcher-acceptance/**
+          if-no-files-found: ignore
+          retention-days: 7

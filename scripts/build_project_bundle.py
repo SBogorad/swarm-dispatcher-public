@@ -38,7 +38,8 @@ VOLUMES: dict[str, dict] = {
         "title": "Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)",
         "globs": ["schema/*", "step2/*", "step2b/*", "scripts/*",
                   "docker-compose.yml", "Dockerfile", ".env.example",
-                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py"],
+                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py",
+                  ".github/workflows/*"],
     },
     "DOCS": {
         "title": "Документация и отчёты (без писем history/inbound)",
@@ -51,7 +52,9 @@ VOLUMES: dict[str, dict] = {
                   "docs/KNOWN_LIMITATIONS.md", "docs/PROJECT_STATE.md",
                   "docs/METHODOLOGY.md", "docs/VERIFICATION_LOG.md",
                   "README.md", "CHANGELOG.md", "RESUME.md", "MANIFEST.md",
-                  "REPORT_*.md", "docs/audit/AUDITOR_BRIEF_v0.4.md"],
+                  "REPORT_*.md", "docs/audit/AUDITOR_BRIEF_v0.4.md",
+                  "docs/audit/AUDITOR_BRIEF_v0.4.en.md",
+                  "docs/audit/README_AUDIT_PACKAGE.md"],
     },
 }
 
@@ -156,10 +159,18 @@ def build_volume(name: str, vol: dict) -> tuple[Path, int, int]:
                    f'bytes="{e["bytes"]}" lines="{e["lines"]}" '
                    f'sha256={quoteattr(e["sha256"])} md5={quoteattr(e["md5"])}>')
         if "]]>" in e["text"]:
-            out += ['      <content encoding="xml-escaped">', escape(e["text"]),
+            # XML-escaped body: strip trailing blanks per line for the same reason.
+            body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+            out += ['      <content encoding="xml-escaped">', escape(body),
                     '      </content>']
         else:
-            out += ['      <content><![CDATA[', e["text"].rstrip("\n"), ']]></content>']
+            # Strip trailing blanks: the embedded files (e.g. REPORT_*.md with
+            # markdown hard-breaks) would otherwise put trailing whitespace into
+            # the bundle, which trips `git diff --check` on any regenerated
+            # artifact. The bundle is an audit snapshot of content, not of
+            # insignificant line padding.
+            body = "\n".join(line.rstrip() for line in e["text"].rstrip("\n").split("\n"))
+            out += ['      <content><![CDATA[', body, ']]></content>']
         out.append('    </file>')
     out += ['  </files>', '</audit-volume>']
 

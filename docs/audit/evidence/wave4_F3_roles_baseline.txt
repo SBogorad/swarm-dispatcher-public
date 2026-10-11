@@ -1,0 +1,58 @@
+### wave4 F3-investigation: catalog of roles + set_option on HEAD
+### 2026-10-11T04:45:48+07:00
+### git rev-parse HEAD = a836508fd7df3a354cf2e6692eebe87f5ee76c42
+### container=w4_f3_1864569  image=postgres:16.4-alpine (fresh initdb from repo HEAD)
+
+=== \du+ swarm_* (roles, attributes, memberships) ===
+                  List of roles
+     Role name      |  Attributes  | Description 
+--------------------+--------------+-------------
+ swarm_cli          |              | 
+ swarm_operator     |              | 
+ swarm_owner        | Cannot login | 
+ swarm_planner      |              | 
+ swarm_reviewer     |              | 
+ swarm_watchdog     |              | 
+ swarm_worker       | Cannot login | 
+ swarm_worker_gpu_1 |              | 
+ swarm_worker_w1    |              | 
+ swarm_worker_w2    |              | 
+ swarm_worker_w_1   |              | 
+
+
+=== rolcanlogin: every swarm_* role ===
+      rolname       | rolcanlogin | rolsuper | rolbypassrls 
+--------------------+-------------+----------+--------------
+ swarm_cli          | t           | f        | f
+ swarm_operator     | t           | f        | f
+ swarm_owner        | f           | f        | f
+ swarm_planner      | t           | f        | f
+ swarm_reviewer     | t           | f        | f
+ swarm_watchdog     | t           | f        | f
+ swarm_worker       | f           | f        | f
+ swarm_worker_gpu_1 | t           | f        | f
+ swarm_worker_w1    | t           | f        | f
+ swarm_worker_w2    | t           | f        | f
+ swarm_worker_w_1   | t           | f        | f
+(11 rows)
+
+
+=== pg_auth_members: membership + set_option (admin_option|inherit_option|set_option) ===
+  granted_role  |       member       | admin_option | inherit_option | set_option 
+----------------+--------------------+--------------+----------------+------------
+ swarm_operator | swarm_cli          | f            | t              | t
+ swarm_planner  | swarm_cli          | f            | t              | t
+ swarm_reviewer | swarm_cli          | f            | t              | t
+ swarm_worker   | swarm_worker_gpu_1 | f            | t              | f
+ swarm_worker   | swarm_worker_w1    | f            | t              | f
+ swarm_worker   | swarm_worker_w2    | f            | t              | f
+ swarm_worker   | swarm_worker_w_1   | f            | t              | f
+(7 rows)
+
+
+=== pg version ===
+                                         version                                          
+------------------------------------------------------------------------------------------
+ PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+(1 row)
+

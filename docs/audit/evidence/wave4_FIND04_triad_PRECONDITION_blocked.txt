@@ -1,0 +1,12 @@
+### FIND-04 triad — PRE-CONDITION: no DSN => BLOCKED (not skip)  |  2026-10-11T04:52:42+07:00
+### mechanism: pytest.UsageError in tests/conftest.py (hooks live only in conftest/plugins)
+
+--- run WITHOUT env ---
+ERROR: BLOCKED: PostgreSQL not provisioned; wave-4 PG arbiters require a live DB (missing: W4_ADMIN_DSN, W4_W1_PW, W4_W2_PW)
+
+
+exit_without_env=4 (expect 4 = usage/BLOCKED, NOT 0 and NOT 'skipped')
+
+--- sanity WITH env: re-apply fix, expect GREEN ---
+...                                                                      [100%]
+3 passed in 0.49s

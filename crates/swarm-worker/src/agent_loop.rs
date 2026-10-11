@@ -265,10 +265,16 @@ fn execute_tool(
 
 fn validate_workspace_path(path: &str) -> Result<()> {
     let p = std::path::Path::new(path);
+    // P0-2: путь уходит в argv (`cat -- <path>`), поэтому shell его не
+    // интерпретирует. Дополнительно отклоняем метасимволы и управляющие
+    // символы — защита в глубину: путь не должен быть похож на команду
+    // (`x; cmd`, `x && cmd`, backticks, `$(...)`, пайпы, редиректы).
+    const FORBIDDEN: &[char] = &[';', '&', '|', '<', '>', '`', '$', '\\', '*', '?', '{', '}'];
     if path.is_empty()
         || path.contains('\0')
         || path.contains('\n')
         || path.contains('\r')
+        || path.chars().any(|c| FORBIDDEN.contains(&c))
         || p.is_absolute()
         || p.components()
             .any(|c| matches!(c, std::path::Component::ParentDir))
@@ -408,5 +414,40 @@ mod tests {
         };
         c.record(&audit).unwrap();
         assert_eq!(c.0, 1);
+    }
+
+    // P0-2: путь не должен позволять command injection.
+    #[test]
+    fn workspace_path_rejects_command_injection() {
+        let cases = [
+            "x; rm -rf /",
+            "x && rm -rf /",
+            "x | tee /tmp/pwned",
+            "x > /tmp/pwned",
+            "x < /etc/passwd",
+            "`whoami`",
+            "$(whoami)",
+            "a b\nc",
+            "a\rb",
+            "../secret",
+            "/etc/passwd",
+            "",
+        ];
+        for p in cases {
+            assert!(
+                validate_workspace_path(p).is_err(),
+                "путь {p:?} должен быть отклонён"
+            );
+        }
+    }
+
+    #[test]
+    fn workspace_path_accepts_plain_relative_paths() {
+        for p in ["Cargo.toml", "src/main.rs", "a/b/c.txt", ".env.example"] {
+            assert!(
+                validate_workspace_path(p).is_ok(),
+                "путь {p:?} должен быть принят"
+            );
+        }
     }
 }

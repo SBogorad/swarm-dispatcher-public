@@ -22,24 +22,29 @@ pub enum WorkerError {
     #[error("lease lost during work")]
     LeaseLost,
 
-    // ---- v0.4: shell tools + sandbox ----
+    // ---- v0.4: shell tools + sandbox (FIND-01: только под feature) ----
     /// WK004: команда не прошла allowlist (ТЗ v0.4 §4).
+    #[cfg(feature = "shell-tools")]
     #[error("WK004 allowlist rejected: {reason} (command: {command:?})")]
     AllowlistRejected { command: String, reason: String },
 
     /// WK005: команда превысила таймаут (ТЗ v0.4 §5).
+    #[cfg(feature = "shell-tools")]
     #[error("WK005 command timeout after {timeout_sec}s: {command:?}")]
     CommandTimeout { command: String, timeout_sec: u64 },
 
     /// Ошибка sandbox-контейнера (Docker).
+    #[cfg(feature = "shell-tools")]
     #[error("sandbox error: {0}")]
     Sandbox(String),
 
     /// Исчерпан бюджет итераций Agent Loop (ТЗ v0.4 §6).
+    #[cfg(feature = "shell-tools")]
     #[error("agent loop exceeded max iterations ({max})")]
     MaxIterations { max: u32 },
 
     /// LLM вернул невалидный tool call.
+    #[cfg(feature = "shell-tools")]
     #[error("invalid tool call from llm: {0}")]
     InvalidToolCall(String),
 }

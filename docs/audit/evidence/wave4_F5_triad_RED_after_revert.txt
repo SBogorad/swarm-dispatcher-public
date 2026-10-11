@@ -1,0 +1,7 @@
+### F5 triad — RED after revert  |  2026-10-11T06:10:46+07:00
+### worker.rs reverted to HEAD; test unchanged
+
+test f5_dead_heartbeat_fails_fast_without_llm ... FAILED
+test f5_healthy_heartbeat_completes_normally ... ok
+test f5_lease_revoked_mid_flight_fails_fast ... FAILED
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.39s

@@ -1,0 +1,50 @@
+# Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
+# One rule per line: exact path, or `prefix/*` for a directory subtree.
+# Lines starting with '#' and blank lines are ignored.
+
+# The acceptance harness itself.
+scripts/acceptance_harness.sh
+scripts/acceptance_allowlist.txt
+
+# P0 SQL patches and their tests.
+step2/roles_patch_submit_review.sql
+step2/test_review_gate.py
+
+# P0 state-machine integrity: base schema, per-worker roles, state invariants.
+schema/schema_v0.sql
+step2b/roles_2b.sql
+tests/test_v0.py
+
+# P0 Rust hardening: allowlist and agent-loop path validation (+ tests).
+crates/swarm-worker/src/*
+
+# Wave 3 (test honesty): CLI exit codes / no fabricated checks, disabled-DB
+# guards in the integration suites, fail-closed mutation pre-checks.
+crates/swarm-cli/src/main.rs
+crates/swarm-core/tests/*
+crates/swarm-planner/tests/*
+crates/swarm-worker/tests/*
+scripts/run_mutations_v04.sh
+
+# Wave 3 fallout: workspace-wide rustfmt + the audit-bundle XML fix.
+crates/swarm-core/src/*
+crates/swarm-llm/src/*
+crates/swarm-planner/src/*
+crates/swarm-watchdog/src/*
+crates/swarm-worker/examples/*
+crates/swarm-worker/src/*
+scripts/build_audit_bundle.py
+scripts/build_audit_report.py
+scripts/build_audit_index.py
+scripts/build_project_bundle.py
+
+# Audit evidence produced for this wave.
+docs/audit/*
+
+# G1: CI gate itself (workflow + cost doc).
+.github/*
+docs/ci/*
+
+# MSRV correction required by the G1 toolchain pin.
+Cargo.toml
+Cargo.lock

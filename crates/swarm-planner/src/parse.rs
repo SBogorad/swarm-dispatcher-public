@@ -72,8 +72,8 @@ pub fn deterministic_root_id(text: &str) -> Uuid {
 pub fn parse_response(raw: &str) -> Result<PlannedGraph> {
     let candidate = extract_json_object(raw)
         .ok_or_else(|| PlannerError::InvalidJson("no JSON object found".into()))?;
-    let graph: PlannedGraph = serde_json::from_str(&candidate)
-        .map_err(|e| PlannerError::InvalidJson(e.to_string()))?;
+    let graph: PlannedGraph =
+        serde_json::from_str(&candidate).map_err(|e| PlannerError::InvalidJson(e.to_string()))?;
     if graph.tasks.is_empty() {
         return Err(PlannerError::InvalidJson("empty tasks".into()));
     }
@@ -226,7 +226,10 @@ fn graph_depth(graph: &PlannedGraph) -> Result<u32> {
             return Ok(*d);
         }
         if !visiting.insert(id.to_string()) {
-            return Err(PlannerError::Validation(format!("cycle detected at {}", id)));
+            return Err(PlannerError::Validation(format!(
+                "cycle detected at {}",
+                id
+            )));
         }
         let dlist = deps
             .get(id)
@@ -290,37 +293,62 @@ mod tests {
 
     #[test]
     fn validate_no_cycles() {
-        let gr = g(serde_json::json!([ok_task("t1", vec![]), ok_task("t2", vec!["t3"]), ok_task("t3", vec!["t2"])]));
-        assert!(matches!(validate_graph(&gr, &Limits::default()), Err(PlannerError::Validation(_))));
+        let gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t3"]),
+            ok_task("t3", vec!["t2"])
+        ]));
+        assert!(matches!(
+            validate_graph(&gr, &Limits::default()),
+            Err(PlannerError::Validation(_))
+        ));
     }
 
     #[test]
     fn validate_depends_exist() {
-        let gr = g(serde_json::json!([ok_task("t1", vec![]), ok_task("t2", vec!["nope"])]));
+        let gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["nope"])
+        ]));
         assert!(validate_graph(&gr, &Limits::default()).is_err());
     }
 
     #[test]
     fn validate_limits() {
-        let lim = Limits { max_tasks: 2, max_depth: 5, max_children: 10 };
+        let lim = Limits {
+            max_tasks: 2,
+            max_depth: 5,
+            max_children: 10,
+        };
         let gr = g(serde_json::json!([
-            ok_task("t1", vec![]), ok_task("t2", vec!["t1"]), ok_task("t3", vec!["t1"])
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t1"]),
+            ok_task("t3", vec!["t1"])
         ]));
         assert!(validate_graph(&gr, &lim).is_err());
     }
 
     #[test]
     fn validate_single_root() {
-        let gr = g(serde_json::json!([ok_task("t1", vec![]), ok_task("t2", vec![])]));
+        let gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec![])
+        ]));
         let e = validate_graph(&gr, &Limits::default());
         assert!(matches!(e, Err(PlannerError::Validation(_))));
     }
 
     #[test]
     fn validate_depth() {
-        let lim = Limits { max_tasks: 50, max_depth: 2, max_children: 10 };
+        let lim = Limits {
+            max_tasks: 50,
+            max_depth: 2,
+            max_children: 10,
+        };
         let gr = g(serde_json::json!([
-            ok_task("t1", vec![]), ok_task("t2", vec!["t1"]), ok_task("t3", vec!["t2"])
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t1"]),
+            ok_task("t3", vec!["t2"])
         ]));
         assert!(validate_graph(&gr, &lim).is_err());
     }

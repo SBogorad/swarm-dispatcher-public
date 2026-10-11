@@ -13,16 +13,16 @@
 
 use std::collections::VecDeque;
 use std::process::Command;
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex;
 
 use swarm_core::SwarmDispatcher;
 use swarm_llm::{LlmClient, LlmError, LlmRequest, LlmResponse};
-use swarm_worker::WorkerError;
 use swarm_worker::agent_loop::{self, AgentLoopConfig, NoopSink};
 use swarm_worker::allowlist::Allowlist;
-use swarm_worker::audit::{PgAuditSink, count_tool_calls};
-use swarm_worker::sandbox::{Sandbox, SandboxConfig, cleanup_stale};
+use swarm_worker::audit::{count_tool_calls, PgAuditSink};
+use swarm_worker::sandbox::{cleanup_stale, Sandbox, SandboxConfig};
+use swarm_worker::WorkerError;
 
 fn dsn() -> String {
     std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| {
@@ -42,8 +42,36 @@ fn sb_cfg(timeout_sec: u64) -> SandboxConfig {
     }
 }
 
+/// Отказаться опустошать БД, которая не выглядит тестовой (аудит: `TRUNCATE
+/// ... CASCADE` не должен уметь снести рабочую базу).
+fn assert_disposable_db(dsn: &str) {
+    let name = db_name(dsn);
+    assert!(
+        name.starts_with("test_") || name.starts_with("v0") || name.starts_with("c2_"),
+        "refusing to TRUNCATE non-disposable database {name:?} \
+         (allowed prefixes: test_, v0, c2_)"
+    );
+}
+
+/// Имя БД из DSN: key=value (`dbname=...`) или URI (`postgres://.../db`).
+fn db_name(dsn: &str) -> String {
+    if let Some(rest) = dsn
+        .strip_prefix("postgres://")
+        .or_else(|| dsn.strip_prefix("postgresql://"))
+    {
+        let after_host = rest.split('/').nth(1).unwrap_or("");
+        return after_host.split('?').next().unwrap_or("").to_string();
+    }
+    dsn.split_whitespace()
+        .find_map(|p| p.strip_prefix("dbname="))
+        .unwrap_or("")
+        .to_string()
+}
+
 fn clear() {
-    let mut c = postgres::Client::connect(&dsn(), postgres::NoTls).expect("raw connect");
+    let dsn = dsn();
+    assert_disposable_db(&dsn);
+    let mut c = postgres::Client::connect(&dsn, postgres::NoTls).expect("raw connect");
     c.batch_execute("truncate events, reviews, task_deps, artifacts, tasks, workers cascade")
         .expect("truncate");
 }

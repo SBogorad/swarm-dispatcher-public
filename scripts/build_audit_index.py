@@ -50,8 +50,8 @@ def main() -> int:
     L = []
     L.append("# Аудит-пакет проекта `swarm-dispatcher` — индекс")
     L.append("")
-    L.append(f"**Сгенерировано:** {now}  ")
-    L.append("**Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`  ")
+    L.append(f"**Сгенерировано:** {now}")
+    L.append("**Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`")
     L.append("**Схема:** `swarm-dispatcher.audit-bundle.v2`")
     L.append("")
     L.append("Предназначено для передачи **внешнему аудитору (LLM)**: полный исходный код, "

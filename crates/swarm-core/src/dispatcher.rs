@@ -222,7 +222,38 @@ impl SwarmDispatcher {
             .client
             .query_one(
                 "SELECT complete_task($1, $2, $3, $4, $5)",
-                &[&lease.task_id, &lease.worker_id, &lease.epoch, &result_ref, &tokens],
+                &[
+                    &lease.task_id,
+                    &lease.worker_id,
+                    &lease.epoch,
+                    &result_ref,
+                    &tokens,
+                ],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(row.get(0))
+    }
+
+    /// F4: честный отказ воркера. Переводит задачу в `blocked` с `reason`,
+    /// без подделки `spent_tokens` (раньше это делалось через `complete`
+    /// с overspend). Возвращает `"blocked"`.
+    pub fn fail(
+        &mut self,
+        lease: &Lease,
+        result_ref: Option<&str>,
+        reason: &str,
+    ) -> Result<String, DispatcherError> {
+        let row = self
+            .client
+            .query_one(
+                "SELECT fail_task($1, $2, $3, $4, $5)",
+                &[
+                    &lease.task_id,
+                    &lease.worker_id,
+                    &lease.epoch,
+                    &result_ref,
+                    &reason,
+                ],
             )
             .map_err(DispatcherError::from_pg)?;
         Ok(row.get(0))
@@ -243,7 +274,13 @@ impl SwarmDispatcher {
             .client
             .query_one(
                 "SELECT submit_review($1, $2, $3, $4, $5::jsonb)",
-                &[&task_id, &artifact_ref, &reviewer, &verdict.as_str(), checks],
+                &[
+                    &task_id,
+                    &artifact_ref,
+                    &reviewer,
+                    &verdict.as_str(),
+                    checks,
+                ],
             )
             .map_err(DispatcherError::from_pg)?;
         Ok(row.get(0))
@@ -299,7 +336,10 @@ impl SwarmDispatcher {
     where
         F: FnOnce(&mut DispatcherTx<'_, '_>) -> Result<T, DispatcherError>,
     {
-        let mut tx = self.client.transaction().map_err(DispatcherError::from_pg)?;
+        let mut tx = self
+            .client
+            .transaction()
+            .map_err(DispatcherError::from_pg)?;
         let out = {
             let mut w = DispatcherTx { tx: &mut tx };
             f(&mut w)? // при Err tx дропается без commit -> rollback

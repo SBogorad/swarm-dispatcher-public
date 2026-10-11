@@ -1,0 +1,8 @@
+=========================== short test summary info ============================
+FAILED tests/test_review_gate_wave4.py::test_f2_two_checks_same_type_need_two_passes
+FAILED tests/test_review_gate_wave4.py::test_f2_two_distinct_ids_need_two_passes
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[bad_checks0]
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[bad_checks1]
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[bad_checks2]
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[bad_checks3]
+6 failed, 1 passed in 0.45s

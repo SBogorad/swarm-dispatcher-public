@@ -3,6 +3,14 @@ name = "swarm-worker"
 version.workspace = true
 edition.workspace = true
 
+[features]
+# FIND-01: shell-tools (agent_loop + sandbox + allowlist + audit) — ВЫКЛЮЧЕНЫ по
+# умолчанию. Бинарь swarm-worker их НЕ подключает: без этого feature модули
+# физически не компилируются в бинарь воркера (бан в КОДЕ, а не в переписке).
+# Включать только тестам/примерам и после закрытия F6/F7/F11/F12.
+default = []
+shell-tools = []
+
 [dependencies]
 swarm-core = { path = "../swarm-core" }
 swarm-llm = { path = "../swarm-llm" }
@@ -12,6 +20,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.10"
 ctrlc = "3.4"
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-types = { workspace = true }
+tokio = { workspace = true }
 thiserror = { workspace = true }
 # v0.4: аудит tool calls пишется отдельным соединением (§7).
 postgres = { workspace = true }
@@ -25,3 +38,14 @@ swarm-planner = { path = "../swarm-planner" }
 [[test]]
 name = "worker_integration"
 path = "tests/worker_integration.rs"
+
+# FIND-01: shell-tools тесты/пример требуют feature (иначе модули не компилируются).
+[[test]]
+name = "worker_sandbox"
+path = "tests/worker_sandbox.rs"
+required-features = ["shell-tools"]
+
+[[example]]
+name = "agent_loop_demo"
+path = "examples/agent_loop_demo.rs"
+required-features = ["shell-tools"]

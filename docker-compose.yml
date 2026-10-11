@@ -55,10 +55,15 @@ services:
       LEASE_SEC: "10"
       CRASH_AFTER_CLAIM: "0"
       ARTIFACTS_DIR: /var/swarm/artifacts
+      # F1: storage_path пишется как volume://<name>/<relpath> — видим потребителю.
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      # Мок-провайдер (default) читает текст ответа из {prefix}MOCK_RESPONSE_FILE,
+      # где prefix = LLM_ (по умолчанию воркера), т.е. LLM_MOCK_RESPONSE_FILE.
+      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
       # v0.4: shell tools + Docker sandbox.
       # ВНИМАНИЕ: 1 требует доступа к Docker-сокету (docs/KNOWN_LIMITATIONS.md §6).
       WORKER_SHELL_TOOLS: ${WORKER_SHELL_TOOLS:-0}
@@ -74,7 +79,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
+    # Раньше /var/swarm/artifacts был приватным tmpfs: файл от worker-1 не был
+    # виден worker-2, cli и другим потребителям (F1 CRITICAL).
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
+      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -89,10 +99,12 @@ services:
       LEASE_SEC: "10"
       CRASH_AFTER_CLAIM: "1"
       ARTIFACTS_DIR: /var/swarm/artifacts
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
       LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
       LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
+      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
       RUST_LOG: swarm_worker=info
     security_opt:
       - no-new-privileges:true
@@ -101,7 +113,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=512m,uid=1001,gid=1001,mode=0755
+    # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
+      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -111,6 +126,10 @@ services:
     # command НЕ указывать — иначе compose подменяет entrypoint образа.
     environment:
       DATABASE_URL: postgres://swarm_cli:${SWARM_PW_CLI}@postgres:5432/swarm
+      ARTIFACTS_DIR: /var/swarm/artifacts
+      SWARM_ARTIFACTS_VOLUME: swarm-artifacts
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts
     profiles: ["tools"]
     depends_on:
       postgres:
@@ -139,3 +158,6 @@ services:
 
 volumes:
   postgres_data:
+  # F1: общий volume артефактов (один хост). Для distributed-ветки нужен S3 —
+  # см. docs/KNOWN_LIMITATIONS.md и SWARM_ARTIFACT_S3_* в storage.rs.
+  swarm-artifacts:

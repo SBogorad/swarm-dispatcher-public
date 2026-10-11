@@ -28,7 +28,7 @@ pub const EXPLICIT_DENY: &[&str] = &[
 ];
 
 /// Shell-операторы, запрещённые в v0.4 (до analysis pipelines, ТЗ §4).
-const FORBIDDEN_OPERATORS: &[&str] = &["|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r"];
+const FORBIDDEN_OPERATORS: &[&str] = &["|", ">", "<", ";", "&", "`", "$(", "${", "\n", "\r", "\\"];
 
 /// Оболочки, для которых делается рекурсивная проверка `-c`.
 const SHELLS: &[&str] = &["bash", "sh", "dash", "zsh"];
@@ -122,26 +122,30 @@ impl Allowlist {
             }
         }
 
-        // 2. Обход каталога.
-        if cmd.split_whitespace().any(|t| t.contains("..")) {
+        // 2. Обход каталога + токенизация ЕДИНЫМ парсером (G2):
+        //    quote-aware argv-парсер, тот же, что применяет sandbox.exec.
+        //    Раньше allowlist шёл через split_whitespace, а sandbox — через
+        //    собственный quote-aware парсер; расхождение на quoting было
+        //    okном для обхода. Теперь источник истины один.
+        let tokens: Vec<String> = parse_command_argv(cmd)?;
+        if tokens.iter().any(|t| t.contains("..")) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: "путь с '..' запрещён".into(),
             });
         }
 
-        let tokens: Vec<&str> = cmd.split_whitespace().collect();
         let first = tokens[0].to_lowercase();
 
         // 3. Явный deny (в т.ч. абсолютный путь: /bin/rm → rm).
-        let base = first.rsplit('/').next().unwrap_or(&first);
+        let base = first.rsplit('/').next().unwrap_or(&first).to_string();
         if first.contains('/') && !trusted_executable(&first) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: "не доверенный путь executable".into(),
             });
         }
-        if EXPLICIT_DENY.contains(&base) {
+        if EXPLICIT_DENY.contains(&base.as_str()) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: format!("команда '{base}' в явном deny-списке"),
@@ -149,7 +153,7 @@ impl Allowlist {
         }
 
         // 4. Allowlist по первому слову.
-        if !self.allows(base) {
+        if !self.allows(&base) {
             return Err(WorkerError::AllowlistRejected {
                 command: command.to_string(),
                 reason: format!("'{base}' нет в allowlist"),
@@ -157,8 +161,9 @@ impl Allowlist {
         }
 
         // 5. Рекурсия для `bash -c "<внутренняя>"`.
-        if SHELLS.contains(&base) {
-            let Some(inner) = extract_dash_c(&tokens) else {
+        if SHELLS.contains(&base.as_str()) {
+            let refs: Vec<&str> = tokens.iter().map(String::as_str).collect();
+            let Some(inner) = extract_dash_c(&refs) else {
                 return Err(WorkerError::AllowlistRejected {
                     command: command.to_string(),
                     reason: "shell разрешён только с однозначным -c".into(),
@@ -167,15 +172,67 @@ impl Allowlist {
             return self.check_depth(&inner, depth + 1);
         }
 
-        if tokens.iter().any(|t| t.contains('"') || t.contains('\'')) {
-            return Err(WorkerError::AllowlistRejected {
-                command: command.to_string(),
-                reason: "неоднозначное quoting запрещено".into(),
-            });
-        }
-
         Ok(())
     }
+}
+
+/// Единый argv-парсер команд (G2).
+///
+/// Разбирает небольшой argv-язык: пробелы разделяют токены, одинарные и
+/// двойные кавычки группируют; shell-операторы и escape **отвергаются**, а не
+/// интерпретируются. Один и тот же парсер использует и allowlist-политика, и
+/// `sandbox.exec` — чтобы не было двух расходящихся мнений о том, где границы
+/// токенов.
+///
+/// Возвращает `Err`, если обнаружен запрещённый символ (`; | & < > ` $ \`),
+/// незакрытая кавычка или пустая команда.
+pub fn parse_command_argv(command: &str) -> Result<Vec<String>> {
+    let mut argv = Vec::new();
+    let mut token = String::new();
+    let mut quote = None;
+    let mut started = false;
+    for ch in command.chars() {
+        match quote {
+            Some(q) if ch == q => quote = None,
+            Some(_) => token.push(ch),
+            None if ch == '\'' || ch == '"' => {
+                quote = Some(ch);
+                started = true;
+            }
+            None if ch.is_whitespace() => {
+                if started {
+                    argv.push(std::mem::take(&mut token));
+                    started = false;
+                }
+            }
+            None if matches!(ch, ';' | '|' | '&' | '<' | '>' | '`' | '$' | '\\') => {
+                return Err(WorkerError::AllowlistRejected {
+                    command: command.to_string(),
+                    reason: format!("запрещённый shell-символ: {ch:?}"),
+                });
+            }
+            None => {
+                token.push(ch);
+                started = true;
+            }
+        }
+    }
+    if quote.is_some() {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: "незакрытая кавычка".into(),
+        });
+    }
+    if started {
+        argv.push(token);
+    }
+    if argv.is_empty() {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: "пустая команда".into(),
+        });
+    }
+    Ok(argv)
 }
 
 fn trusted_executable(path: &str) -> bool {
@@ -313,5 +370,67 @@ mod tests {
     fn allowlist_empty_command_rejected() {
         assert!(al().check("").is_err());
         assert!(al().check("   ").is_err());
+    }
+
+    #[test]
+    fn allowlist_rejects_shell_options_and_escaped_operators() {
+        assert!(al().check("bash -lc 'rm -rf /'").is_err());
+        assert!(al().check("echo foo\\; rm -rf /").is_err());
+        assert!(al().check("echo ${HOME}").is_err());
+    }
+
+    // P0-1: shell-форма без однозначного `-c` — скрипт, интерактив, голый shell.
+    #[test]
+    fn allowlist_rejects_shell_script_operand() {
+        for c in [
+            "bash script.sh", // script operand вместо -c
+            "sh /tmp/x.sh",
+            "bash",    // голый shell
+            "bash -i", // интерактивный shell
+            "bash --login",
+        ] {
+            assert!(al().check(c).is_err(), "{c} должен быть отклонён");
+        }
+    }
+
+    // P0-1: проверка доверенного executable path, а не только basename.
+    #[test]
+    fn allowlist_rejects_untrusted_executable_path() {
+        assert!(
+            al().check("/tmp/cargo build").is_err(),
+            "basename cargo, но путь недоверенный"
+        );
+        assert!(al().check("./cargo build").is_err());
+        assert!(al().check("/usr/local/bin/git status").is_err());
+        assert!(al().check("../cargo build").is_err());
+        // доверенный путь shell с -c проходит
+        assert!(al().check("/bin/bash -c \"cargo test\"").is_ok());
+    }
+
+    // P0-1: комбинированные флаги и env-подстановки.
+    #[test]
+    fn allowlist_rejects_combined_flags_and_env_substitution() {
+        assert!(al().check("bash -xc 'cargo test'").is_err());
+        assert!(al().check("bash -ec 'cargo test'").is_err());
+        assert!(al().check("cat ${HOME}/.ssh/id_rsa").is_err());
+        assert!(al().check("cat $(whoami)").is_err());
+    }
+
+    // G2 (audit): политика и sandbox используют ОДИН argv-парсер.
+    // Регрессия: до унификации allowlist шёл через split_whitespace и не
+    // видел, что `echo "hello world"` — это один токен; теперь видит.
+    #[test]
+    fn single_argv_parser_shared_with_sandbox() {
+        // Тот же парсер, что вызывает sandbox.exec (через Allows.
+        assert_eq!(
+            parse_command_argv("echo 'hello world'").unwrap(),
+            vec!["echo".to_string(), "hello world".to_string()]
+        );
+        // Кавычки больше не считаются «неоднозначным quoting» — это часть
+        // единого argv-языка, а не признак инъекции.
+        assert!(al().check("echo 'a b'").is_ok());
+        // А shell-символы внутри/вне кавычек по-прежнему отсекаются.
+        assert!(al().check("echo 'a; rm -rf /'").is_err());
+        assert!(al().check("echo `id`").is_err());
     }
 }

@@ -1,0 +1,25 @@
+        "bad_checks",
+        [
+            '["pytest", 42]',
+            '[{"run":"cargo test"}]',
+            '[{"type":""}]',
+            '[{"type":123}]',
+        ],
+    )
+    def test_f15_contract_rejects_malformed_checks(conn, bad_checks):
+        """validate_contract не должен принимать checks без непустого строкового type."""
+        cur = conn.cursor()
+        with pytest.raises(psycopg2.errors.RaiseException) as e:
+>           cur.execute("select validate_contract(%s::jsonb)", (_contract(bad_checks),))
+E           psycopg2.DatabaseError: contract_invalid: checks required
+E           CONTEXT:  PL/pgSQL function validate_contract(jsonb) line 5 at RAISE
+
+tests/test_review_gate_wave4.py:142: DatabaseError
+=========================== short test summary info ============================
+FAILED tests/test_review_gate_wave4.py::test_f2_two_checks_same_type_need_two_passes
+FAILED tests/test_review_gate_wave4.py::test_f2_two_distinct_ids_need_two_passes
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[["pytest", 42]]
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[[{"run":"cargo test"}]]
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[[{"type":""}]]
+FAILED tests/test_review_gate_wave4.py::test_f15_contract_rejects_malformed_checks[[{"type":123}]]
+6 failed, 1 passed in 0.51s
