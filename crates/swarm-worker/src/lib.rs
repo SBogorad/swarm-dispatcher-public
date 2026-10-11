@@ -10,9 +10,9 @@
 pub mod agent_loop;
 #[cfg(feature = "shell-tools")]
 pub mod allowlist;
+pub mod artifacts;
 #[cfg(feature = "shell-tools")]
 pub mod audit;
-pub mod artifacts;
 pub mod error;
 #[cfg(feature = "shell-tools")]
 pub mod parse_step;

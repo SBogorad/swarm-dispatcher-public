@@ -132,7 +132,8 @@ impl LlmClient for MockLlm {
 }
 
 fn state_of(t: uuid::Uuid) -> String {
-    raw().query_one("select state from tasks where id=$1", &[&t])
+    raw()
+        .query_one("select state from tasks where id=$1", &[&t])
         .unwrap()
         .get(0)
 }

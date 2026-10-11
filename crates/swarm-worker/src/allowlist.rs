@@ -40,7 +40,11 @@ const SHELLS: &[&str] = &["bash", "sh", "dash", "zsh"];
 /// `cargo --config build.rustc-wrapper=sh ...`, `cargo -Z...`. Даже при
 /// наличии `git`/`cargo` в allowlist такие опции открывают RCE.
 const DENIED_GIT_OPTS: &[&str] = &[
-    "-c", "--config", "--exec-path", "--upload-pack", "--receive-pack",
+    "-c",
+    "--config",
+    "--exec-path",
+    "--upload-pack",
+    "--receive-pack",
 ];
 const DENIED_CARGO_OPTS: &[&str] = &["--config", "-Z", "--rustc", "--wrapper"];
 
@@ -506,7 +510,8 @@ mod tests {
     fn f11_rejects_cargo_config_option() {
         // cargo --config build.rustc-wrapper=sh build -> RCE
         assert!(
-            al().check("cargo --config build.rustc-wrapper=sh build").is_err(),
+            al().check("cargo --config build.rustc-wrapper=sh build")
+                .is_err(),
             "cargo --config должен быть отклонён"
         );
         assert!(al().check("cargo -Z build-std build").is_err());
@@ -523,4 +528,3 @@ mod tests {
         assert!(al().check("cargo test --features shell-tools").is_ok());
     }
 }
-

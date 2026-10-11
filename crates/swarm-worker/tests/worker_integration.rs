@@ -384,7 +384,8 @@ fn worker_artifact_passes_review() {
         other => panic!("got {other:?}"),
     };
     // F2: ключ проверки = coalesce(id, type||'|'||run); отчёт обязан совпасть по run.
-    let checks = serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]);
+    let checks =
+        serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]);
     let st = d
         .submit_review(t, &reference, "rev", Verdict::Approved, &checks)
         .unwrap();
