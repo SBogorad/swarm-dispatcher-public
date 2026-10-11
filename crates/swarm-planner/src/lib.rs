@@ -261,7 +261,7 @@ impl Planner {
                 Err(de) if de.is_unique_violation() => {
                     return Ok((0usize, 0i32, true));
                 }
-                Err(e) => return Err(e.into()),
+                Err(e) => return Err(e),
             }
             // подзадачи
             for t in &graph.tasks {
