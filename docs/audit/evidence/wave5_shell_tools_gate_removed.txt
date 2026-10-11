@@ -1,0 +1,34 @@
+=== Волна 5: снятие feature-gate shell-tools + интеграционные тесты песочницы ===
+Дата: 2026-10-11T15:12:41+07:00
+Ветка: feature/v0.5-sandbox-hardening
+
+--- Предусловие: F6/F7/F11/F12 закрыты ---
+17e3986 fix(security): F12 — pids-limit, timeout -k (KILL внутри контейнера), изоляция префикса по worker_id
+8344f51 fix(security): F11 — запрет config-опций git/cargo в allowlist
+61c64cc fix(planner+schema): F7 контроль контрактов — реестр проверок и clamping
+d507c7c fix(security): F6 prompt injection — нейтрализация </untrusted> в недоверенном тексте
+
+--- 1. Компиляция БЕЗ --features shell-tools (гейт снят) ---
+cargo check -p swarm-worker -> OK (shell-tools компилируются всегда)
+
+--- 2. Lib-тесты без feature ---
+cargo test -p swarm-worker --lib -> 66 passed; 0 failed
+
+--- 3. Интеграционные тесты на живом Docker + PostgreSQL 16 ---
+TEST_DATABASE_URL=... port=55440 dbname=v0sandbox
+cargo test -p swarm-worker --test worker_sandbox -- --test-threads=1
+test agent_loop_executes_dsml_calls ... ok
+test agent_loop_iterates ... ok
+test agent_loop_max_iterations ... ok
+test agent_loop_stops_batch_after_reject ... ok
+test sandbox_cleaned_after_crash ... ok
+test sandbox_starts_and_stops ... ok
+test tool_call_events_logged ... ok
+test worker_network_isolated ... ok
+test worker_rm_rejected ... ok
+test worker_runs_cargo_test ... ok
+test worker_timeout_handled ... ok
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.04s
+
+--- 4. Lib ---
+test result: ok. 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s

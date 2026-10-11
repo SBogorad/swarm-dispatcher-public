@@ -4,10 +4,9 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-# FIND-01: shell-tools (agent_loop + sandbox + allowlist + audit) — ВЫКЛЮЧЕНЫ по
-# умолчанию. Бинарь swarm-worker их НЕ подключает: без этого feature модули
-# физически не компилируются в бинарь воркера (бан в КОДЕ, а не в переписке).
-# Включать только тестам/примерам и после закрытия F6/F7/F11/F12.
+# FIND-01: shell-tools были за feature-гейтом до закрытия F6/F7/F11/F12.
+# Волна 5 закрыла все четыре — гейт снят, модули компилируются всегда.
+# Feature оставлен пустым для обратной совместимости вызовов `--features shell-tools`.
 default = []
 shell-tools = []
 
@@ -39,13 +38,10 @@ swarm-planner = { path = "../swarm-planner" }
 name = "worker_integration"
 path = "tests/worker_integration.rs"
 
-# FIND-01: shell-tools тесты/пример требуют feature (иначе модули не компилируются).
 [[test]]
 name = "worker_sandbox"
 path = "tests/worker_sandbox.rs"
-required-features = ["shell-tools"]
 
 [[example]]
 name = "agent_loop_demo"
 path = "examples/agent_loop_demo.rs"
-required-features = ["shell-tools"]
