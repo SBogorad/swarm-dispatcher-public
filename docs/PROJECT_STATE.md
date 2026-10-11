@@ -14,7 +14,8 @@ Reference implementation распределённой оркестрации И�
 > **Актуально на v0.5.2 (2026-10-12).** Таблица ниже — историческая (v0.2);
 > текущее состояние проверяется `scripts/acceptance_harness.sh --full-workspace-test`
 > (8 шагов, 536 имён тестов, `release_gate: STRICT`) и мутационным прогоном
-> `scripts/run_mutations_v04.sh` (M1–M6: 6/6, 0 выживших).
+> `scripts/run_mutations_v04.sh` (Rust M1–M6: 6/6) и `scripts/run_mutations_sql.sh`
+> (SQL S1–S5: 5/5, 0 выживших).
 
 | Артефакт | Статус | Что внутри |
 |----------|--------|-----------|

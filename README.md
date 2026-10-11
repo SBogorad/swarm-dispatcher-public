@@ -116,7 +116,7 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
   save_artifact, complete_task, submit_review, reclaim_expired,
   reopen_task, unblock_task, promote_ready, register_worker,
   append_event, verify_chain + 6 вспомогательных.
-· 28 тестов на инварианты: pytest tests/test_v0.py -q → 28 passed (v0.5).
+· 30 тестов на инварианты: pytest tests/test_v0.py -> 30 passed (v0.5).
 · Rust-тесты воркспейса: 118 lib + интеграционные (`integration_verified`, `integration_alt`, `worker_*`); полный прогон — `scripts/acceptance_harness.sh --full-workspace-test` (536 имён тестов, STRICT).
 · v0.4: shell tools в Docker-sandbox (allowlist deny-by-default, timeout,
   лимит вывода, audit `tool_call`); unit 35 + integration 9.
@@ -171,7 +171,7 @@ swarm-dispatcher/
 │   └── swarm-cli/               # CLI
 │
 ├── tests/                       # Python-арбитры (Postgres)
-│   ├── test_v0.py               # 28 SQL-тестов инвариантов
+│   ├── test_v0.py               # 30 SQL-тестов инвариантов
 │   └── test_{contract_f15,fail_unblock_f4,find04_*,review_gate_*,
 │       worker_identity_f3}.py   # арбитры волны 4 (триады)
 │
