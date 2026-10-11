@@ -355,6 +355,26 @@ shell_tools_ban() {
   status PASS "FIND-01: runtime-gate present + shell-tools modules absent" 0 "strings swarm-worker | grep -F '$gate_string'"
 }
 
+# Волна 5.2 (fail-closed): гарантия, что интеграция реально исполняется.
+#
+# Инцидент (найден ночным прогоном): harness-шаг --full-workspace-test
+# собирал `cargo test --workspace` без `--ignored`, поэтому 21 интеграционный
+# тест молча игнорировался, а гейт оставался зелёным. Чтобы это не повторилось,
+# явно проверяем: в файле имён тестов есть имена интеграционных тестов из
+# worker_sandbox (sandbox_*/agent_loop_*), и их не меньше ожидаемого минимума.
+check_integration_not_ignored() {
+  local min_expected=8 n
+  n="$(grep -cE '^(sandbox|agent_loop)_' "$TEST_NAMES_FILE" 2>/dev/null || true)"
+  n="${n:-0}"
+  if ((n < min_expected)); then
+    status FAIL "integration tests executed only ${n} (min ${min_expected}); --ignored may be silently skipping" 1 \
+      "grep -cE '^(sandbox|agent_loop)_' ${TEST_NAMES_FILE}"
+    return 0
+  fi
+  status PASS "integration tests executed: ${n} (>= ${min_expected})" 0 \
+    "grep -cE '^(sandbox|agent_loop)_' ${TEST_NAMES_FILE}"
+}
+
 compose_check() {
   local env_file rendered
   env_file="$(mktemp)"
@@ -572,6 +592,10 @@ if ((FULL_WORKSPACE_TEST)); then
     # Тесты сами падают (FIND-08), если DSN не задан — не молчаливый skip.
     run_worktree_step "required integration tests (--ignored) on disposable c2_ database" \
       cargo test --workspace --features swarm-worker/shell-tools --locked -- --test-threads=1 --ignored
+    # Волна 5.2 (fail-closed): убедиться, что шаг --ignored ФАКТИЧЕСКИ выполнил
+    # интеграционные тесты, а не молча их пропустил. Защита от возврата дефекта:
+    # предыдущий инцидент — 21 тест игнорировался, а гейт был "зелёным".
+    check_integration_not_ignored
   else
     status BLOCKED "full workspace test blocked: disposable c2_ database is not ready"
   fi
