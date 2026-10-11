@@ -143,7 +143,7 @@ mod tests {
     }
 
     // v0.4 §6: промпт Agent Loop перечисляет инструменты и allowlist.
-        #[test]
+    #[test]
     fn agent_system_prompt_lists_tools_and_allowlist() {
         let al = crate::allowlist::Allowlist::default();
         let p = agent_system_prompt(&al);
@@ -154,7 +154,7 @@ mod tests {
         assert!(p.contains("<untrusted>"));
     }
 
-        #[test]
+    #[test]
     fn agent_user_prompt_includes_history() {
         let c = json!({"kind": "code.generate", "checks": [{"type":"cmd","run":"true"}]});
         let p = agent_user_prompt(&c, &["tool=run_shell -> exit_code=0".to_string()]);

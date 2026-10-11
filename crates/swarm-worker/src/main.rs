@@ -108,7 +108,10 @@ fn main() {
             "WORKER_SHELL_TOOLS=1: shell-tools ENABLED (sandbox execution allowed)"
         );
     } else {
-        info!(worker_id, "shell-tools disabled (set WORKER_SHELL_TOOLS=1 to enable)");
+        info!(
+            worker_id,
+            "shell-tools disabled (set WORKER_SHELL_TOOLS=1 to enable)"
+        );
     }
 
     let mut consecutive_errors = 0u32;

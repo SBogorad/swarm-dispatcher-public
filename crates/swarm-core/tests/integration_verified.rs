@@ -233,7 +233,10 @@ fn contract_accepted_by_sql_but_not_by_rust_must_not_strand_the_task() {
     raw()
         .execute(
             "select add_task($1, null, $2::jsonb, 100, 0)",
-            &[&t, &json!({"checks":[{"type":"cmd","run":"true"}], "budget":{"attempts": 2.5}})],
+            &[
+                &t,
+                &json!({"checks":[{"type":"cmd","run":"true"}], "budget":{"attempts": 2.5}}),
+            ],
         )
         .unwrap();
     d.promote_ready().unwrap();

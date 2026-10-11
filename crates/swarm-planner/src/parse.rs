@@ -203,21 +203,13 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
         }
         // F7: каждый элемент checks — объект с допустимым типом из реестра.
         for c in &t.checks {
-            let ty = c
-                .get("type")
-                .and_then(|v| v.as_str())
-                .ok_or_else(|| {
-                    PlannerError::Validation(format!(
-                        "task {} has check without string type",
-                        t.id
-                    ))
-                })?;
+            let ty = c.get("type").and_then(|v| v.as_str()).ok_or_else(|| {
+                PlannerError::Validation(format!("task {} has check without string type", t.id))
+            })?;
             if !is_allowed_check_type(ty) {
                 return Err(PlannerError::Validation(format!(
                     "task {} has disallowed check type {:?} (allowed: {:?})",
-                    t.id,
-                    ty,
-                    ALLOWED_CHECK_TYPES
+                    t.id, ty, ALLOWED_CHECK_TYPES
                 )));
             }
         }
@@ -480,7 +472,12 @@ mod tests {
 
     // ---------- F7: контроль контрактов планировщика ----------
 
-    fn task_with(id: &str, checks: serde_json::Value, needs: serde_json::Value, budget: serde_json::Value) -> serde_json::Value {
+    fn task_with(
+        id: &str,
+        checks: serde_json::Value,
+        needs: serde_json::Value,
+        budget: serde_json::Value,
+    ) -> serde_json::Value {
         serde_json::json!({
             "id": id, "kind": "code.refactor", "description": "d",
             "checks": checks, "needs": needs, "budget": budget, "depends_on": []
@@ -489,50 +486,68 @@ mod tests {
 
     #[test]
     fn f7_rejects_disallowed_check_type() {
-        let gr = g(serde_json::json!([
-            task_with("t1", serde_json::json!([{"type":"exec","run":"rm -rf /"}]),
-                      serde_json::json!({}), serde_json::json!({"attempts":3}))
-        ]));
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"type":"exec","run":"rm -rf /"}]),
+            serde_json::json!({}),
+            serde_json::json!({"attempts":3})
+        )]));
         let e = validate_graph(&gr, &Limits::default());
-        assert!(matches!(e, Err(PlannerError::Validation(_))), "фиктивный тип должен быть отклонён: {e:?}");
+        assert!(
+            matches!(e, Err(PlannerError::Validation(_))),
+            "фиктивный тип должен быть отклонён: {e:?}"
+        );
     }
 
     #[test]
     fn f7_rejects_check_without_type() {
-        let gr = g(serde_json::json!([
-            task_with("t1", serde_json::json!([{"run":"cargo test"}]),
-                      serde_json::json!({}), serde_json::json!({"attempts":3}))
-        ]));
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"run":"cargo test"}]),
+            serde_json::json!({}),
+            serde_json::json!({"attempts":3})
+        )]));
         assert!(validate_graph(&gr, &Limits::default()).is_err());
     }
 
     #[test]
     fn f7_rejects_absurd_attempts() {
-        let gr = g(serde_json::json!([
-            task_with("t1", serde_json::json!([{"type":"cmd","run":"true"}]),
-                      serde_json::json!({}), serde_json::json!({"attempts": 1_000_000_000u64}))
-        ]));
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"type":"cmd","run":"true"}]),
+            serde_json::json!({}),
+            serde_json::json!({"attempts": 1_000_000_000u64})
+        )]));
         let e = validate_graph(&gr, &Limits::default());
-        assert!(matches!(e, Err(PlannerError::Validation(_))), "attempts 1e9 должен быть отклонён: {e:?}");
+        assert!(
+            matches!(e, Err(PlannerError::Validation(_))),
+            "attempts 1e9 должен быть отклонён: {e:?}"
+        );
     }
 
     #[test]
     fn f7_rejects_unreachable_min_ram() {
-        let gr = g(serde_json::json!([
-            task_with("t1", serde_json::json!([{"type":"cmd","run":"true"}]),
-                      serde_json::json!({"min_ram_gb": 1_000_000}), serde_json::json!({"attempts":3}))
-        ]));
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"type":"cmd","run":"true"}]),
+            serde_json::json!({"min_ram_gb": 1_000_000}),
+            serde_json::json!({"attempts":3})
+        )]));
         let e = validate_graph(&gr, &Limits::default());
-        assert!(matches!(e, Err(PlannerError::Validation(_))), "min_ram_gb 1e6 должен быть отклонён: {e:?}");
+        assert!(
+            matches!(e, Err(PlannerError::Validation(_))),
+            "min_ram_gb 1e6 должен быть отклонён: {e:?}"
+        );
     }
 
     #[test]
     fn f7_accepts_reasonable_contract() {
-        let gr = g(serde_json::json!([
-            task_with("t1", serde_json::json!([{"type":"cmd","run":"cargo test"}]),
-                      serde_json::json!({"min_ram_gb": 8.0, "coder_class": 2.0}),
-                      serde_json::json!({"attempts":3,"max_rework":2}))
-        ]));
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"type":"cmd","run":"cargo test"}]),
+            serde_json::json!({"min_ram_gb": 8.0, "coder_class": 2.0}),
+            serde_json::json!({"attempts":3,"max_rework":2})
+        )]));
         assert!(validate_graph(&gr, &Limits::default()).is_ok());
     }
 
@@ -541,10 +556,12 @@ mod tests {
         let checks: Vec<serde_json::Value> = (0..40)
             .map(|_| serde_json::json!({"type":"cmd","run":"true"}))
             .collect();
-        let gr = g(serde_json::json!([
-            task_with("t1", serde_json::Value::Array(checks),
-                      serde_json::json!({}), serde_json::json!({"attempts":3}))
-        ]));
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::Value::Array(checks),
+            serde_json::json!({}),
+            serde_json::json!({"attempts":3})
+        )]));
         assert!(validate_graph(&gr, &Limits::default()).is_err());
     }
 }

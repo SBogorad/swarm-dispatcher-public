@@ -48,6 +48,58 @@ const DENIED_GIT_OPTS: &[&str] = &[
 ];
 const DENIED_CARGO_OPTS: &[&str] = &["--config", "-Z", "--rustc", "--wrapper"];
 
+/// F11-доп (Волна 5.2): строгий whitelist ПОДКОМАНД `git`.
+///
+/// Чёрного списка опций недостаточно: `git config core.pager "sh -c ..."`
+/// проходит проверку опций (второй токен `config` — не опция), а `git config`
+/// умеет исполнять `alias.*=!...` и переопределять pager/hooks, то есть даёт
+/// RCE в обход deny-списка команд. Поэтому переходим от blacklist к whitelist:
+/// разрешены только заведомо безопасные read-only подкоманды, всё остальное
+/// отклоняется по умолчанию (deny-by-default, как и весь sandbox).
+const ALLOWED_GIT_SUBCMDS: &[&str] = &[
+    "status",
+    "diff",
+    "log",
+    "show",
+    "rev-parse",
+    "describe",
+    "ls-files",
+    "blame",
+    "branch",
+    "tag",
+    "remote",
+    "stash",
+    "add",
+    "commit",
+    "checkout",
+    "switch",
+    "restore",
+    "merge",
+    "rebase",
+    "cherry-pick",
+    "revert",
+    "reset",
+    "push",
+    "fetch",
+    "pull",
+    "clone",
+    "init",
+    "apply",
+    "format-patch",
+    "am",
+];
+
+/// F11-доп: строгий whitelist ПОДКОМАНД `cargo`.
+///
+/// `cargo` подкоманд-исполняемых обходов почти не имеет (его вектор — опции
+/// `--config/-Z/--rustc/--wrapper`, уже закрытые), но whitelist убирает риск
+/// будущих/неизвестных подкоманд вроде `cargo xtask` (произвольный код из
+/// репозитория).
+const ALLOWED_CARGO_SUBCMDS: &[&str] = &[
+    "build", "check", "test", "run", "bench", "clippy", "fmt", "doc", "metadata", "tree", "clean",
+    "update", "fetch", "add", "remove", "fix",
+];
+
 /// Максимальная глубина рекурсии для `bash -c "..."`.
 const MAX_SHELL_DEPTH: usize = 3;
 
@@ -190,9 +242,61 @@ impl Allowlist {
         // 6. F11: конфигурационные опции git/cargo, позволяющие исполнить
         //    произвольный код в обход deny-списка.
         check_vcs_tool_options(&base, &tokens, command)?;
+        // 7. F11-доп (Волна 5.2): строгий whitelist подкоманд. Опций мало:
+        //    `git config core.pager "sh -c ..."` опций не содержит, но даёт RCE.
+        check_vcs_tool_subcommands(&base, &tokens, command)?;
 
         Ok(())
     }
+}
+
+/// F11-доп (Волна 5.2): whitelist подкоманд `git`/`cargo`.
+///
+/// Закрывает вектор, который остался после F11: `git config` — это подкоманда,
+/// а не опция, поэтому `check_vcs_tool_options` её не видит. Между тем
+/// `git config core.pager "sh -c '...'"` или `git config alias.x '!...'`
+/// исполняют произвольный код. Здесь разрешаем только известные безопасные
+/// подкоманды (deny-by-default), а неизвестные/опасные (`config`, `daemon`,
+/// `credential`, `filter-branch`, `submodule`, `xtask`…) отклоняем.
+fn check_vcs_tool_subcommands(base: &str, tokens: &[String], command: &str) -> Result<()> {
+    let allowed: &[&str] = match base {
+        "git" => ALLOWED_GIT_SUBCMDS,
+        "cargo" => ALLOWED_CARGO_SUBCMDS,
+        _ => return Ok(()),
+    };
+    // Первый токен — сама команда; ищем подкоманду (первое слово без '-'),
+    // пропуская глобальные опции И их аргументы (`git -C dir status`).
+    let mut skip_next = false;
+    let mut sub: Option<&str> = None;
+    for t in tokens.iter().skip(1) {
+        let t = t.as_str();
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+        if t.starts_with('-') {
+            // Опции, принимающие значение отдельным токеном.
+            if matches!(t, "-C" | "-c" | "--git-dir" | "--work-tree" | "--namespace") {
+                skip_next = true;
+            }
+            continue;
+        }
+        sub = Some(t);
+        break;
+    }
+    let Some(sub) = sub else {
+        // Нет подкоманды (например, `git` без аргументов) — не наша забота.
+        return Ok(());
+    };
+    // Отбрасываем возможный путь: подкоманда вида `./evil` отклоняется.
+    let sub_lc = sub.to_ascii_lowercase();
+    if sub.contains('/') || !allowed.iter().any(|a| *a == sub_lc.as_str()) {
+        return Err(WorkerError::AllowlistRejected {
+            command: command.to_string(),
+            reason: format!("подкоманда {base} '{sub}' не в whitelist"),
+        });
+    }
+    Ok(())
 }
 
 /// F11: запрет опасных опций `git`/`cargo` (config/exec-path/-Z/...).
@@ -416,8 +520,10 @@ mod tests {
     #[test]
     fn allowlist_from_env_str() {
         let a = Allowlist::from_env_str("cargo, git ,ls");
-        assert!(a.check("cargo x").is_ok());
-        assert!(a.check("git y").is_ok());
+        // F11-доп: whitelist подкоманд сузил «любой cargo/git» до известных
+        // подкоманд, поэтому проверяем на реальных.
+        assert!(a.check("cargo test").is_ok());
+        assert!(a.check("git status").is_ok());
         assert!(a.check("bash z").is_err(), "bash не в кастомном списке");
         // пусто → default; shell без явного -c запрещён.
         assert!(Allowlist::from_env_str("").check("bash x").is_err());
@@ -528,5 +634,49 @@ mod tests {
         // обычные флаги не задеваются
         assert!(al().check("git log --oneline -5").is_ok());
         assert!(al().check("cargo test --features shell-tools").is_ok());
+    }
+
+    // ---------- F11-доп (Волна 5.2): whitelist подкоманд ----------
+
+    #[test]
+    fn f11d_rejects_git_config_subcommand() {
+        // Вектор из аудита: подкоманда `config` исполняет `alias.x=!...` и
+        // переопределяет pager -> RCE. Опций здесь нет, поэтому старый
+        // check_vcs_tool_options его пропускал.
+        assert!(
+            al().check("git config core.pager 'sh -c evil'").is_err(),
+            "git config должен быть отклонён как подкоманда"
+        );
+        assert!(al().check("git config alias.x '!rm -rf /'").is_err());
+        // Глобальная опция перед подкомандой не должна создавать лазейку.
+        assert!(al().check("git -C /workspace config user.name x").is_err());
+    }
+
+    #[test]
+    fn f11d_rejects_dangerous_git_subcommands() {
+        for cmd in [
+            "git daemon --reuseaddr --base-path=/ --export-all",
+            "git credential fill",
+            "git filter-branch --tree-filter 'sh -c evil' HEAD",
+            "git submodule add /tmp/evil",
+        ] {
+            assert!(al().check(cmd).is_err(), "должно быть отклонено: {cmd}");
+        }
+    }
+
+    #[test]
+    fn f11d_rejects_non_whitelisted_cargo_subcommands() {
+        // `cargo xtask` исполняет произвольный код из репозитория.
+        assert!(al().check("cargo xtask evil").is_err());
+        assert!(al().check("cargo install evil-crate").is_err());
+    }
+
+    #[test]
+    fn f11d_allows_whitelisted_subcommands_with_global_opts() {
+        // Глобальные опции и легитимные подкоманды не задеваются.
+        assert!(al().check("git -C /workspace status").is_ok());
+        assert!(al().check("git --no-pager log").is_ok());
+        assert!(al().check("cargo test --release").is_ok());
+        assert!(al().check("cargo clippy -- -D warnings").is_ok());
     }
 }
