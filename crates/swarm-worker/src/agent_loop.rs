@@ -29,7 +29,10 @@ impl Default for AgentLoopConfig {
         Self {
             max_iterations: DEFAULT_MAX_ITERATIONS,
             max_tokens: 4096,
-            sandbox: SandboxConfig::default(),
+            // N4 (Волна 5.2): sandbox читается из окружения — лимиты (в т.ч.
+            // pids_limit) можно поднять без пересборки, когда крупные сборки
+            // упираются в дефолт 256 процессов.
+            sandbox: SandboxConfig::from_env(),
         }
     }
 }
