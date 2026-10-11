@@ -83,3 +83,56 @@ jobs:
           path: /tmp/swarm-dispatcher-acceptance/**
           if-no-files-found: ignore
           retention-days: 7
+
+  mutations:
+    name: mutation testing (M1-M6)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # Волна 5.2: мутационный прогон ОБЯЗАН быть в CI. Инцидент: скрипт
+    # потерял `--ignored` (Docker/PG-тесты перестали запускаться), и без CI
+    # 4 из 6 мутантов ложно «выжили» — дефект был найден только вручную.
+    # Теперь выживший мутант валит CI.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (MSRV 1.94.1)
+        uses: dtolnay/rust-toolchain@1.94.1
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build sandbox image (agent-sandbox:1.85)
+        run: docker build -t agent-sandbox:1.85 sandbox/
+
+      # Disposable PostgreSQL 16 (prefix v0 — скрипт сам проверяет
+      # disposable-БД и fail-closed pre-conditions).
+      - name: Provision disposable PostgreSQL 16
+        run: |
+          docker run -d --name mut_pg \
+            -e POSTGRES_PASSWORD=pw -e POSTGRES_USER=swarm \
+            -p 55440:5432 postgres:16-alpine
+          for i in $(seq 1 60); do
+            docker exec mut_pg pg_isready -U swarm >/dev/null 2>&1 && break
+            sleep 1
+          done
+          docker exec -i mut_pg psql -U swarm -d postgres -c 'create database v0sandbox'
+          docker exec -i mut_pg psql -U swarm -d v0sandbox < schema/schema_v0.sql
+
+      - name: Run mutation testing (M1-M6, fail on survivors)
+        env:
+          TEST_DATABASE_URL: host=127.0.0.1 port=55440 user=swarm password=pw dbname=v0sandbox
+          SANDBOX_IMAGE: agent-sandbox:1.85
+        run: bash scripts/run_mutations_v04.sh
+
+      - name: Cleanup mutation database
+        if: always()
+        run: docker rm -f mut_pg || true
