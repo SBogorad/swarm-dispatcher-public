@@ -39,6 +39,60 @@ def _needs_wave4_db(path) -> bool:
     return name in _WAVE4_ARBITER_FILES
 
 
+def _dsn_for_cleanup() -> str:
+    """DSN суперпользователя для изоляции."""
+    return os.environ.get("W4_ADMIN_DSN") or os.environ.get("PGDSN", "")
+
+
+def _db_is_disposable(dsn: str) -> bool:
+    """Очищаем только заведомо тестовые БД (анти-инцидент: не снести рабочую)."""
+    if os.environ.get("SWARM_ALLOW_ANY_DB") == "1":
+        return True
+    name = ""
+    if dsn.startswith(("postgres://", "postgresql://")):
+        name = dsn.split("/")[2].split("?")[0]
+    else:
+        for part in dsn.split():
+            if part.startswith("dbname="):
+                name = part.split("=", 1)[1]
+    return name.startswith(("test_", "v0", "c2_"))
+
+
+def _truncate(dsn: str) -> None:
+    import psycopg2
+
+    conn = psycopg2.connect(dsn)
+    conn.autocommit = True
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "truncate events, reviews, task_deps, artifacts, tasks, workers cascade"
+            )
+    finally:
+        conn.close()
+
+
+@pytest.fixture(autouse=True)
+# Изоляция W4-арбитров (Волна 5.2).
+# Инцидент: файлы волны 4 не чистят БД, а арбитры ОДНОГО шага идут в одном
+# процессе с состояниями друг друга. `tests/test_v0.py` оставляет pending-задачу;
+# `promote_ready()` переводит её в ready, и `claim_task('w1')` в
+# `_make_leased_task` хватает ЧУЖУЮ задачу по created_at — аренда уходит не той,
+# `record_tool_call` падает с `lease_lost`. Найдено ночным прогоном.
+# Фикс: TRUNCATE перед каждым тестом W4-файлов (обычные сьюты не трогаем).
+def _isolate_wave4(request):
+    if not _needs_wave4_db(getattr(request.node, "fspath", "")):
+        yield
+        return
+    dsn = _dsn_for_cleanup()
+    if dsn and _db_is_disposable(dsn):
+        try:
+            _truncate(dsn)
+        except Exception:
+            pass  # нет БД — тест сам упадёт честно (BLOCKED/FAIL)
+    yield
+
+
 def pytest_collection_modifyitems(config, items):
     """Блокировать ТОЛЬКО тесты волны 4, если W4_* не выставлены.
 
