@@ -290,7 +290,7 @@ fn check_vcs_tool_subcommands(base: &str, tokens: &[String], command: &str) -> R
     };
     // Отбрасываем возможный путь: подкоманда вида `./evil` отклоняется.
     let sub_lc = sub.to_ascii_lowercase();
-    if sub.contains('/') || !allowed.iter().any(|a| *a == sub_lc.as_str()) {
+    if sub.contains('/') || !allowed.contains(&sub_lc.as_str()) {
         return Err(WorkerError::AllowlistRejected {
             command: command.to_string(),
             reason: format!("подкоманда {base} '{sub}' не в whitelist"),

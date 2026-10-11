@@ -501,7 +501,7 @@ fn cargo_config_write_reason(path: &str) -> Option<String> {
     // Нормализуем слэши и берём компоненты пути.
     let normalized = path.replace('\\', "/");
     let comps: Vec<&str> = normalized.split('/').filter(|c| !c.is_empty()).collect();
-    if comps.iter().any(|c| *c == ".cargo") {
+    if comps.contains(&".cargo") {
         return Some(format!(
             "запись в cargo-конфигурацию запрещена (компонент .cargo): {path}"
         ));
