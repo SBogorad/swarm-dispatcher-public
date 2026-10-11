@@ -193,7 +193,11 @@ begin
     raise exception 'contract_invalid: too many checks (max 32)' using errcode = 'CT001';
   end if;
   for e in select * from jsonb_array_elements(c->'checks') loop
-    if lower(btrim(e->>'type')) not in ('cmd','test','lint','manual') then
+    -- Волна 5.1: добавлен `unit`. F7 сузил реестр до cmd/test/lint/manual и тем
+    -- сломал обратную совместимость: step2/test_review_gate.py использует
+    -- {"type":"unit"}, и add_task начал падать с CT001. Набор типов теперь
+    -- синхронизирован с Rust ALLOWED_CHECK_TYPES (N5).
+    if lower(btrim(e->>'type')) not in ('cmd','test','unit','lint','manual') then
       raise exception 'contract_invalid: disallowed check type %', e->>'type' using errcode = 'CT001';
     end if;
   end loop;

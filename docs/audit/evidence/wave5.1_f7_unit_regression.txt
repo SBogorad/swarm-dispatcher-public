@@ -1,0 +1,54 @@
+=================================================================================
+EVIDENCE: ВОЛНА 5.1 — regression F7 против step2/test_review_gate.py
+COMMIT_HEAD: 9896e87ee5f9f32475ce28c63616786981137adc
+GIT_STATUS: 1 изменённых (0 = clean)
+ENVIRONMENT: rustc 1.99.0 / docker 29.7.2 / PG 16
+TIMESTAMP_UTC: 2026-10-11T12:07:48+00:00
+ИСТОЧНИК: штатный acceptance_harness.sh (release-gate, --full-workspace-test)
+ЛОГ: /tmp/swarm-dispatcher-acceptance/harness-20261011T115944Z-996537.sealed.log
+=================================================================================
+
+--- ФАКТ: F7 ввёл реестр типов проверок; 'unit' в него не попал ---
+schema/schema_v0.sql:196:
+196:    if lower(btrim(e->>'type')) not in ('cmd','test','lint','manual') then
+
+step2/test_review_gate.py:36 (использует unit):
+CONTRACT = json.dumps({
+    "kind": "t",
+    "checks": [{"type": "unit"}, {"type": "lint"}],
+    "budget": {"attempts": 3, "max_rework": 3},
+
+--- СИМПТОМ (из sealed-лога harness) ---
+>       c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (task, CONTRACT))
+E       psycopg2.DatabaseError: contract_invalid: disallowed check type unit
+E       CONTEXT:  PL/pgSQL function validate_contract(jsonb) line 59 at RAISE
+E       SQL statement "SELECT validate_contract(p_contract)"
+E       PL/pgSQL function add_task(uuid,uuid,jsonb,bigint,integer) line 4 at PERFORM
+
+--
+>       c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (task, CONTRACT))
+E       psycopg2.DatabaseError: contract_invalid: disallowed check type unit
+E       CONTEXT:  PL/pgSQL function validate_contract(jsonb) line 59 at RAISE
+E       SQL statement "SELECT validate_contract(p_contract)"
+E       PL/pgSQL function add_task(uuid,uuid,jsonb,bigint,integer) line 4 at PERFORM
+
+--
+>       c.execute("select add_task(%s, null, %s::jsonb, 1000, 0)", (task, CONTRACT))
+E       psycopg2.DatabaseError: contract_invalid: disallowed check type unit
+E       CONTEXT:  PL/pgSQL function validate_contract(jsonb) line 59 at RAISE
+E       SQL statement "SELECT validate_contract(p_contract)"
+
+--- УПАВШИЕ ТЕСТЫ (5) ---
+=========================== short test summary info ============================
+FAILED step2/test_review_gate.py::test_length_only_bypass_is_rejected - psyco...
+FAILED step2/test_review_gate.py::test_missing_one_required_type_is_rejected
+FAILED step2/test_review_gate.py::test_failed_status_on_required_type_is_rejected
+FAILED step2/test_review_gate.py::test_full_matching_checks_are_accepted - ps...
+FAILED step2/test_review_gate.py::test_extra_passing_checks_are_allowed - psy...
+5 failed in 0.80s
+
+--- РЕЕСТР в Rust (для синхронизации, N5) ---
+80:pub const ALLOWED_CHECK_TYPES: &[&str] = &["cmd", "test", "lint", "manual"];
+85:    ALLOWED_CHECK_TYPES.iter().any(|a| *a == t)
+215:                    ALLOWED_CHECK_TYPES
+=================================================================================
