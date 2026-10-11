@@ -288,7 +288,21 @@ impl Sandbox {
     /// Записать файл в /workspace sandbox (ТЗ §1, инструмент `write_file`).
     ///
     /// `path` уже проверен allowlist'ом вызывающей стороной.
+    ///
+    /// Дополнительно запрещена запись в `cargo`-конфигурацию (`.cargo/config.toml`).
+    /// Волна 5.2: cargo ищет конфиг в `$CARGO_HOME/config.toml` и в
+    /// `.cargo/config.toml` текущего каталога и всех родительских до корня.
+    /// Агент мог записать `[build] rustc = "..."` и подменить компилятор, обойдя
+    /// allowlist (вектор идёт мимо argv, поэтому его не ловит проверка команд).
+    /// Это не эскалация за песочницу (контейнер read-only, без docker.sock), но
+    /// позволяет инъекцию сборки внутри неё — закрываем превентивно.
     pub fn write_file(&self, path: &str, content: &str) -> Result<ExecOutput> {
+        if let Some(reason) = cargo_config_write_reason(path) {
+            return Err(WorkerError::AllowlistRejected {
+                command: format!("write_file {path}"),
+                reason,
+            });
+        }
         let args = vec![
             "exec".to_string(),
             "-i".to_string(),
@@ -474,6 +488,35 @@ fn run_cmd_owned(
     max_bytes: usize,
 ) -> Result<RawOut> {
     run_cmd_owned_inner(bin, args, timeout, None, max_bytes)
+}
+
+/// Волна 5.2: является ли путь записью в cargo-конфигурацию.
+///
+/// Запрещены любые компоненты `.cargo` в пути и файлы `config.toml`/`config`
+/// внутри такого каталога — cargo подхватывает их из `$CARGO_HOME` и из
+/// `.cargo/` вверх по дереву от текущего каталога.
+///
+/// Возвращает `Some(причина)` для запрещённого пути.
+fn cargo_config_write_reason(path: &str) -> Option<String> {
+    // Нормализуем слэши и берём компоненты пути.
+    let normalized = path.replace('\\', "/");
+    let comps: Vec<&str> = normalized.split('/').filter(|c| !c.is_empty()).collect();
+    if comps.iter().any(|c| *c == ".cargo") {
+        return Some(format!(
+            "запись в cargo-конфигурацию запрещена (компонент .cargo): {path}"
+        ));
+    }
+    // `config.toml`/`config` прямо в рабочем каталоге, когда он же CARGO_HOME,
+    // перекрывают конфиг; запрещаем и голое имя без каталога .cargo только
+    // если путь ведёт именно в config-файл cargo.
+    if let Some(last) = comps.last() {
+        if *last == "config.toml" || *last == "config" {
+            return Some(format!(
+                "запись в cargo config-файл запрещена (может переопределить сборку): {path}"
+            ));
+        }
+    }
+    None
 }
 
 /// Запустить процесс, записав `stdin_data` в stdin (для `write_file`).
@@ -806,5 +849,45 @@ mod f12_tests {
             .name_prefix
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | ':')));
+    }
+
+    // ---------- Волна 5.2: запрет записи в cargo-конфигурацию ----------
+
+    #[test]
+    fn cargo_config_paths_are_rejected() {
+        // вектор: переопределение компилятора/обёртки через config.toml
+        for p in [
+            ".cargo/config.toml",
+            "/workspace/.cargo/config.toml",
+            ".cargo/config",
+            "subdir/.cargo/config.toml",
+            "../.cargo/config.toml",
+            ".cargo/credentials.toml",
+        ] {
+            assert!(
+                cargo_config_write_reason(p).is_some(),
+                "путь обязан быть запрещён: {p}"
+            );
+        }
+        // голый config.toml тоже перекрывает сборку (CARGO_HOME=/workspace)
+        assert!(cargo_config_write_reason("config.toml").is_some());
+        assert!(cargo_config_write_reason("config").is_some());
+    }
+
+    #[test]
+    fn normal_source_paths_are_allowed() {
+        for p in [
+            "src/lib.rs",
+            "Cargo.toml",
+            "README.md",
+            "config/settings.toml",
+            "tests/it.rs",
+            "data/config.yaml",
+        ] {
+            assert!(
+                cargo_config_write_reason(p).is_none(),
+                "путь обязан быть разрешён: {p}"
+            );
+        }
     }
 }

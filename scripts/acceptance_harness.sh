@@ -240,10 +240,17 @@ shell_checks() {
   fi
 }
 
-# FIND-01: shell-tools (agent_loop/sandbox/allowlist/audit) НЕ должны попадать
-# в бинарь воркера. Бан — в КОДЕ: модули за feature `shell-tools` (off by
-# default), бинарь её не включает. Проверяем механически: собираем бинарь без
-# feature и убеждаемся, что запрещённых символов/строк нет.
+# FIND-01 (Волна 5.2, переработан): после снятия feature-гейта модули shell-tools
+# компилируются ВСЕГДА, и символы модуля физически живут в бинаре (мангалинг:
+# `swarm_worker7sandbox`, а не `swarm_worker::sandbox`). Поэтому старая
+# негативная проверка по `::`-форме была ВАКУУМНОЙ (grep 0 совпадений всегда,
+# даже при утечке) — Claude верно поймал это.
+#
+# Новая цель шага: доказать, что единственная защита вместо compile-гейта —
+# runtime-гейт `WORKER_SHELL_TOOLS` — РЕАЛЬНО вкомпилирована в бинарь.
+# Положительный контроль: строка отказа гейта обязана присутствовать.
+# Плюс негативный контроль в корректной форме: символы `agent_loop`/`allowlist`
+# НЕ должны попадать в бинарь (эти модули не используются воркером по умолчанию).
 shell_tools_ban() {
   local bin="$WORKTREE/target/release/swarm-worker"
   if ! (cd "$WORKTREE" && cargo build --release -p swarm-worker --bin swarm-worker --locked >/dev/null 2>&1); then
@@ -254,26 +261,33 @@ shell_tools_ban() {
     status FAIL "FIND-01: swarm-worker binary missing after build" 1 "ls $bin"
     return 0
   fi
-  local sym hit=0
-  # Только НАШИ уникальные маркеры (без generic-слов, которые могут встретиться
-  # в символах зависимостей: напр. kMaxIterations из aws).
-  #
-  # Волна 5.1: `WORKER_SHELL_TOOLS` ИСКЛЮЧЁН из banned-списка. После перевода
-  # shell-tools на runtime-гейт строка живёт в бинаре ПО ЗАМЫСЛУ: воркер обязан
-  # читать этот флаг, чтобы решать, разрешён ли запуск sandbox. Настоящие
-  # маркеры утечки shell-tools — символы модулей (`swarm_worker::sandbox`,
-  # `SandboxConfig`, `run_shell`, `agent_system_prompt`) — остаются под запретом.
-  for sym in AllowlistRejected agent_system_prompt agent_user_prompt run_shell WORKER_ALLOWED_COMMANDS swarm_worker::sandbox swarm_worker::agent_loop SandboxConfig; do
+
+  # 1) ПОЛОЖИТЕЛЬНЫЙ КОНТРОЛЬ (главный): runtime-гейт вкомпилирован.
+  # Именно эта строка — актуальная защита вместо compile-гейта.
+  local gate_string='shell-tools disabled (set WORKER_SHELL_TOOLS=1 to enable)'
+  if ! strings "$bin" | grep -qF "$gate_string"; then
+    status FAIL "FIND-01: runtime-gate string absent in binary (gate NOT compiled in)" 1 \
+      "strings swarm-worker | grep -F '$gate_string'"
+    return 0
+  fi
+
+  # 2) НЕГАТИВНЫЙ КОНТРОЛЬ в КОРРЕКТНОЙ форме мангалинга.
+  # `agent_loop`/`allowlist` не должны линковаться в бинарь воркера: воркер
+  # не запускает agent loop по умолчанию. Проверяем legacy-форму, которую
+  # реально порождает rustc (а не `::`, где grep всегда давал 0).
+  local hit=0 sym
+  for sym in swarm_worker9agent_loop swarm_worker9allowlist agent_system_prompt run_shell WORKER_ALLOWED_COMMANDS; do
     if strings "$bin" | grep -q "$sym"; then
       hit=1
-      printf 'FIND-01 BAN VIOLATION: symbol/string %s found in swarm-worker binary\n' "$sym"
+      printf 'FIND-01 BAN VIOLATION: %s found in swarm-worker binary\n' "$sym"
     fi
   done
-  if ((hit == 0)); then
-    status PASS "FIND-01: shell-tools symbols absent from swarm-worker binary" 0 "strings swarm-worker | grep -E '<banned>'"
-  else
-    status FAIL "FIND-01: shell-tools leaked into swarm-worker binary" 1 "strings swarm-worker | grep -E '<banned>'"
+  if ((hit != 0)); then
+    status FAIL "FIND-01: shell-tools leaked into swarm-worker binary" 1 "strings swarm-worker | grep -E '<banned-legacy>|gate-string'"
+    return 0
   fi
+
+  status PASS "FIND-01: runtime-gate present + shell-tools modules absent" 0 "strings swarm-worker | grep -F '$gate_string'"
 }
 
 compose_check() {
