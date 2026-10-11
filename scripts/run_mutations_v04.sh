@@ -106,7 +106,12 @@ restore_one() {
 }
 
 LIB_TEST='cargo test -p swarm-worker --lib --locked'
-INT_TEST='cargo test -p swarm-worker --test worker_sandbox --locked -- --test-threads=1'
+# Волна 5.2: INT_TEST обязан включать --ignored. Docker/PG-тесты в
+# worker_sandbox.rs помечены #[ignore] (N2, Волна 5.1: некомпилируемость без
+# live-стенда), поэтому без --ignored они ИГНОРИРУЮТСЯ — и мутации M2/M4/M5/M6
+# ложно «выживают» (тест просто не запускается). Мутационный прогон требует
+# живого Docker+PG (это проверяет pre-conditions выше), значит --ignored уместен.
+INT_TEST='cargo test -p swarm-worker --test worker_sandbox --locked -- --test-threads=1 --ignored'
 
 # M1 — убрать проверку allowlist целиком (check всегда Ok).
 run_mutation M1 "убрать allowlist check" "$W/allowlist.rs" \
