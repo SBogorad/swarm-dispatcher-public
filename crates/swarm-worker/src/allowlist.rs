@@ -433,6 +433,12 @@ fn extract_dash_c(tokens: &[&str]) -> Option<String> {
 }
 
 #[cfg(test)]
+mod mutants_deep_tests;
+
+#[cfg(test)]
+mod allowlist_layers_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
