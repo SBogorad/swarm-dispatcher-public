@@ -5,13 +5,17 @@
 #   ./scripts/start_demo.sh --no-open  # без открытия браузера
 #   ./scripts/start_demo.sh --down     # остановить и удалить (включая БД)
 #
-# Боевой docker-compose.yml не затрагивается: используется отдельный
-# docker-compose.demo.yml с собственными volume и портами.
+# В контуре работают НАСТОЯЩИЕ бинарники движка (swarm-planner, swarm-worker,
+# swarm-watchdog) из образа ядра `swarm-core:local`. Python — только витрина
+# (мост, консоль, ревьюер).
+#
+# Боевой docker-compose.yml не затрагивается: отдельный docker-compose.demo.yml.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 COMPOSE_FILE="docker-compose.demo.yml"
+CORE_IMAGE="swarm-core:local"
 UI_PORT="${DEMO_UI_PORT:-8501}"
 API_PORT="${DEMO_API_PORT:-8080}"
 OPEN=1
@@ -36,23 +40,26 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "[demo] сборка образа…"
+# Образ ядра с настоящими бинарниками. Собирается один раз (тяжёлый).
+if ! docker image inspect "$CORE_IMAGE" >/dev/null 2>&1; then
+  echo "[demo] образ ядра $CORE_IMAGE не найден — собираю из исходников…"
+  docker build -t "$CORE_IMAGE" .
+fi
+
+echo "[demo] сборка образа контура (Python-витрина + бинарники ядра)…"
 docker compose -f "$COMPOSE_FILE" build demo-bridge
 
-echo "[demo] запуск (postgres + мост + агенты + ревьюер + сторож + UI)…"
-docker compose -f "$COMPOSE_FILE" up -d postgres demo-bridge \
-  agent-1 agent-2 agent-3 demo-reviewer demo-scheduler demo-ui
+echo "[demo] запуск (postgres + сторож + 3 воркера + ревьюер + мост + консоль)…"
+docker compose -f "$COMPOSE_FILE" up -d postgres watchdog \
+  worker-1 worker-2 worker-3 demo-reviewer demo-bridge demo-ui
 
 echo "[demo] ждём готовности моста…"
-for _ in $(seq 1 60); do
+for _ in $(seq 1 90); do
   if curl -fsS "http://127.0.0.1:${API_PORT}/healthz" >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
-
-echo "[demo] регистрация агентов…"
-docker compose -f "$COMPOSE_FILE" run --rm demo-init || true
 
 echo
 echo "  ┌───────────────────────────────────────────────────────────┐"
@@ -62,9 +69,10 @@ echo "  │  Мост:    http://localhost:${API_PORT}/healthz                 �
 echo "  │  Остановка: ./scripts/start_demo.sh --down                │"
 echo "  └───────────────────────────────────────────────────────────┘"
 echo
-echo "  Введите цель и нажмите «Запустить рой»: движок декомпозирует её в"
-echo "  граф задач, агенты разберут их по арендам, а консоль покажет канбан,"
-echo "  узлы роя и неизменяемый журнал (хэш-цепочку)."
+echo "  Введите цель и нажмите «Запустить рой»: настоящий swarm-planner"
+echo "  разложит её в граф задач (LLM), настоящие swarm-worker разберут"
+echo "  их по арендам, а консоль покажет канбан, узлов роя и неизменяемый"
+echo "  журнал (хэш-цепочку)."
 
 if [[ "$OPEN" == "1" ]]; then
   URL="http://localhost:${UI_PORT}"

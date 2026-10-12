@@ -1,17 +1,14 @@
-# Демонстрационный контур «Swarm Ops Console».
+# Демо-контур «Swarm Ops Console» — НАСТОЯЩЕЕ ядро + окно наблюдения.
 #
-# Отдельный от docker-compose.yml (боевой контур не трогаем). Поднимает
-# собственную БД со схемой swarm-dispatcher и на ней — кабину координации:
-#   postgres       — схема v0 (единый источник истины) + demo/schema_extras.sql;
-#   demo-bridge    — FastAPI: цель → граф задач, канбан/карточка/журнал (8080);
-#   agent-1/2/3    — агенты-исполнители: забирают задачи по SQL-протоколу;
-#   demo-reviewer  — строгий review-gate (F2);
-#   demo-scheduler — promote_ready/reclaim_expired (сторож в миниатюре);
-#   demo-ui        — Swarm Ops Console (Streamlit, 8501);
-#   demo-init      — регистрация агентов и подготовка витрины.
+# Компоненты движка — подлинные Rust-бинарники (swarm-planner, swarm-worker,
+# swarm-watchdog) из того же образа, что в боевом контуре (swarm-core:local).
+# Python-обвязка — только витрина: мост (FastAPI), консоль (Streamlit) и
+# ревьюер (в ядре нет отдельного Rust-бинарника ревьюера; он вызывает
+# submit_review — ту же функцию движка).
 #
-# Запуск:  ./scripts/start_demo.sh
-# Остановка: docker compose -f docker-compose.demo.yml down -v
+# Сборка образа ядра (один раз, вне compose):
+#   docker build -t swarm-core:local .
+# Затем:  ./scripts/start_demo.sh
 
 name: swarm-demo
 
@@ -19,7 +16,6 @@ x-demo-env: &demo-env
   DEMO_DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
   DEMO_ARTIFACTS_DIR: /artifacts
   DEMO_POLL_SEC: "1.0"
-  DEMO_LEASE_SEC: "120"
 
 services:
   postgres:
@@ -38,50 +34,82 @@ services:
       timeout: 3s
       retries: 20
 
-  demo-bridge:
+  # Сторож — НАСТОЯЩИЙ swarm-watchdog: promote_ready + reclaim_expired.
+  watchdog:
     build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["uvicorn", "bridge.api:app", "--host", "0.0.0.0", "--port", "8080"]
-    environment: *demo-env
-    ports:
-      - "${DEMO_API_PORT:-8080}:8080"
-    volumes:
-      - demo_artifacts:/artifacts
-    depends_on:
-      postgres: {condition: service_healthy}
-
-  agent-1:
-    build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["python", "engine/worker.py"]
+    command: ["swarm-watchdog"]
     environment:
-      <<: *demo-env
-      DEMO_WORKER_ID: agent_w1
-    volumes:
-      - demo_artifacts:/artifacts
+      DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
+      WATCHDOG_INTERVAL: "2"
+      RUST_LOG: swarm_watchdog=info
     depends_on:
       postgres: {condition: service_healthy}
 
-  agent-2:
+  # Исполнители — НАСТОЯЩИЕ swarm-worker с реальной LLM.
+  worker-1:
     build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["python", "engine/worker.py"]
+    command: ["swarm-worker"]
+    user: "0"
     environment:
-      <<: *demo-env
-      DEMO_WORKER_ID: agent_w2
+      DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
+      WORKER_ID: w1
+      LEASE_SEC: "120"
+      ARTIFACTS_DIR: /artifacts
+      WORKER_SHELL_TOOLS: "0"
+      CAPABILITIES: '{"ram_gb":32,"models":{"coder_class":3}}'
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-https://relay.fast}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-deepseek-v4-flash}
+      RUST_LOG: swarm_worker=info
     volumes:
       - demo_artifacts:/artifacts
     depends_on:
       postgres: {condition: service_healthy}
 
-  agent-3:
+  worker-2:
     build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["python", "engine/worker.py"]
+    command: ["swarm-worker"]
+    user: "0"
     environment:
-      <<: *demo-env
-      DEMO_WORKER_ID: agent_w3
+      DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
+      WORKER_ID: w2
+      LEASE_SEC: "120"
+      ARTIFACTS_DIR: /artifacts
+      WORKER_SHELL_TOOLS: "0"
+      CAPABILITIES: '{"ram_gb":16,"models":{"coder_class":2}}'
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-https://relay.fast}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-deepseek-v4-flash}
+      RUST_LOG: swarm_worker=info
     volumes:
       - demo_artifacts:/artifacts
     depends_on:
       postgres: {condition: service_healthy}
 
+  worker-3:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["swarm-worker"]
+    user: "0"
+    environment:
+      DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
+      WORKER_ID: w3
+      LEASE_SEC: "120"
+      ARTIFACTS_DIR: /artifacts
+      WORKER_SHELL_TOOLS: "0"
+      CAPABILITIES: '{"ram_gb":32,"models":{"coder_class":3}}'
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-https://relay.fast}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-deepseek-v4-flash}
+      RUST_LOG: swarm_worker=info
+    volumes:
+      - demo_artifacts:/artifacts
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  # Ревьюер — приёмка независимым сервисом (submit_review).
   demo-reviewer:
     build: {context: ., dockerfile: demo/Dockerfile}
     command: ["python", "engine/reviewer.py"]
@@ -93,13 +121,50 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
 
-  demo-scheduler:
+  # Мост: цель → граф (настоящий swarm-planner, иначе локальная декомпозиция).
+  demo-bridge:
     build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["python", "engine/scheduler.py"]
-    environment: *demo-env
+    command: ["uvicorn", "bridge.api:app", "--host", "0.0.0.0", "--port", "8080"]
+    environment:
+      <<: *demo-env
+      DEMO_USE_REAL_PLANNER: "${DEMO_USE_REAL_PLANNER:-1}"
+      PLANNER_LLM_PROVIDER: ${PLANNER_LLM_PROVIDER:-openai-compatible}
+      PLANNER_LLM_BASE_URL: ${PLANNER_LLM_BASE_URL:-https://relay.fast}
+      PLANNER_LLM_API_KEY: ${PLANNER_LLM_API_KEY}
+      PLANNER_LLM_MODEL: ${PLANNER_LLM_MODEL:-deepseek-v4-flash}
+      PLANNER_MAX_TASKS: "6"
+      PLANNER_MAX_DEPTH: "3"
+      PLANNER_MAX_CHILDREN: "4"
+      # Планировщик должен знать среду контура, иначе он породит задачи
+      # «собери код из репозитория / прогони semgrep / zap-api-scan», которые
+      # в изолированном контуре без shell-доступа и внешних репозиториев
+      # невыполнимы (воркер честно вернёт missing_input).
+      PLANNER_CONTEXT: >-
+        Изолированный демонстрационный контур: НЕТ внешних репозиториев,
+        НЕТ доступа к сети и НЕТ shell-инструментов у исполнителя.
+        Каждая задача выполняется LLM-исполнителем и порождает ОДИН
+        самодостаточный ТЕКСТОВЫЙ артефакт (записка, спецификация, план, отчёт).
+        ВАЖНО: исполнитель НЕ видит артефактов других задач и НЕ получает
+        никаких входных данных — только описание своей задачи.
+        Поэтому задача обязана быть самодостаточной: если ей нужны требования,
+        сущности или эндпоинты, сформулируй их прямо в описании задачи.
+        НЕ пиши в описании и проверках ссылок вида «возьми из t1/t2», «согласно
+        требованиям FR-* из другой задачи», «используй openapi.yaml».
+        Все проверки приёмки — только типа manual и проверяются по тексту
+        артефакта ЭТОЙ задачи. Не ссылайся на сборку кода, семгрep/zap,
+        репозитории, файлы или сетевые сервисы.
+      PLANNER_EXPECTED: >-
+        Набор независимых самодостаточных текстовых артефактов (3-4 задачи),
+        каждый из которых можно оценить отдельно: анализ требований,
+        модель данных, спецификация API, план реализации и аудит рисков.
+    ports:
+      - "${DEMO_API_PORT:-8080}:8080"
+    volumes:
+      - demo_artifacts:/artifacts
     depends_on:
       postgres: {condition: service_healthy}
 
+  # Консоль наблюдения.
   demo-ui:
     build: {context: ., dockerfile: demo/Dockerfile}
     command: ["streamlit", "run", "ui/app.py",
@@ -111,13 +176,6 @@ services:
       - "${DEMO_UI_PORT:-8501}:8501"
     depends_on:
       - demo-bridge
-
-  # Одноразовая подготовка: регистрация агентов, чтобы панель узлов не пустовала.
-  demo-init:
-    build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["python", "-c", "from db import client as db; [db.register_worker(w) for w in ('agent_w1','agent_w2','agent_w3')]; print('[init] агенты зарегистрированы')"]
-    environment: *demo-env
-    restart: "no"
 
 volumes:
   demo_pg:

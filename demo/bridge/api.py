@@ -9,6 +9,9 @@
 from __future__ import annotations
 
 import os
+import re
+import shutil
+import subprocess
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -24,8 +27,12 @@ from db import client as db              # noqa: E402
 from lib import decompose as dec         # noqa: E402
 
 ARTIFACTS_DIR = Path(os.environ.get("DEMO_ARTIFACTS_DIR", "/artifacts"))
+# Приоритет — настоящий swarm-planner (LLM). Если он недоступен, откат на
+# локальную rule-based декомпозицию (тот же публичный протокол add_task/add_dep).
+USE_REAL_PLANNER = os.environ.get("DEMO_USE_REAL_PLANNER", "1") == "1"
+PLANNER_BIN = shutil.which("swarm-planner") or "/usr/local/bin/swarm-planner"
 
-app = FastAPI(title="Swarm Ops Console — демо-мост", version="0.2.0")
+app = FastAPI(title="Swarm Ops Console — демо-мост", version="0.3.0")
 
 TERMINAL = {"done", "blocked"}
 
@@ -41,16 +48,62 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _run_real_planner(goal: str) -> dict[str, Any] | None:
+    """Декомпозиция НАСТОЯЩИМ `swarm-planner` (LLM) — как в боевом контуре.
+
+    Возвращает {root_id, tasks_created, ready_to_execute} либо None, если
+    бинарь/LLM недоступны (тогда мост честно откатывается на локальную
+    rule-based декомпозицию — тот же публичный протокол add_task/add_dep).
+    """
+    if not (USE_REAL_PLANNER and Path(PLANNER_BIN).exists()):
+        return None
+    env = dict(os.environ)
+    env.setdefault("DATABASE_URL", os.environ.get("DEMO_DATABASE_URL", ""))
+    try:
+        p = subprocess.run([PLANNER_BIN, goal], capture_output=True, text=True,
+                           timeout=240, env=env)
+    except Exception:  # noqa: BLE001
+        return None
+    if p.returncode != 0:
+        return None
+    out = p.stdout or ""
+    # Два формата вывода swarm-planner:
+    #   «root_id: <uuid>» + «tasks created: N» (новый граф)
+    #   «graph already exists (root_id=<uuid>, tasks=N)» (идемпотентный пропуск)
+    m = re.search(r"root_id[:=]\s*([0-9a-f-]{36})", out)
+    if not m:
+        return None
+    existed = "already exists" in out
+    tc = re.search(r"tasks created:\s*(\d+)", out)
+    rd = re.search(r"ready to execute:\s*(\d+)", out)
+    ex = re.search(r"tasks=(\d+)", out)
+    return {
+        "root_id": m.group(1),
+        "tasks_created": int(tc.group(1)) if tc else 0,
+        "ready_to_execute": int(rd.group(1)) if rd else 0,
+        "already_existed": existed,
+        "existing_tasks": int(ex.group(1)) if ex else 0,
+        "planner": "swarm-planner",
+    }
+
+
 @app.post("/goals")
 def create_goal(goal: str = Form(...)) -> dict[str, Any]:
     """Поставить цель: декомпозировать в граф задач и внести его в движок.
 
-    Граф вносится публичными `add_task` + `add_dep` — ровно так же, как это
-    делает `swarm-planner`. Зависимости и промоушен считает движок.
+    Приоритет — НАСТОЯЩИЙ `swarm-planner` (LLM): он сам вносит граф публичными
+    `add_task` + `add_dep`. Если LLM/бинарь недоступны — откат на локальную
+    rule-based декомпозицию: тот же протокол, те же зависимости и промоушен.
     """
     goal = (goal or "").strip()
     if not goal:
         raise HTTPException(status_code=400, detail="пустая цель")
+
+    real = _run_real_planner(goal)
+    if real is not None:
+        tasks = [{"id": str(t["id"]), "kind": t["kind"], "state": t["state"]}
+                 for t in db.board() if str(t["root_id"]) == real["root_id"]]
+        return {**real, "tasks": tasks}
 
     stages = dec.decompose(goal)
     root_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "swarm-demo:" + goal))
@@ -81,6 +134,7 @@ def create_goal(goal: str = Form(...)) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"add_task/add_dep: {e}") from e
 
     return {"root_id": root_id, "tasks_created": len(ids), "already_existed": False,
+            "planner": "rule-based",
             "tasks": [{"id": tid, "kind": st["kind"]} for st, tid in zip(stages, ids)]}
 
 
