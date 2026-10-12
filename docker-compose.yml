@@ -25,6 +25,9 @@ services:
       - ./step2/roles_patch_planner_status.sql:/sql/roles_patch_planner_status.sql:ro
       - ./step2/roles_patch_tool_call_audit.sql:/sql/roles_patch_tool_call_audit.sql:ro
       - ./scripts/03-role-patches.sh:/docker-entrypoint-initdb.d/04-role-patches.sh:ro
+      # Issue #9/#11: миграции (llm_calls + grants) применяются автоматически.
+      - ./schema/migrations:/sql/migrations:ro
+      - ./scripts/05-migrations.sh:/docker-entrypoint-initdb.d/05-migrations.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
       interval: 5s
