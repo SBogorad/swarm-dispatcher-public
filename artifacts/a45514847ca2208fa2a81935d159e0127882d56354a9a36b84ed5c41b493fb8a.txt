@@ -1,0 +1,1 @@
+{"error": "missing_input", "details": "Contract contains only a title; no artifact, repository access, source code, test environment, or S3 documentation target was provided. Cannot perform static analysis, integration tests, or S3 documentation work without these inputs."}

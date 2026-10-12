@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # PostgreSQL — общая БД для обоих воркеров
+  postgres:
+    image: postgres:16-alpine
+    container_name: swarm-postgres-improve
+    environment:
+      POSTGRES_DB: swarm_prod
+      POSTGRES_USER: swarm_user
+      POSTGRES_PASSWORD: z8OSKS…yyTA
+    volumes:
+      - swarm-improve-db:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    networks:
+      - swarm-self-improve
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swarm_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Планировщик (декомпозиция целей в граф задач)
+  planner:
+    image: swarm-core:local
+    container_name: swarm-planner-improve
+    command: swarm-planner
+    environment:
+      PLANNER_ID: planner-improve
+      DATABASE_URL: postgresql://swarm_user:z8OSKS…yyTA@postgres:5432/swarm_prod
+      LLM_PROVIDER: openai-compatible
+      LLM_BASE_URL: https://relay.fast
+      LLM_API_KEY: sk-LNs…be9X
+      LLM_MODEL: deepseek-v4-flash
+      PLANNER_CONCURRENCY: 5
+      METRICS_ENABLED: "true"
+    networks:
+      - swarm-self-improve
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Воркер 1: ноутбук (легковес, fast)
+  worker-notebook:
+    image: swarm-core:local
+    container_name: swarm-worker-notebook
+    command: swarm-worker
+    environment:
+      WORKER_ID: notebook-w1
+      DATABASE_URL: postgresql://swarm_user:z8OSKS…yyTA@postgres:5432/swarm_prod
+      WORKER_ROLE: tester
+      CAPABILITIES: "test,lint,doc,git"
+      LLM_PROVIDER: openai-compatible
+      LLM_BASE_URL: https://relay.fast
+      LLM_API_KEY: sk-LNs…be9X
+      LLM_MODEL: deepseek-v4-flash
+      WORKER_TIMEOUT_SECS: 300
+      WORKER_RETRY_MAX: 2
+      METRICS_ENABLED: "true"
+      S3_ENDPOINT: https://s3.ru1.storage.beget.cloud
+      S3_BUCKET: 9ce754c9c8ab-mini-erp-media
+      S3_REGION: ru-1
+      S3_FORCE_PATH_STYLE: "true"
+    networks:
+      - swarm-self-improve
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # Watchdog (promote_ready, reclaim_expired)
+  watchdog:
+    image: swarm-core:local
+    container_name: swarm-watchdog-improve
+    command: swarm-watchdog
+    environment:
+      WATCHDOG_ID: watchdog-improve
+      DATABASE_URL: postgresql://swarm_user:z8OSKS…yyTA@postgres:5432/swarm_prod
+      WATCHDOG_CYCLE_SECS: 10
+      METRICS_ENABLED: "true"
+    networks:
+      - swarm-self-improve
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Ревьюер (verify_chain, check artifacts)
+  reviewer:
+    build:
+      context: demo
+      dockerfile: Dockerfile.reviewer
+    container_name: swarm-reviewer-improve
+    environment:
+      DATABASE_URL: postgresql://swarm_user:z8OSKS…yyTA@postgres:5432/swarm_prod
+      VERIFY_CHAIN: "true"
+      S3_ENDPOINT: https://s3.ru1.storage.beget.cloud
+      S3_BUCKET: 9ce754c9c8ab-mini-erp-media
+    networks:
+      - swarm-self-improve
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  swarm-self-improve:
+    driver: bridge
+
+volumes:
+  swarm-improve-db:
+    driver: local

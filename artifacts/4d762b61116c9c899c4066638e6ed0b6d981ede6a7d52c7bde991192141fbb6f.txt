@@ -1,0 +1,1 @@
+{"error": "missing_input", "details": "Contract contains no project directory, repository path, source code, or cargo project contents. Cannot run `cargo test --all-features` without a target codebase."}

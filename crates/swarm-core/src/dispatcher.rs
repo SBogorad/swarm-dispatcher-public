@@ -296,6 +296,61 @@ impl SwarmDispatcher {
         Ok(row.get(0))
     }
 
+    // ---------- Issue #2: Cost ledger ----------
+
+    /// Записать метрики LLM-вызова для точного учёта расходов.
+    pub fn record_llm_call(
+        &mut self,
+        task_id: Uuid,
+        worker_id: &str,
+        lease_epoch: i64,
+        model: &str,
+        provider: &str,
+        prompt_tokens: i64,
+        completion_tokens: i64,
+        cached_tokens: i64,
+        prompt_cost_usd: f64,
+        completion_cost_usd: f64,
+        started_at: &str,
+        completed_at: &str,
+        duration_ms: i64,
+        success: bool,
+        error_code: Option<&str>,
+        error_message: Option<&str>,
+    ) -> Result<(), DispatcherError> {
+        let total_cost = prompt_cost_usd + completion_cost_usd;
+        self.client
+            .execute(
+                "INSERT INTO llm_calls \
+                 (task_id, worker_id, lease_epoch, model, provider, \
+                  prompt_tokens, completion_tokens, cached_tokens, \
+                  prompt_cost_usd, completion_cost_usd, total_cost_usd, \
+                  started_at, completed_at, duration_ms, success, error_code, error_message) \
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, $13::timestamptz, $14, $15, $16, $17)",
+                &[
+                    &task_id,
+                    &worker_id,
+                    &lease_epoch,
+                    &model,
+                    &provider,
+                    &prompt_tokens,
+                    &completion_tokens,
+                    &cached_tokens,
+                    &prompt_cost_usd,
+                    &completion_cost_usd,
+                    &total_cost,
+                    &started_at,
+                    &completed_at,
+                    &duration_ms,
+                    &success,
+                    &error_code,
+                    &error_message,
+                ],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(())
+    }
+
     // ---------- операторские ----------
 
     pub fn reopen(&mut self, task_id: Uuid, actor: &str) -> Result<i32, DispatcherError> {

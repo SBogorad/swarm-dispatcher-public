@@ -1,0 +1,1 @@
+{"error": "missing_input", "details": "The task requires uploading audit findings to an S3 bucket, but no audit findings content, AWS credentials, S3 endpoint/region, or naming convention specification are provided in the contract. Cannot produce an upload result without this data."}

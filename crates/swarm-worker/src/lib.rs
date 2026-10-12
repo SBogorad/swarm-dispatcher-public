@@ -11,6 +11,7 @@ pub mod allowlist;
 pub mod artifacts;
 pub mod audit;
 pub mod error;
+pub mod llm_cost;
 pub mod parse_step;
 pub mod prompt;
 pub mod retry;

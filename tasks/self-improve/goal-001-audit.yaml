@@ -1,0 +1,59 @@
+goal_id: goal-audit-v0.5.3
+title: "Audit swarm-dispatcher v0.5.3 — find bugs, insurance, re-test"
+description: |
+  Comprehensive code audit for self-improvement cycle:
+  1. Static analysis: Rust code for safety issues, panics, unwrap()
+  2. Integration tests: Run full test suite on demo rig
+  3. Document findings: Create bug reports in S3
+  4. Insurance: Prepare fixes in feature/audit-v0.5.3 branch
+  5. Re-test: Verify fixes do not break existing functionality
+
+scope:
+  allowed_paths:
+    read:
+      - "src/**"
+      - "Cargo.toml"
+      - "schema.sql"
+      - "harness/**"
+      - "tests/**"
+    write:
+      - "docs/**"
+      - "harness/test-reports/**"
+      - "feature/audit-v0.5.3/**"
+  forbidden:
+    - "Direct push to master"
+    - "Modify Cargo.toml without review"
+    - "Delete schema.sql"
+
+tasks:
+  - task_id: audit-static
+    title: "Static analysis (clippy, safety)"
+    estimated_tokens: 1000
+    capabilities: ["rust", "audit"]
+    
+  - task_id: audit-integration-tests
+    title: "Run full integration test suite"
+    estimated_tokens: 2000
+    capabilities: ["test", "docker"]
+    
+  - task_id: audit-document-findings
+    title: "Document findings to S3"
+    estimated_tokens: 500
+    capabilities: ["doc", "s3"]
+    
+  - task_id: audit-prepare-fixes
+    title: "Prepare fix branch"
+    estimated_tokens: 1500
+    capabilities: ["git", "refactor"]
+
+budget:
+  max_relay_cost: 1.5  # USD
+  max_compute_hours: 4
+  max_workers: 2
+
+artifacts:
+  output_s3_prefix: "audits/v0.5.3/"
+  required:
+    - "audit-report.json"
+    - "test-results.log"
+    - "git-diff.patch"
