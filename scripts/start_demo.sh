@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Запуск демонстрационного стенда «ЦГЦУ Ассистент» одной командой.
+# Запуск демонстрационного контура «Swarm Ops Console» одной командой.
 #
 #   ./scripts/start_demo.sh            # поднять и открыть браузер
 #   ./scripts/start_demo.sh --no-open  # без открытия браузера
@@ -36,12 +36,12 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "[demo] сборка образов…"
+echo "[demo] сборка образа…"
 docker compose -f "$COMPOSE_FILE" build demo-bridge
 
-echo "[demo] запуск (postgres + мост + воркер + ревьюер + сторож + UI)…"
-docker compose -f "$COMPOSE_FILE" up -d postgres demo-bridge demo-worker \
-  demo-reviewer demo-scheduler demo-ui
+echo "[demo] запуск (postgres + мост + агенты + ревьюер + сторож + UI)…"
+docker compose -f "$COMPOSE_FILE" up -d postgres demo-bridge \
+  agent-1 agent-2 agent-3 demo-reviewer demo-scheduler demo-ui
 
 echo "[demo] ждём готовности моста…"
 for _ in $(seq 1 60); do
@@ -51,19 +51,20 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
-echo "[demo] генерация демонстрационного отчёта…"
+echo "[demo] регистрация агентов…"
 docker compose -f "$COMPOSE_FILE" run --rm demo-init || true
 
 echo
 echo "  ┌───────────────────────────────────────────────────────────┐"
-echo "  │  ЦГЦУ Ассистент                                          │"
-echo "  │  Кабина:  http://localhost:${UI_PORT}                          │"
+echo "  │  Swarm Ops Console — координация агентов                  │"
+echo "  │  Консоль: http://localhost:${UI_PORT}                          │"
 echo "  │  Мост:    http://localhost:${API_PORT}/healthz                 │"
 echo "  │  Остановка: ./scripts/start_demo.sh --down                │"
 echo "  └───────────────────────────────────────────────────────────┘"
 echo
-echo "  Демо-отчёт лежит в volume (можно скачать из UI или взять из"
-echo "  http://localhost:${UI_PORT}); пресеты запросов — в левой панели."
+echo "  Введите цель и нажмите «Запустить рой»: движок декомпозирует её в"
+echo "  граф задач, агенты разберут их по арендам, а консоль покажет канбан,"
+echo "  узлы роя и неизменяемый журнал (хэш-цепочку)."
 
 if [[ "$OPEN" == "1" ]]; then
   URL="http://localhost:${UI_PORT}"

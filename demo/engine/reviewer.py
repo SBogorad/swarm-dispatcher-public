@@ -1,12 +1,14 @@
-"""Демо-ревьюер: проводит задачи через строгий review-gate (F2, вариант A).
+"""Агент-ревьюер демо-контура: строгий review-gate (F2, вариант A).
 
-Ревьюер не создаёт справку — он проверяет результат воркера и подтверждает
-его набором `checks`, ключ которых совпадает с требованиями контракта
-(`coalesce(id, type || '|' || run)`). Именно это демонстрирует защиту от
-фиктивного «зелёного» ревью: self-review запрещён (создатель артефакта ≠
-ревьюер), а несовпадение ключей даёт `checks_failed`.
+Ревьюер не вырабатывает артефакт — он проверяет результат исполнителя и
+подтверждает его набором `checks`, ключ которых совпадает с требованиями
+контракта (движок сверяет ключи и отклонит фиктивный «зелёный» набор).
 
-Как и воркер, говорит с движком публичными функциями (`submit_review`).
+Это и есть предмет демонстрации: задача не закрывается «на слово».
+Self-review запрещён (движок: создатель артефакта ≠ ревьюер, RV002), а
+несовпадение ключей проверок даёт `checks_failed` (RV003).
+
+Говорит с движком публичной функцией `submit_review`.
 """
 from __future__ import annotations
 
@@ -19,8 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from db import client as db  # noqa: E402
 
-REVIEWER_ID = os.environ.get("DEMO_REVIEWER_ID", "demo_reviewer")
-POLL_SEC = float(os.environ.get("DEMO_POLL_SEC", "1.5"))
+REVIEWER_ID = os.environ.get("DEMO_REVIEWER_ID", "agent_reviewer")
+POLL_SEC = float(os.environ.get("DEMO_POLL_SEC", "1.0"))
 
 
 def _checks_for(contract: dict, ref: str) -> list[dict]:

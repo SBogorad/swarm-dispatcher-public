@@ -1,14 +1,17 @@
-"""Демо-воркер: забирает задачу по SQL-протоколу, анализирует Excel, пишет справку.
+"""Демо-воркер: забирает задачу по SQL-протоколу и вырабатывает артефакт.
 
-Честно о природе: это Python-воркер демо-стенда, а не Rust `swarm-worker`.
-Причина — в текущем ядре (v0.5.3) `Sandbox::start`/`agent_loop::run` к циклу
-воркера НЕ подключены (см. docs/KNOWN_LIMITATIONS §5.6/§5.11), а в образе
-`agent-sandbox` нет Python. Поэтому анализ выполняет этот процесс, но говорит с
-движком теми же публичными SQL-функциями: fencing по `lease_epoch`, `heartbeat`,
-`save_artifact`, `complete_task`. Канбан в UI читает те же `tasks`/`events`.
+Честно о природе: это Python-агент демо-контура, а не Rust `swarm-worker`.
+Причина — в изолированном контуре нет достижимой LLM (Ollama слушает loopback
+хоста, из контейнеров недоступна), поэтому артефакт вырабатывает
+детерминированный rule-based агент (`lib/agent.py`) — тот самый fallback из ТЗ
+«для гарантированной демонстрации без интернета».
 
-Аналитика — локальная (pandas), сеть не используется. Формулировка справки —
-локальная Ollama при наличии, иначе детерминированный rule-based шаблон.
+При этом воркер говорит с движком ТЕМИ ЖЕ публичными SQL-функциями, что и
+Rust-воркер: fencing по `lease_epoch`, `heartbeat`, `save_artifact`,
+`complete_task`. Координацию (аренды, эпохи, хэш-цепочку, review-gate) делает
+именно движок — это и есть предмет демонстрации.
+
+Настоящий Rust `swarm-worker` проверен на этой же БД (см. demo/README.md).
 """
 from __future__ import annotations
 
@@ -20,45 +23,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # demo/ в sys.path
 
-from db import client as db          # noqa: E402
-from lib.analyze import analyze      # noqa: E402
-from lib.summarize import summarize  # noqa: E402
+from db import client as db                     # noqa: E402
+from lib.agent import artifact_for              # noqa: E402
 
-WORKER_ID = os.environ.get("DEMO_WORKER_ID", "demo_w1")
+WORKER_ID = os.environ.get("DEMO_WORKER_ID", "agent_w1")
 ARTIFACTS_DIR = Path(os.environ.get("DEMO_ARTIFACTS_DIR", "/artifacts"))
 LEASE_SEC = int(os.environ.get("DEMO_LEASE_SEC", "120"))
-POLL_SEC = float(os.environ.get("DEMO_POLL_SEC", "1.5"))
-PREFER_LLM = os.environ.get("DEMO_PREFER_LLM", "1") == "1"
-
-
-def _input_path(contract: dict) -> str | None:
-    return (contract.get("input") or {}).get("path")
-
-
-def _question(contract: dict) -> str:
-    return (contract.get("input") or {}).get("question", "") or ""
+POLL_SEC = float(os.environ.get("DEMO_POLL_SEC", "1.0"))
 
 
 def process(lease: dict) -> None:
     task_id = str(lease["out_task_id"])
     epoch = int(lease["out_epoch"])
     contract = lease["out_contract"] or {}
-    path = _input_path(contract)
-    if not path or not Path(path).exists():
-        ref = db.sha256_ref(f"missing_input:{task_id}".encode())
-        out = ARTIFACTS_DIR / f"{task_id}.missing.txt"
-        out.write_text(
-            "Не найден входной файл отчёта.\n"
-            f"Ожидался путь: {path}\n", encoding="utf-8")
-        db.fail(task_id, WORKER_ID, epoch, None, "missing_input")
-        print(f"[worker] {task_id}: нет входного файла {path}", flush=True)
-        return
 
+    # След согласия: аренда взята под конкретной эпохой (fencing).
     db.heartbeat(task_id, WORKER_ID, epoch, LEASE_SEC)
-    metrics = analyze(path)
-    result = summarize(metrics, _question(contract), prefer_llm=PREFER_LLM)
 
-    text = result["text"]
+    text = artifact_for(contract)
     body = text.encode("utf-8")
     ref = db.sha256_ref(body)
     out_path = ARTIFACTS_DIR / f"{task_id}.md"
@@ -66,10 +48,8 @@ def process(lease: dict) -> None:
 
     db.save_artifact(task_id, WORKER_ID, epoch, ref, str(out_path),
                      "text/markdown", len(body))
-    # Токены: у rule-based — 0; у Ollama — оценка (грубо, по длине ответа).
-    tokens = 0 if result["engine"] == "rule-based" else max(1, len(body) // 4)
-    state = db.complete(task_id, WORKER_ID, epoch, ref, tokens)
-    print(f"[worker] {task_id}: engine={result['engine']} -> {state}", flush=True)
+    state = db.complete(task_id, WORKER_ID, epoch, ref, 0)
+    print(f"[worker] {WORKER_ID} {task_id}: -> {state}", flush=True)
 
 
 def main() -> None:
@@ -85,7 +65,7 @@ def main() -> None:
         print("[worker] БД недоступна, выход", flush=True)
         sys.exit(1)
 
-    print(f"[worker] {WORKER_ID} готов, lease={LEASE_SEC}s, LLM={PREFER_LLM}", flush=True)
+    print(f"[worker] {WORKER_ID} готов, lease={LEASE_SEC}s", flush=True)
     while True:
         try:
             lease = db.claim(WORKER_ID, LEASE_SEC)

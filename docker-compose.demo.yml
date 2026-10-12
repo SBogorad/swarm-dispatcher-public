@@ -1,29 +1,25 @@
-# Демонстрационный стенд «ЦГЦУ Ассистент» (Powered by Swarm Engine).
+# Демонстрационный контур «Swarm Ops Console».
 #
 # Отдельный от docker-compose.yml (боевой контур не трогаем). Поднимает
-# собственную БД со схемой swarm-dispatcher и на ней — кабину:
-#   postgres      — схема v0 (единый источник истины);
-#   demo-bridge   — FastAPI: приём Excel + статус/справка (порт 8080);
-#   demo-worker   — анализирует отчёт (локально) и формирует справку;
-#   demo-reviewer — проводит задачи через строгий review-gate;
-#   demo-scheduler— promote_ready/reclaim_expired (сторож в миниатюре);
-#   demo-ui       — Streamlit-кабина (порт 8501);
-#   demo-init     — одноразовая генерация демо-отчёта в общий volume.
+# собственную БД со схемой swarm-dispatcher и на ней — кабину координации:
+#   postgres       — схема v0 (единый источник истины) + demo/schema_extras.sql;
+#   demo-bridge    — FastAPI: цель → граф задач, канбан/карточка/журнал (8080);
+#   agent-1/2/3    — агенты-исполнители: забирают задачи по SQL-протоколу;
+#   demo-reviewer  — строгий review-gate (F2);
+#   demo-scheduler — promote_ready/reclaim_expired (сторож в миниатюре);
+#   demo-ui        — Swarm Ops Console (Streamlit, 8501);
+#   demo-init      — регистрация агентов и подготовка витрины.
 #
 # Запуск:  ./scripts/start_demo.sh
 # Остановка: docker compose -f docker-compose.demo.yml down -v
 
-name: cgu-demo
+name: swarm-demo
 
 x-demo-env: &demo-env
   DEMO_DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
   DEMO_ARTIFACTS_DIR: /artifacts
-  DEMO_POLL_SEC: "1.5"
+  DEMO_POLL_SEC: "1.0"
   DEMO_LEASE_SEC: "120"
-  DEMO_PREFER_LLM: "${DEMO_PREFER_LLM:-1}"
-  DEMO_OLLAMA_URL: "${DEMO_OLLAMA_URL:-http://host.docker.internal:11434}"
-  DEMO_OLLAMA_MODEL: "${DEMO_OLLAMA_MODEL:-deepseek-coder:6.7b}"
-  DEMO_OLLAMA_TIMEOUT: "90"
 
 services:
   postgres:
@@ -35,6 +31,7 @@ services:
     volumes:
       - demo_pg:/var/lib/postgresql/data
       - ./schema/schema_v0.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./demo/schema_extras.sql:/docker-entrypoint-initdb.d/02_extras.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
       interval: 3s
@@ -52,14 +49,34 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
 
-  demo-worker:
+  agent-1:
     build: {context: ., dockerfile: demo/Dockerfile}
     command: ["python", "engine/worker.py"]
     environment:
       <<: *demo-env
-      DEMO_WORKER_ID: demo_w1
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      DEMO_WORKER_ID: agent_w1
+    volumes:
+      - demo_artifacts:/artifacts
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  agent-2:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["python", "engine/worker.py"]
+    environment:
+      <<: *demo-env
+      DEMO_WORKER_ID: agent_w2
+    volumes:
+      - demo_artifacts:/artifacts
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  agent-3:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["python", "engine/worker.py"]
+    environment:
+      <<: *demo-env
+      DEMO_WORKER_ID: agent_w3
     volumes:
       - demo_artifacts:/artifacts
     depends_on:
@@ -70,7 +87,7 @@ services:
     command: ["python", "engine/reviewer.py"]
     environment:
       <<: *demo-env
-      DEMO_REVIEWER_ID: demo_reviewer
+      DEMO_REVIEWER_ID: agent_reviewer
     volumes:
       - demo_artifacts:/artifacts
     depends_on:
@@ -95,12 +112,11 @@ services:
     depends_on:
       - demo-bridge
 
-  # Одноразовая генерация демо-отчёта в общий volume (чтобы файл был «под рукой»).
+  # Одноразовая подготовка: регистрация агентов, чтобы панель узлов не пустовала.
   demo-init:
     build: {context: ., dockerfile: demo/Dockerfile}
-    command: ["python", "generator/gen_report.py", "--out", "/artifacts/samples"]
-    volumes:
-      - demo_artifacts:/artifacts
+    command: ["python", "-c", "from db import client as db; [db.register_worker(w) for w in ('agent_w1','agent_w2','agent_w3')]; print('[init] агенты зарегистрированы')"]
+    environment: *demo-env
     restart: "no"
 
 volumes:

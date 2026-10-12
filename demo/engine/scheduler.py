@@ -1,4 +1,4 @@
-"""Планировщик демо-стенда: роль watchdog в миниатюре.
+"""Планировщик демо-контура: роль сторожа в миниатюре.
 
 В боевом контуре `pending → ready` переводит сторож (`promote_ready`),
 а истёкшие аренды отбирает `reclaim_expired`. В демо-составе нет отдельного
@@ -26,10 +26,9 @@ def main() -> None:
             n = db.promote_ready()
             if n:
                 print(f"[scheduler] promoted {n}", flush=True)
-            with db._conn() as c:  # noqa: SLF001 — демо-утилита
-                r = c.execute("select reclaim_expired()").fetchone()
-            if r and r[0]:
-                print(f"[scheduler] reclaimed {r[0]}", flush=True)
+            r = db.reclaim_expired()
+            if r:
+                print(f"[scheduler] reclaimed {r}", flush=True)
         except Exception as e:  # noqa: BLE001
             print(f"[scheduler] ошибка: {e}", flush=True)
         time.sleep(INTERVAL)
