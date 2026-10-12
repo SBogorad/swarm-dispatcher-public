@@ -76,12 +76,11 @@ services:
 #    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
+      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1000,gid=1000
     # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
-    # Раньше /var/swarm/artifacts был приватным tmpfs: файл от worker-1 не был
-    # виден worker-2, cli и другим потребителям (F1 CRITICAL).
-    volumes:
-      - swarm-artifacts:/var/swarm/artifacts:rw
-      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
+    # ВРЕМЕННО: tmpfs вместо volume для фикса Permission denied (issue #11)
+    # volumes:
+    #   - swarm-artifacts:/var/swarm/artifacts:rw
     depends_on:
       postgres:
         condition: service_healthy
@@ -109,10 +108,11 @@ services:
 #    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
+      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1000,gid=1000
     # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
-    volumes:
-      - swarm-artifacts:/var/swarm/artifacts:rw
-      - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
+    # ВРЕМЕННО: tmpfs вместо volume для фикса Permission denied (issue #11)
+    # volumes:
+    #   - swarm-artifacts:/var/swarm/artifacts:rw
     depends_on:
       postgres:
         condition: service_healthy
