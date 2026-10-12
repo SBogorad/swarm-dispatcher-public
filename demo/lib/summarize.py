@@ -107,11 +107,35 @@ def rule_based(metrics: dict[str, Any], question: str = "") -> str:
     return "\n".join(head + body)
 
 
+def _ollama_reachable(base: str, timeout: float) -> bool:
+    """Быстрая проверка доступности Ollama до дорогого HTTP-запроса.
+
+    Без этого недостижимый endpoint (например, Ollama слушает только
+    loopback хоста, а воркер — в контейнере) заставляет ждать полный
+    DEMO_OLLAMA_TIMEOUT (по умолчанию 90 с) и только затем откатываться на
+    rule-based. Наблюдалось на стенде: задача шла ~94 с вместо ~2 с.
+    TCP-проба с коротким таймаутом делает откат почти мгновенным.
+    """
+    import socket
+    from urllib.parse import urlparse
+    u = urlparse(base)
+    host = u.hostname or "127.0.0.1"
+    port = u.port or (443 if u.scheme == "https" else 80)
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
 def _ollama_summary(metrics: dict[str, Any], question: str) -> str | None:
     """Запрос к локальной Ollama (OpenAI-совместимый /v1/chat/completions)."""
     base = os.environ.get("DEMO_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
     model = os.environ.get("DEMO_OLLAMA_MODEL", "deepseek-coder:6.7b")
     timeout = float(os.environ.get("DEMO_OLLAMA_TIMEOUT", "90"))
+    probe = float(os.environ.get("DEMO_OLLAMA_PROBE_SEC", "2"))
+    if not _ollama_reachable(base, probe):
+        return None  # мгновенный откат на rule-based, без ожидания таймаута
     system = (
         "Ты — аналитик Центра управления перевозками. По переданным метрикам "
         "сформируй краткую управленческую справку на русском языке: цифры, "
