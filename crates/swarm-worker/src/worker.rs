@@ -312,7 +312,7 @@ pub fn process_lease(
                 WorkerError::Llm(swarm_llm::LlmError::InvalidJson(_)) => Some("invalid_json".to_string()),
                 _ => None,
             };
-            let _ = d.record_llm_call(
+            match d.record_llm_call(
                 lease.task_id,
                 &lease.worker_id,
                 lease.epoch,
@@ -329,7 +329,10 @@ pub fn process_lease(
                 false,
                 error_code.as_deref(),
                 Some(&format!("{}", e)),
-            );
+            ) {
+                Ok(_) => info!(task_id = %lease.task_id, "Failed LLM call recorded to DB"),
+                Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record failed LLM call metrics"),
+            }
 
             // Не-транзиентная или исчерпанная ошибка LLM → fail через blocked.
             let reason = format!("llm_error: {e}");
