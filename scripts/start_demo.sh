@@ -56,7 +56,7 @@ docker compose -f "$COMPOSE_FILE" run --rm demo-init || true
 
 echo
 echo "  ┌───────────────────────────────────────────────────────────┐"
-echo "  │  ЦГЦУ Ассистент (Powered by Swarm Engine)                 │"
+echo "  │  ЦГЦУ Ассистент                                          │"
 echo "  │  Кабина:  http://localhost:${UI_PORT}                          │"
 echo "  │  Мост:    http://localhost:${API_PORT}/healthz                 │"
 echo "  │  Остановка: ./scripts/start_demo.sh --down                │"

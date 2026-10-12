@@ -1,4 +1,4 @@
-"""Streamlit-кабина «ЦГЦУ Ассистент (Powered by Swarm Engine)».
+"""Streamlit-кабина «ЦГЦУ Ассистент».
 
 Экран для руководства: загрузить Excel, задать вопрос, увидеть жизненный цикл
 задачи в реальном времени и получить готовую справку.
@@ -43,8 +43,7 @@ ORDER = {s: i for i, (s, _) in enumerate(STEPS)}
 st.set_page_config(page_title="ЦГЦУ Ассистент", page_icon="🚂", layout="wide")
 
 st.title("ЦГЦУ Ассистент")
-st.caption("Powered by Swarm Engine · аналитика выполняется локально в контуре, "
-           "данные не покидают сеть")
+st.caption("Аналитика выполняется локально в контуре, данные не покидают сеть")
 
 if "task_id" not in st.session_state:
     st.session_state.task_id = None
