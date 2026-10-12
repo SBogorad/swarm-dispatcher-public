@@ -79,7 +79,9 @@ services:
 #    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1000,gid=1000
+      # Issue #11: worker работает как uid 1001 (Dockerfile USER 1001),
+      # поэтому tmpfs обязан иметь uid=1001, иначе Permission denied.
+      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1001,gid=1001
     # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
     # ВРЕМЕННО: tmpfs вместо volume для фикса Permission denied (issue #11)
     # volumes:
@@ -111,7 +113,8 @@ services:
 #    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1000,gid=1000
+      # Issue #11: uid=1001 (Dockerfile USER 1001), см. worker-1.
+      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1001,gid=1001
     # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
     # ВРЕМЕННО: tmpfs вместо volume для фикса Permission denied (issue #11)
     # volumes:
