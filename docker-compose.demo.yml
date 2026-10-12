@@ -1,0 +1,108 @@
+# Демонстрационный стенд «ЦГЦУ Ассистент» (Powered by Swarm Engine).
+#
+# Отдельный от docker-compose.yml (боевой контур не трогаем). Поднимает
+# собственную БД со схемой swarm-dispatcher и на ней — кабину:
+#   postgres      — схема v0 (единый источник истины);
+#   demo-bridge   — FastAPI: приём Excel + статус/справка (порт 8080);
+#   demo-worker   — анализирует отчёт (локально) и формирует справку;
+#   demo-reviewer — проводит задачи через строгий review-gate;
+#   demo-scheduler— promote_ready/reclaim_expired (сторож в миниатюре);
+#   demo-ui       — Streamlit-кабина (порт 8501);
+#   demo-init     — одноразовая генерация демо-отчёта в общий volume.
+#
+# Запуск:  ./scripts/start_demo.sh
+# Остановка: docker compose -f docker-compose.demo.yml down -v
+
+name: cgu-demo
+
+x-demo-env: &demo-env
+  DEMO_DATABASE_URL: postgres://swarm:${DEMO_DB_PASSWORD:-swarm}@postgres:5432/swarm
+  DEMO_ARTIFACTS_DIR: /artifacts
+  DEMO_POLL_SEC: "1.5"
+  DEMO_LEASE_SEC: "120"
+  DEMO_PREFER_LLM: "${DEMO_PREFER_LLM:-1}"
+  DEMO_OLLAMA_URL: "${DEMO_OLLAMA_URL:-http://host.docker.internal:11434}"
+  DEMO_OLLAMA_MODEL: "${DEMO_OLLAMA_MODEL:-deepseek-coder:6.7b}"
+  DEMO_OLLAMA_TIMEOUT: "90"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: swarm
+      POSTGRES_PASSWORD: ${DEMO_DB_PASSWORD:-swarm}
+      POSTGRES_DB: swarm
+    volumes:
+      - demo_pg:/var/lib/postgresql/data
+      - ./schema/schema_v0.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  demo-bridge:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["uvicorn", "bridge.api:app", "--host", "0.0.0.0", "--port", "8080"]
+    environment: *demo-env
+    ports:
+      - "${DEMO_API_PORT:-8080}:8080"
+    volumes:
+      - demo_artifacts:/artifacts
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  demo-worker:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["python", "engine/worker.py"]
+    environment:
+      <<: *demo-env
+      DEMO_WORKER_ID: demo_w1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - demo_artifacts:/artifacts
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  demo-reviewer:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["python", "engine/reviewer.py"]
+    environment:
+      <<: *demo-env
+      DEMO_REVIEWER_ID: demo_reviewer
+    volumes:
+      - demo_artifacts:/artifacts
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  demo-scheduler:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["python", "engine/scheduler.py"]
+    environment: *demo-env
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  demo-ui:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["streamlit", "run", "ui/app.py",
+              "--server.port=8501", "--server.address=0.0.0.0",
+              "--server.headless=true", "--browser.gatherUsageStats=false"]
+    environment:
+      DEMO_API_URL: http://demo-bridge:8080
+    ports:
+      - "${DEMO_UI_PORT:-8501}:8501"
+    depends_on:
+      - demo-bridge
+
+  # Одноразовая генерация демо-отчёта в общий volume (чтобы файл был «под рукой»).
+  demo-init:
+    build: {context: ., dockerfile: demo/Dockerfile}
+    command: ["python", "generator/gen_report.py", "--out", "/artifacts/samples"]
+    volumes:
+      - demo_artifacts:/artifacts
+    restart: "no"
+
+volumes:
+  demo_pg:
+  demo_artifacts:
