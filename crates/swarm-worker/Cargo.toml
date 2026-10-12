@@ -28,6 +28,7 @@ thiserror = { workspace = true }
 # v0.4: аудит tool calls пишется отдельным соединением (§7).
 postgres = { workspace = true }
 uuid = { workspace = true }
+chrono = { version = "0.4.45", features = ["serde"] }
 
 [dev-dependencies]
 postgres = { workspace = true }
@@ -45,3 +46,4 @@ path = "tests/worker_sandbox.rs"
 [[example]]
 name = "agent_loop_demo"
 path = "examples/agent_loop_demo.rs"
+chrono = { version = "0.4", features = ["serde"] }

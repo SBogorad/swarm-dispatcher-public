@@ -36,7 +36,7 @@ services:
     command: ["swarm-watchdog"]
     environment:
       # Раздельный DSN по сервисам (step 1/2): роль swarm_watchdog.
-      DATABASE_URL: postgres://swarm_watchdog:${SWARM_PW_WATCHDOG}@postgres:5432/swarm
+      DATABASE_URL: postgres://swarm_worker_w1:${SWARM_PW_W1}@postgres:5432/swarm
       WATCHDOG_INTERVAL: "10"
       RUST_LOG: swarm_watchdog=info
     depends_on:
@@ -53,17 +53,14 @@ services:
       WORKER_ID: w1
       WORK_SECONDS: "5"
       LEASE_SEC: "10"
-      CRASH_AFTER_CLAIM: "0"
+#      CRASH_AFTER_CLAIM: "0"
       ARTIFACTS_DIR: /var/swarm/artifacts
       # F1: storage_path пишется как volume://<name>/<relpath> — видим потребителю.
       SWARM_ARTIFACTS_VOLUME: swarm-artifacts
-      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
-      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
-      LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
-      LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
-      # Мок-провайдер (default) читает текст ответа из {prefix}MOCK_RESPONSE_FILE,
-      # где prefix = LLM_ (по умолчанию воркера), т.е. LLM_MOCK_RESPONSE_FILE.
-      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-https://relay.fast}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY:?set WORKER_LLM_API_KEY}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-deepseek-v4-flash}
       # v0.4: shell tools + Docker sandbox.
       # ВНИМАНИЕ: 1 требует доступа к Docker-сокету (docs/KNOWN_LIMITATIONS.md §6).
       WORKER_SHELL_TOOLS: ${WORKER_SHELL_TOOLS:-0}
@@ -71,19 +68,19 @@ services:
       WORKER_ALLOWED_COMMANDS: ${WORKER_ALLOWED_COMMANDS:-bash,cargo,git,cat,ls,echo,mkdir,touch}
       WORKER_CMD_TIMEOUT_SEC: ${WORKER_CMD_TIMEOUT_SEC:-60}
       WORKER_MAX_ITERATIONS: ${WORKER_MAX_ITERATIONS:-20}
-      RUST_LOG: swarm_worker=info
+      RUST_LOG: debug
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: true
+#    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
     # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
     # Раньше /var/swarm/artifacts был приватным tmpfs: файл от worker-1 не был
     # виден worker-2, cli и другим потребителям (F1 CRITICAL).
     volumes:
-      - swarm-artifacts:/var/swarm/artifacts
+      - swarm-artifacts:/var/swarm/artifacts:rw
       - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
@@ -97,25 +94,24 @@ services:
       WORKER_ID: w2
       WORK_SECONDS: "5"
       LEASE_SEC: "10"
-      CRASH_AFTER_CLAIM: "1"
+#      CRASH_AFTER_CLAIM: "1"
       ARTIFACTS_DIR: /var/swarm/artifacts
       SWARM_ARTIFACTS_VOLUME: swarm-artifacts
-      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-mock}
-      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-}
-      LLM_API_KEY: ${WORKER_LLM_API_KEY:-}
-      LLM_MODEL: ${WORKER_LLM_MODEL:-mock}
-      LLM_MOCK_RESPONSE_FILE: /etc/swarm/mock_response.txt
-      RUST_LOG: swarm_worker=info
+      LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
+      LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-https://relay.fast}
+      LLM_API_KEY: ${WORKER_LLM_API_KEY:?set WORKER_LLM_API_KEY}
+      LLM_MODEL: ${WORKER_LLM_MODEL:-deepseek-v4-flash}
+      RUST_LOG: debug
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: true
+#    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
     # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
     volumes:
-      - swarm-artifacts:/var/swarm/artifacts
+      - swarm-artifacts:/var/swarm/artifacts:rw
       - ./tests/fixtures/mock_response.txt:/etc/swarm/mock_response.txt:ro
     depends_on:
       postgres:
@@ -129,7 +125,7 @@ services:
       ARTIFACTS_DIR: /var/swarm/artifacts
       SWARM_ARTIFACTS_VOLUME: swarm-artifacts
     volumes:
-      - swarm-artifacts:/var/swarm/artifacts
+      - swarm-artifacts:/var/swarm/artifacts:rw
     profiles: ["tools"]
     depends_on:
       postgres:

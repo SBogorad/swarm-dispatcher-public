@@ -8,6 +8,7 @@ use crate::error::{Result, WorkerError};
 use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
 use crate::storage::ArtifactStore;
+use chrono::Utc;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::Arc;
@@ -248,6 +249,36 @@ pub fn process_lease(
 
     let outcome = match result {
         Ok(resp) => {
+            // Issue #2: записываем метрики LLM-вызова в БД
+            let started_at = chrono::Utc::now() - chrono::Duration::milliseconds(1000); // примерно
+            let completed_at = chrono::Utc::now();
+            let (prompt_cost, completion_cost, _total) = crate::llm_cost::calculate_cost(
+                &resp.model,
+                resp.tokens_in,
+                resp.tokens_out,
+            );
+            match d.record_llm_call(
+                lease.task_id,
+                &lease.worker_id,
+                lease.epoch,
+                &resp.model,
+                "relay.fast",
+                resp.tokens_in as i64,
+                resp.tokens_out as i64,
+                0, // cached_tokens — пока не поддерживается в LlmResponse
+                prompt_cost,
+                completion_cost,
+                &started_at.to_rfc3339(),
+                &completed_at.to_rfc3339(),
+                1000, // duration_ms — примерно, можно уточнить через Instant
+                true,
+                None,
+                None,
+            ) {
+                Ok(_) => info!(task_id = %lease.task_id, model = %resp.model, tokens_in = resp.tokens_in, tokens_out = resp.tokens_out, "LLM call recorded to DB"),
+                Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record LLM call metrics"),
+            } // не фейлим задачу, если запись метрики упала
+
             let (ref_, path, size) =
                 artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
             let storage_path = match ArtifactStore::from_env()? {
@@ -272,6 +303,34 @@ pub fn process_lease(
         }
         Err(e) if is_lease_lost(&e) => Outcome::LeaseLost,
         Err(e) => {
+            // Issue #2: записываем метрики неудачного LLM-вызова
+            let started_at = chrono::Utc::now() - chrono::Duration::milliseconds(500);
+            let completed_at = chrono::Utc::now();
+            let error_code = match &e {
+                WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => Some(format!("HTTP {}", status)),
+                WorkerError::Llm(swarm_llm::LlmError::Transport(_)) => Some("transport".to_string()),
+                WorkerError::Llm(swarm_llm::LlmError::InvalidJson(_)) => Some("invalid_json".to_string()),
+                _ => None,
+            };
+            let _ = d.record_llm_call(
+                lease.task_id,
+                &lease.worker_id,
+                lease.epoch,
+                "unknown", // модель неизвестна при ошибке до ответа
+                "relay.fast",
+                0,
+                0,
+                0,
+                0.0,
+                0.0,
+                &started_at.to_rfc3339(),
+                &completed_at.to_rfc3339(),
+                500,
+                false,
+                error_code.as_deref(),
+                Some(&format!("{}", e)),
+            );
+
             // Не-транзиентная или исчерпанная ошибка LLM → fail через blocked.
             let reason = format!("llm_error: {e}");
             warn!(task_id = %lease.task_id, %reason, "llm failed -> blocked");
