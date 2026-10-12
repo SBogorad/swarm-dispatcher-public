@@ -326,7 +326,7 @@ impl SwarmDispatcher {
                   prompt_tokens, completion_tokens, cached_tokens, \
                   prompt_cost_usd, completion_cost_usd, total_cost_usd, \
                   started_at, completed_at, duration_ms, success, error_code, error_message) \
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, $13::timestamptz, $14, $15, $16, $17)",
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::float8::numeric, $10::float8::numeric, $11::float8::numeric, $12::timestamptz, $13::timestamptz, $14, $15, $16, $17)",
                 &[
                     &task_id,
                     &worker_id,
