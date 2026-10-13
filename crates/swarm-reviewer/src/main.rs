@@ -44,8 +44,11 @@ struct ReviewerConfig {
 fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::from_default_env()
-                .add_directive("swarm_reviewer=info".parse().expect("static directive is valid")),
+            EnvFilter::from_default_env().add_directive(
+                "swarm_reviewer=info"
+                    .parse()
+                    .expect("static directive is valid"),
+            ),
         )
         .json()
         .init();
@@ -209,14 +212,20 @@ fn verify(contract: &Value, text: Option<&str>, min_bytes: usize) -> (Verdict, V
             .unwrap_or_default();
         return (
             Verdict::ChangesRequested,
-            vec![format!("исполнитель вернул ошибку: {}", truncate(&detail, 120))],
+            vec![format!(
+                "исполнитель вернул ошибку: {}",
+                truncate(&detail, 120)
+            )],
         );
     }
     let _ = contract;
     if body.len() < min_bytes {
         return (
             Verdict::ChangesRequested,
-            vec![format!("слишком короткий результат ({} символов)", body.len())],
+            vec![format!(
+                "слишком короткий результат ({} символов)",
+                body.len()
+            )],
         );
     }
     (Verdict::Approved, Vec::new())
@@ -322,7 +331,11 @@ mod tests {
         assert_eq!(arr[1]["artifact_ref"], "sha256:abc");
         // Провал: тот же набор ключей, но status=fail — гейт не пропустит approved.
         let bad = checks_for(&c, "sha256:abc", false);
-        assert!(bad.as_array().unwrap().iter().all(|c| c["status"] == "fail"));
+        assert!(bad
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["status"] == "fail"));
     }
 
     #[test]
@@ -331,10 +344,7 @@ mod tests {
             "volume://swarm-artifacts/deadbeef.txt",
             Path::new("/var/swarm/artifacts"),
         );
-        assert_eq!(
-            cands[0],
-            PathBuf::from("/var/swarm/artifacts/deadbeef.txt")
-        );
+        assert_eq!(cands[0], PathBuf::from("/var/swarm/artifacts/deadbeef.txt"));
     }
 
     #[test]
