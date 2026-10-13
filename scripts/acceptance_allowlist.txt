@@ -118,3 +118,9 @@ scripts/model_quality_report.py
 scripts/fetch_model_catalog.py
 tests/test_model_quality.py
 tests/test_model_catalog.py
+
+# Issue #1: архитектурные проверки ast-grep (Rust AST вместо regexp).
+# Конфиг, три правила и фикстуры к ним; прогон — в CI-гейте (release-gate.yml).
+sgconfig.yml
+.ast-grep/*
+.ast-grep/**

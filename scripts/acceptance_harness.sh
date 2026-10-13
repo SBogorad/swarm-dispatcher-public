@@ -683,6 +683,15 @@ review_gate_acceptance() {
 run_step "diff allowlist ($BASE..$BRANCH)" check_diff_scope
 run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
+# Issue #1: архитектурные проверки ast-grep. `test` проверяет сами правила по
+# фикстурам (падение → exit 4), `scan --error` — код репозитория (находка → exit 1).
+# Fail-closed: без инструмента гейт не «зелёный», а BLOCKED (как cargo/docker).
+if command -v ast-grep >/dev/null 2>&1; then
+  run_worktree_step "ast-grep rule fixtures (Issue #1)" ast-grep test --skip-snapshot-tests
+  run_worktree_step "ast-grep architecture scan (Issue #1)" ast-grep scan --error
+else
+  status BLOCKED "ast-grep unavailable: architecture checks not run"
+fi
 if command -v docker >/dev/null 2>&1; then
   run_step "compose config with dummy environment" compose_check
   run_step "provision disposable PostgreSQL 16 before Rust tests" provision_database

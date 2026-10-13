@@ -58,6 +58,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      # Issue #1: архитектурные проверки ast-grep (Rust AST, а не regexp).
+      # Ставим ДО дорогой сборки, чтобы падать быстро. Версия зафиксирована
+      # под локальную (0.50.0) — иначе правила/тесты могут разойтись с CI.
+      # `test` проверяет сами правила по фикстурам, `scan --error` — код
+      # репозитория (ненулевой код возврата при находках).
+      - name: Install ast-grep (architecture checks, Issue #1)
+        run: npm install -g @ast-grep/cli@0.50.0
+
+      - name: Run ast-grep architecture checks
+        run: |
+          ast-grep test --skip-snapshot-tests
+          ast-grep scan --error
+
       - name: Install uv (for pytest venv)
         uses: astral-sh/setup-uv@v5
 

@@ -119,7 +119,8 @@ fn build_model_selector(default_model: &str) -> Option<Arc<ModelSelector>> {
 fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::from_default_env().add_directive("swarm_worker=info".parse().unwrap()),
+            EnvFilter::from_default_env()
+                .add_directive("swarm_worker=info".parse().expect("static directive is valid")),
         )
         .json()
         .init();

@@ -134,6 +134,12 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
   `llm_model_quality` (миграция 010, `scripts/model_quality_report.py`).
   Включается `SWARM_MODEL_AUTOSELECT=1`; по умолчанию выключено — модель
   берётся из `LLM_MODEL`, поведение не меняется.
+· **Issue #1: архитектурные проверки ast-grep.** Три AST-правила в
+  `.ast-grep/rules/` (`no-unwrap-in-production`, `no-hardcoded-secrets`,
+  `required-error-context`) + фикстуры в `.ast-grep/tests/`. Гоняются в
+  `scripts/acceptance_harness.sh` (`ast-grep test` + `ast-grep scan --error`)
+  и в CI (`release-gate.yml`, до сборки). Локально: `ast-grep scan --error`.
+  Подавление одной находки — `// ast-grep-ignore: <rule-id>`.
 
 ---
 
