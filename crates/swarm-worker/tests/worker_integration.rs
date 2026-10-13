@@ -11,7 +11,7 @@ use std::sync::Mutex;
 
 use swarm_core::{SwarmDispatcher, Verdict};
 use swarm_llm::{LlmClient, LlmError, LlmRequest, LlmResponse};
-use swarm_worker::{process_lease, BudgetPolicy, Outcome, RetryPolicy, WorkerConfig};
+use swarm_worker::{process_lease, BudgetPolicy, Outcome, RetryPolicy, RunLimits, WorkerConfig};
 
 fn dsn() -> String {
     std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| {
@@ -88,6 +88,8 @@ fn cfg(dir: &PathBuf) -> WorkerConfig {
         },
         work_sec: 0,
         budget: BudgetPolicy::default(),
+        run_limits: RunLimits::default(),
+        llm_calls: None,
     }
 }
 
@@ -257,6 +259,56 @@ fn worker_retry_on_timeout() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// Issue #4: счётчик LLM-вызовов учитывает РЕТРАИ — именно на него опирается
+// `max_llm_calls` (лимит прохода). Без этого ретраи обходили бы лимит.
+#[test]
+fn worker_counts_llm_calls_including_retries() {
+    let mut d = admin();
+    let dir = tmpdir("llmcount");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let _t = ready_task("count", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Timeout, Step::Timeout, Step::Ok("done".into())]);
+    let mut c = cfg(&dir);
+    let counter = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+    c.llm_calls = Some(counter.clone());
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &c, None).unwrap();
+    assert!(matches!(out, Outcome::Review { .. }), "got {out:?}");
+    assert_eq!(
+        counter.load(Ordering::SeqCst),
+        3,
+        "счётчик должен учесть все 3 попытки (2 таймаута + успех)"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Issue #4: счётчик считает и НЕУДАЧНЫЙ вызов (без ретрая) — лимит не обходится
+// ошибками провайдера.
+#[test]
+fn worker_counts_failed_llm_call() {
+    let mut d = admin();
+    let dir = tmpdir("llmfail");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let _t = ready_task("failcount", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Http(400)]);
+    let mut c = cfg(&dir);
+    let counter = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+    c.llm_calls = Some(counter.clone());
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &c, None).unwrap();
+    assert!(matches!(out, Outcome::Blocked { .. }), "got {out:?}");
+    assert_eq!(
+        counter.load(Ordering::SeqCst),
+        1,
+        "неудачный вызов тоже должен считаться"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 // 4. 4xx → без retry, задача уходит в blocked.
 #[test]
 fn worker_no_retry_on_4xx() {
@@ -383,23 +435,40 @@ fn worker_empty_response_is_not_done() {
         matches!(out, Outcome::Blocked { .. }),
         "пустой ответ должен быть Blocked, got {out:?}"
     );
-    assert_ne!(state_of(t), "review", "пустая работа не должна уходить в review");
+    assert_ne!(
+        state_of(t),
+        "review",
+        "пустая работа не должна уходить в review"
+    );
     assert_ne!(state_of(t), "done");
     assert_eq!(state_of(t), "blocked");
-    assert_eq!(llm.calls(), 1, "пустой ответ не ретраится (это не transient)");
+    assert_eq!(
+        llm.calls(),
+        1,
+        "пустой ответ не ретраится (это не transient)"
+    );
 
     // Причина зафиксирована, а result_ref указывает на маркер-ошибку, не на «результат».
     let (block_reason, result_ref): (Option<String>, Option<String>) = {
         let r = raw()
-            .query_one("select block_reason, result_ref from tasks where id=$1", &[&t])
+            .query_one(
+                "select block_reason, result_ref from tasks where id=$1",
+                &[&t],
+            )
             .unwrap();
         (r.get(0), r.get(1))
     };
     assert!(
-        block_reason.as_deref().unwrap_or("").contains("empty_response"),
+        block_reason
+            .as_deref()
+            .unwrap_or("")
+            .contains("empty_response"),
         "block_reason должен содержать empty_response, got {block_reason:?}"
     );
-    assert!(result_ref.is_some(), "маркер ошибки должен быть сохранён как артефакт");
+    assert!(
+        result_ref.is_some(),
+        "маркер ошибки должен быть сохранён как артефакт"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -482,7 +551,10 @@ fn worker_error_paths_record_cost() {
         (r.get(0), r.get(1))
     };
     assert!(rows >= 1, "неудачный вызов должен попасть в llm_calls");
-    assert_eq!(failed, rows, "все записи по ошибочному пути — success=false");
+    assert_eq!(
+        failed, rows,
+        "все записи по ошибочному пути — success=false"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 

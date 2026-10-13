@@ -4,13 +4,13 @@
 //! save_artifact → complete. Никаких subprocess — это v0.4.
 
 use crate::artifacts;
-use crate::budget::{self, BudgetPolicy};
+use crate::budget::{self, BudgetPolicy, RunLimits};
 use crate::error::{Result, WorkerError};
 use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
 use crate::storage::ArtifactStore;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU8, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -29,6 +29,11 @@ pub struct WorkerConfig {
     pub work_sec: u64,
     /// Issue #3: hard budget guard (глобальный лимит + auth circuit breaker).
     pub budget: BudgetPolicy,
+    /// Issue #4: жёсткие пределы прохода (max_llm_calls / max_duration_sec).
+    pub run_limits: RunLimits,
+    /// Issue #4: счётчик реально сделанных LLM-вызовов (включая ретраи).
+    /// Разделяется с главным циклом (`main.rs`), который останавливает проход.
+    pub llm_calls: Option<Arc<AtomicU32>>,
 }
 
 impl Default for WorkerConfig {
@@ -41,6 +46,8 @@ impl Default for WorkerConfig {
             retry: RetryPolicy::default(),
             work_sec: 0,
             budget: BudgetPolicy::default(),
+            run_limits: RunLimits::default(),
+            llm_calls: None,
         }
     }
 }
@@ -244,22 +251,31 @@ pub fn process_lease(
             warn!(task_id = %lease.task_id, error = %e, "budget guard: ledger unavailable -> fail-closed");
             let reason = format!("budget_check_failed: {e}");
             let ref_ = fail_artifact(cfg, lease, &reason)?;
-            d.save_artifact(lease, &ref_, &path_str(cfg, &ref_), Some("text/plain"), None)?;
+            d.save_artifact(
+                lease,
+                &ref_,
+                &path_str(cfg, &ref_),
+                Some("text/plain"),
+                None,
+            )?;
             let st = d.fail_with_state(lease, Some(&ref_), &reason, "failed")?;
             drop(hb);
             return Ok(blocked_or_review(st, ref_, &reason));
         }
     };
-    if let Err(block) = budget::check_before_call(
-        &cfg.budget,
-        spent_usd,
-        lease.spent_tokens,
-        lease.budget_cap,
-    ) {
+    if let Err(block) =
+        budget::check_before_call(&cfg.budget, spent_usd, lease.spent_tokens, lease.budget_cap)
+    {
         let reason = block.reason();
         warn!(task_id = %lease.task_id, reason = %reason, spent_usd, "budget guard: blocking before LLM call");
         let ref_ = fail_artifact(cfg, lease, &reason)?;
-        d.save_artifact(lease, &ref_, &path_str(cfg, &ref_), Some("text/plain"), None)?;
+        d.save_artifact(
+            lease,
+            &ref_,
+            &path_str(cfg, &ref_),
+            Some("text/plain"),
+            None,
+        )?;
         let st = d.fail_with_state(lease, Some(&ref_), &reason, block.state())?;
         drop(hb);
         return Ok(blocked_or_review(st, ref_, &reason));
@@ -292,11 +308,8 @@ pub fn process_lease(
     let outcome = match result {
         Ok(resp) => {
             // Issue #2: записываем метрики LLM-вызова в БД (реальное время вызова).
-            let (prompt_cost, completion_cost, _total) = crate::llm_cost::calculate_cost(
-                &resp.model,
-                resp.tokens_in,
-                resp.tokens_out,
-            );
+            let (prompt_cost, completion_cost, _total) =
+                crate::llm_cost::calculate_cost(&resp.model, resp.tokens_in, resp.tokens_out);
             // Issue #2: неизвестная модель считается по консервативной оценке —
             // это сигнал, а не молчаливая подмена цены.
             if !crate::llm_cost::is_known_model(&resp.model) {
@@ -326,8 +339,12 @@ pub fn process_lease(
                 // Issue #2: успешный вызов отвечал 200.
                 Some(200),
             ) {
-                Ok(_) => info!(task_id = %lease.task_id, model = %resp.model, tokens_in = resp.tokens_in, tokens_out = resp.tokens_out, "LLM call recorded to DB"),
-                Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record LLM call metrics"),
+                Ok(_) => {
+                    info!(task_id = %lease.task_id, model = %resp.model, tokens_in = resp.tokens_in, tokens_out = resp.tokens_out, "LLM call recorded to DB")
+                }
+                Err(e) => {
+                    warn!(task_id = %lease.task_id, error = ?e, "Failed to record LLM call metrics")
+                }
             } // не фейлим задачу, если запись метрики упала
 
             // Issue #5: пустой ответ — не полезный артефакт.
@@ -378,9 +395,15 @@ pub fn process_lease(
         Err(e) => {
             // Issue #2: записываем метрики неудачного LLM-вызова (реальное время вызова).
             let error_code = match &e {
-                WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => Some(format!("HTTP {}", status)),
-                WorkerError::Llm(swarm_llm::LlmError::Transport(_)) => Some("transport".to_string()),
-                WorkerError::Llm(swarm_llm::LlmError::InvalidJson(_)) => Some("invalid_json".to_string()),
+                WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => {
+                    Some(format!("HTTP {}", status))
+                }
+                WorkerError::Llm(swarm_llm::LlmError::Transport(_)) => {
+                    Some("transport".to_string())
+                }
+                WorkerError::Llm(swarm_llm::LlmError::InvalidJson(_)) => {
+                    Some("invalid_json".to_string())
+                }
                 _ => None,
             };
             // Issue #2: HTTP-код ошибки — явной колонкой. Для transport/timeout/
@@ -409,7 +432,9 @@ pub fn process_lease(
                 http_status,
             ) {
                 Ok(_) => info!(task_id = %lease.task_id, "Failed LLM call recorded to DB"),
-                Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record failed LLM call metrics"),
+                Err(e) => {
+                    warn!(task_id = %lease.task_id, error = ?e, "Failed to record failed LLM call metrics")
+                }
             }
 
             // Не-транзиентная или исчерпанная ошибка LLM → fail.
@@ -422,7 +447,10 @@ pub fn process_lease(
             };
             let auth = budget::is_auth_failure(status);
             let reason = if auth {
-                format!("auth_failed: LLM provider rejected credentials (HTTP {})", status.unwrap_or(0))
+                format!(
+                    "auth_failed: LLM provider rejected credentials (HTTP {})",
+                    status.unwrap_or(0)
+                )
             } else {
                 format!("llm_error: {e}")
             };
@@ -526,6 +554,11 @@ fn call_llm_with_retries(
 
     let mut attempt = 0u32;
     loop {
+        // Issue #4: считаем КАЖДЫЙ вызов LLM (включая ретраи) — главный цикл
+        // останавливает проход по `max_llm_calls`.
+        if let Some(counter) = &cfg.llm_calls {
+            counter.fetch_add(1, Ordering::SeqCst);
+        }
         match llm.complete(&req) {
             Ok(r) => return Ok(r),
             Err(e) => {

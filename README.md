@@ -123,6 +123,10 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
 · Fencing token через lease_epoch — защита от зомби-воркеров.
 · Хэш-цепочка событий — non-repudiation.
 · Recursive cascade — откат всего поддерева графа.
+· **Issue #3/#4: предохранители расходов и контролируемый проход.** Глобальный
+  лимит `MAX_TOTAL_COST_USD` (из cost ledger, fail-closed) и circuit breaker на
+  401/403; жёсткие пределы прохода `MAX_LLM_CALLS` / `MAX_DURATION_SEC` и режим
+  `RUN_ONCE=1` (одна задача — один проход). 0 = без лимита.
 
 ---
 

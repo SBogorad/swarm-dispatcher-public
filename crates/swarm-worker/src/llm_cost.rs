@@ -41,11 +41,7 @@ pub fn is_known_model(model: &str) -> bool {
 /// Расчёт стоимости вызова LLM (USD).
 ///
 /// Возвращает `(prompt_cost, completion_cost, total_cost)`.
-pub fn calculate_cost(
-    model: &str,
-    prompt_tokens: u32,
-    completion_tokens: u32,
-) -> (f64, f64, f64) {
+pub fn calculate_cost(model: &str, prompt_tokens: u32, completion_tokens: u32) -> (f64, f64, f64) {
     let (prompt_per_1m, completion_per_1m) = price_per_1m(model).unwrap_or(UNKNOWN_MODEL_PRICE);
 
     let prompt_cost = (prompt_tokens as f64 / 1_000_000.0) * prompt_per_1m;
