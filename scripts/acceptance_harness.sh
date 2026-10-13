@@ -636,6 +636,7 @@ review_gate_acceptance() {
     "step2b/test_roles_2b.py|worker identity, SET ROLE, id collisions (P0 #4)"
     "step2/test_review_gate.py|review-gate negative tests (P0 #5)"
     "tests/test_v0.py|state machine: lease/epoch, add_dep, reopen cascade (P0 #6/#7)"
+    "tests/test_cost_reconciliation.py|cost ledger reconciliation vs relay.fast (Issue #2)"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
