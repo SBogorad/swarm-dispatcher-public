@@ -266,7 +266,15 @@ pub fn process_lease(
     }
 
     // Вызов LLM с ретраями.
+    //
+    // Issue #2: время измеряется реально (`Instant` вокруг вызова), а не
+    // фабрикуется. Раньше в ledger писалось `duration_ms = 1000` и
+    // `started_at = now - 1s` («примерно») — это делало метрики недостоверными.
+    let call_started_at = chrono::Utc::now();
+    let call_started = Instant::now();
     let result = call_llm_with_retries(llm, &contract, cfg);
+    let call_duration_ms = call_started.elapsed().as_millis() as i64;
+    let call_completed_at = chrono::Utc::now();
 
     // F5: повторная проверка после LLM — если аренду потеряли во время работы,
     // не пытаемся сохранять артефакт/завершать (это всё равно LS001).
@@ -283,14 +291,21 @@ pub fn process_lease(
 
     let outcome = match result {
         Ok(resp) => {
-            // Issue #2: записываем метрики LLM-вызова в БД
-            let started_at = chrono::Utc::now() - chrono::Duration::milliseconds(1000); // примерно
-            let completed_at = chrono::Utc::now();
+            // Issue #2: записываем метрики LLM-вызова в БД (реальное время вызова).
             let (prompt_cost, completion_cost, _total) = crate::llm_cost::calculate_cost(
                 &resp.model,
                 resp.tokens_in,
                 resp.tokens_out,
             );
+            // Issue #2: неизвестная модель считается по консервативной оценке —
+            // это сигнал, а не молчаливая подмена цены.
+            if !crate::llm_cost::is_known_model(&resp.model) {
+                warn!(
+                    task_id = %lease.task_id,
+                    model = %resp.model,
+                    "unknown model price: cost is an estimate, add it to llm_cost.rs"
+                );
+            }
             match d.record_llm_call(
                 lease.task_id,
                 &lease.worker_id,
@@ -302,12 +317,14 @@ pub fn process_lease(
                 0, // cached_tokens — пока не поддерживается в LlmResponse
                 prompt_cost,
                 completion_cost,
-                &started_at.to_rfc3339(),
-                &completed_at.to_rfc3339(),
-                1000, // duration_ms — примерно, можно уточнить через Instant
+                &call_started_at.to_rfc3339(),
+                &call_completed_at.to_rfc3339(),
+                call_duration_ms,
                 true,
                 None,
                 None,
+                // Issue #2: успешный вызов отвечал 200.
+                Some(200),
             ) {
                 Ok(_) => info!(task_id = %lease.task_id, model = %resp.model, tokens_in = resp.tokens_in, tokens_out = resp.tokens_out, "LLM call recorded to DB"),
                 Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record LLM call metrics"),
@@ -359,13 +376,17 @@ pub fn process_lease(
         }
         Err(e) if is_lease_lost(&e) => Outcome::LeaseLost,
         Err(e) => {
-            // Issue #2: записываем метрики неудачного LLM-вызова
-            let started_at = chrono::Utc::now() - chrono::Duration::milliseconds(500);
-            let completed_at = chrono::Utc::now();
+            // Issue #2: записываем метрики неудачного LLM-вызова (реальное время вызова).
             let error_code = match &e {
                 WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => Some(format!("HTTP {}", status)),
                 WorkerError::Llm(swarm_llm::LlmError::Transport(_)) => Some("transport".to_string()),
                 WorkerError::Llm(swarm_llm::LlmError::InvalidJson(_)) => Some("invalid_json".to_string()),
+                _ => None,
+            };
+            // Issue #2: HTTP-код ошибки — явной колонкой. Для transport/timeout/
+            // parse HTTP-ответа нет — честный NULL, а не выдуманный 0.
+            let http_status: Option<i32> = match &e {
+                WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => Some(*status as i32),
                 _ => None,
             };
             match d.record_llm_call(
@@ -379,12 +400,13 @@ pub fn process_lease(
                 0,
                 0.0,
                 0.0,
-                &started_at.to_rfc3339(),
-                &completed_at.to_rfc3339(),
-                500,
+                &call_started_at.to_rfc3339(),
+                &call_completed_at.to_rfc3339(),
+                call_duration_ms,
                 false,
                 error_code.as_deref(),
                 Some(&format!("{}", e)),
+                http_status,
             ) {
                 Ok(_) => info!(task_id = %lease.task_id, "Failed LLM call recorded to DB"),
                 Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record failed LLM call metrics"),

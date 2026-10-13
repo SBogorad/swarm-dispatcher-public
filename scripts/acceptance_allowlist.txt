@@ -98,3 +98,8 @@ crates/swarm-reviewer/*
 crates/swarm-reviewer/**
 Dockerfile
 step2/test_roles.py
+
+# Issue #2: достоверный cost ledger (реальное время вызова, http_status,
+# сверка с relay.fast, алерт при расхождении >5%).
+scripts/reconcile_llm_cost.py
+tests/test_cost_reconciliation.py

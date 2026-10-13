@@ -329,6 +329,7 @@ impl SwarmDispatcher {
     // ---------- Issue #2: Cost ledger ----------
 
     /// Записать метрики LLM-вызова для точного учёта расходов.
+    #[allow(clippy::too_many_arguments)]
     pub fn record_llm_call(
         &mut self,
         task_id: Uuid,
@@ -347,6 +348,7 @@ impl SwarmDispatcher {
         success: bool,
         error_code: Option<&str>,
         error_message: Option<&str>,
+        http_status: Option<i32>,
     ) -> Result<(), DispatcherError> {
         let total_cost = prompt_cost_usd + completion_cost_usd;
         self.client
@@ -355,8 +357,9 @@ impl SwarmDispatcher {
                  (task_id, worker_id, lease_epoch, model, provider, \
                   prompt_tokens, completion_tokens, cached_tokens, \
                   prompt_cost_usd, completion_cost_usd, total_cost_usd, \
-                  started_at, completed_at, duration_ms, success, error_code, error_message) \
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::float8::numeric, $10::float8::numeric, $11::float8::numeric, $12::text::timestamptz, $13::text::timestamptz, $14, $15, $16, $17)",
+                  started_at, completed_at, duration_ms, success, error_code, error_message, \
+                  http_status) \
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::float8::numeric, $10::float8::numeric, $11::float8::numeric, $12::text::timestamptz, $13::text::timestamptz, $14, $15, $16, $17, $18)",
                 &[
                     &task_id,
                     &worker_id,
@@ -375,6 +378,7 @@ impl SwarmDispatcher {
                     &success,
                     &error_code,
                     &error_message,
+                    &http_status,
                 ],
             )
             .map_err(DispatcherError::from_pg)?;
