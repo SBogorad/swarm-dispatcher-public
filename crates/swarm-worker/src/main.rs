@@ -12,6 +12,8 @@
 //! - `WORKER_LLM_TIMEOUT_SEC` (по умолчанию 300)
 //! - `MAX_TOTAL_COST_USD` (по умолчанию 5.0) — глобальный лимит расходов (Issue #3)
 //! - `MAX_CONSECUTIVE_ERRORS` (по умолчанию 5) — порог самоотключения воркера
+//! - `SWARM_POLL_INTERVAL_MS` (по умолчанию 2000) — базовая задержка опроса
+//! - `SWARM_POLL_MAX_MS` (по умолчанию 30000) — потолок backoff при простое
 //! - `LLM_*` — см. swarm-llm
 
 use std::path::PathBuf;
@@ -22,7 +24,7 @@ use std::time::Duration;
 
 use swarm_core::SwarmDispatcher;
 use swarm_llm::{from_env as llm_from_env, LlmClient};
-use swarm_worker::{process_lease, BudgetPolicy, Outcome, RetryPolicy, WorkerConfig};
+use swarm_worker::{process_lease, BudgetPolicy, Outcome, PollPolicy, RetryPolicy, WorkerConfig};
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
@@ -126,10 +128,19 @@ fn main() {
     }
 
     let mut consecutive_errors = 0u32;
+    // Issue #15: backoff опроса вместо busy-poll. В простое интервал растёт
+    // 2с → 4с → … → 30с; при получении задачи сбрасывается. Раньше воркер
+    // дёргал claim_task каждые 2 с вхолостую (2 воркера = 60 запросов/мин).
+    let poll = PollPolicy::from_env(
+        std::env::var("SWARM_POLL_INTERVAL_MS").ok().and_then(|s| s.parse().ok()),
+        std::env::var("SWARM_POLL_MAX_MS").ok().and_then(|s| s.parse().ok()),
+    );
+    let mut idle_rounds = 0u32;
     while !shutdown.load(Ordering::SeqCst) {
         match d.claim(&worker_id, lease_sec) {
             Ok(Some(lease)) => {
                 consecutive_errors = 0;
+                idle_rounds = 0;
                 if crash {
                     warn!(task_id = %lease.task_id, "CRASH_AFTER_CLAIM=1, exiting");
                     std::process::exit(1);
@@ -149,10 +160,14 @@ fn main() {
             }
             Ok(None) => {
                 consecutive_errors = 0;
-                thread::sleep(Duration::from_secs(2));
+                let delay = poll.idle_delay(idle_rounds);
+                idle_rounds = idle_rounds.saturating_add(1);
+                tracing::debug!(idle_rounds, delay_ms = delay.as_millis(), "queue empty, backing off");
+                thread::sleep(delay);
             }
             Err(e) => {
                 consecutive_errors += 1;
+                idle_rounds = 0;
                 error!(error = %e, attempts = consecutive_errors, "claim failed");
                 thread::sleep(Duration::from_secs((consecutive_errors as u64).min(30)));
             }
