@@ -278,24 +278,57 @@ fn worker_no_retry_on_4xx() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-// 5. Превышение бюджета токенов → blocked.
+// 5. Глобальный лимит расходов исчерпан → budget_exhausted, БЕЗ вызова LLM.
 #[test]
-fn worker_budget_exhausted() {
+fn worker_global_budget_exhausted_blocks_before_llm() {
     let mut d = admin();
-    let dir = tmpdir("budget");
+    let dir = tmpdir("gbudget");
     d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
         .unwrap();
-    // budget_cap = 5, а mock вернёт tokens_in+tokens_out=30 → 30 > 5 → blocked.
-    let t = ready_task("budget", 5);
+    let t = ready_task("budget", 100_000);
 
-    let llm = MockLlm::new(vec![Step::Ok("too-expensive".into())]);
+    // Ledger уже показывает расход $6 при глобальном лимите $5 (cfg по умолчанию) → стоп.
+    raw()
+        .execute(
+            "insert into llm_calls (task_id, worker_id, lease_epoch, model, prompt_tokens, \
+             completion_tokens, prompt_cost_usd, completion_cost_usd, total_cost_usd, \
+             started_at, completed_at, duration_ms, success) \
+             values ($1, 'w1', 0, 'mock', 100, 100, 3.0, 3.0, 6.0, now(), now(), 1, true)",
+            &[&t],
+        )
+        .unwrap();
+
+    let llm = MockLlm::new(vec![Step::Ok("should-not-run".into())]);
     let lease = d.claim("w1", 60).unwrap().unwrap();
     let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
     assert!(
         matches!(out, Outcome::Blocked { .. }),
         "ожидался Blocked, got {out:?}"
     );
-    assert_eq!(state_of(t), "blocked");
+    assert_eq!(
+        llm.calls(),
+        0,
+        "при исчерпанном глобальном лимите LLM не должен вызываться вообще"
+    );
+    assert_eq!(state_of(t), "budget_exhausted");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// 6. 401/403 → failed (сбой авторизации, без ретраев).
+#[test]
+fn worker_auth_failure_goes_to_failed() {
+    let mut d = admin();
+    let dir = tmpdir("authfail");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let t = ready_task("auth", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Http(401)]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+    assert!(matches!(out, Outcome::Blocked { .. }), "got {out:?}");
+    assert_eq!(state_of(t), "failed", "401 → failed, а не blocked");
+    assert_eq!(llm.calls(), 1, "401 не должен ретраиться");
     let _ = std::fs::remove_dir_all(&dir);
 }
 
