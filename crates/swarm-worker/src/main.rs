@@ -12,19 +12,24 @@
 //! - `WORKER_LLM_TIMEOUT_SEC` (по умолчанию 300)
 //! - `MAX_TOTAL_COST_USD` (по умолчанию 5.0) — глобальный лимит расходов (Issue #3)
 //! - `MAX_CONSECUTIVE_ERRORS` (по умолчанию 5) — порог самоотключения воркера
+//! - `MAX_LLM_CALLS` (по умолчанию 0 = без лимита) — максимум LLM-вызовов за проход (Issue #4)
+//! - `MAX_DURATION_SEC` (по умолчанию 0 = без лимита) — максимум секунд на проход (Issue #4)
+//! - `RUN_ONCE` (0|1, по умолчанию 0) — один проход и выход (Issue #4)
 //! - `SWARM_POLL_INTERVAL_MS` (по умолчанию 2000) — базовая задержка опроса
 //! - `SWARM_POLL_MAX_MS` (по умолчанию 30000) — потолок backoff при простое
 //! - `LLM_*` — см. swarm-llm
 
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use swarm_core::SwarmDispatcher;
 use swarm_llm::{from_env as llm_from_env, LlmClient};
-use swarm_worker::{process_lease, BudgetPolicy, Outcome, PollPolicy, RetryPolicy, WorkerConfig};
+use swarm_worker::{
+    process_lease, BudgetPolicy, Outcome, PollPolicy, RetryPolicy, RunLimits, WorkerConfig,
+};
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
@@ -63,6 +68,7 @@ fn main() {
         })
         .unwrap_or_default();
 
+    let llm_calls = Arc::new(AtomicU32::new(0));
     let cfg = WorkerConfig {
         artifacts_dir: PathBuf::from(
             std::env::var("ARTIFACTS_DIR").unwrap_or_else(|_| "/var/swarm/artifacts".into()),
@@ -81,6 +87,13 @@ fn main() {
                 .unwrap_or(5.0),
             max_consecutive_errors: env_u64("MAX_CONSECUTIVE_ERRORS", 5) as u32,
         },
+        // Issue #4: жёсткие пределы прохода. 0 = без лимита (штатный воркер
+        // не меняет поведение); лимиты включаются явно для контролируемого прохода.
+        run_limits: RunLimits {
+            max_llm_calls: env_u64("MAX_LLM_CALLS", 0) as u32,
+            max_duration_sec: env_u64("MAX_DURATION_SEC", 0),
+        },
+        llm_calls: Some(llm_calls.clone()),
     };
 
     let llm: Box<dyn LlmClient> = match llm_from_env() {
@@ -132,11 +145,27 @@ fn main() {
     // 2с → 4с → … → 30с; при получении задачи сбрасывается. Раньше воркер
     // дёргал claim_task каждые 2 с вхолостую (2 воркера = 60 запросов/мин).
     let poll = PollPolicy::from_env(
-        std::env::var("SWARM_POLL_INTERVAL_MS").ok().and_then(|s| s.parse().ok()),
-        std::env::var("SWARM_POLL_MAX_MS").ok().and_then(|s| s.parse().ok()),
+        std::env::var("SWARM_POLL_INTERVAL_MS")
+            .ok()
+            .and_then(|s| s.parse().ok()),
+        std::env::var("SWARM_POLL_MAX_MS")
+            .ok()
+            .and_then(|s| s.parse().ok()),
     );
     let mut idle_rounds = 0u32;
+    // Issue #4: один проход — одна задача и выход (контролируемый прогон).
+    let run_once = std::env::var("RUN_ONCE").map(|s| s == "1").unwrap_or(false);
+    let run_started = Instant::now();
     while !shutdown.load(Ordering::SeqCst) {
+        // Issue #4: жёсткий предел прохода проверяем ПЕРЕД очередным claim.
+        // Счётчик llm_calls — общий с `process_lease` (включает ретраи).
+        if let Some(stop) = cfg.run_limits.check(
+            llm_calls.load(Ordering::SeqCst),
+            run_started.elapsed().as_secs(),
+        ) {
+            warn!(reason = %stop.reason(), "run limit reached; stopping worker");
+            break;
+        }
         match d.claim(&worker_id, lease_sec) {
             Ok(Some(lease)) => {
                 consecutive_errors = 0;
@@ -157,12 +186,21 @@ fn main() {
                     }
                     Err(e) => error!(error = %e, task_id = %lease.task_id, "task failed"),
                 }
+                // Issue #4: RUN_ONCE — одна задача и выход, без возврата в цикл.
+                if run_once {
+                    info!("RUN_ONCE=1: single pass complete; exiting");
+                    break;
+                }
             }
             Ok(None) => {
                 consecutive_errors = 0;
                 let delay = poll.idle_delay(idle_rounds);
                 idle_rounds = idle_rounds.saturating_add(1);
-                tracing::debug!(idle_rounds, delay_ms = delay.as_millis(), "queue empty, backing off");
+                tracing::debug!(
+                    idle_rounds,
+                    delay_ms = delay.as_millis(),
+                    "queue empty, backing off"
+                );
                 thread::sleep(delay);
             }
             Err(e) => {

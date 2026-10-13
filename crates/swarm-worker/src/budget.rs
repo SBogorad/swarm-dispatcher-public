@@ -45,6 +45,78 @@ impl Default for BudgetPolicy {
     }
 }
 
+/// Жёсткие лимиты ОДНОГО прохода воркера (Issue #4).
+///
+/// Issue #4: «установить жёсткий предел: max_llm_calls, max_duration_sec,
+/// max_cost_usd». Денежный лимит живёт в `BudgetPolicy` (Issue #3); здесь —
+/// счётчики, которые останавливают сам ЦИКЛ процесса, а не отдельную задачу:
+/// сколько LLM-вызовов сделано и сколько времени прошло с начала прохода.
+///
+/// `0` означает «без лимита» — это осознанный дефолт, чтобы штатный
+/// долгоживущий воркер не менял поведение. Лимиты включаются явно.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RunLimits {
+    /// Максимум LLM-вызовов за проход (0 — без лимита).
+    pub max_llm_calls: u32,
+    /// Максимум секунд с начала прохода (0 — без лимита).
+    pub max_duration_sec: u64,
+}
+
+impl Default for RunLimits {
+    fn default() -> Self {
+        Self {
+            max_llm_calls: 0,
+            max_duration_sec: 0,
+        }
+    }
+}
+
+/// Почему проход остановлен.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RunStop {
+    /// Сделано `made` вызовов при лимите `limit`.
+    LlmCalls { made: u32, limit: u32 },
+    /// Прошло `elapsed_sec` секунд при лимите `limit`.
+    Duration { elapsed_sec: u64, limit: u64 },
+}
+
+impl RunStop {
+    /// Строка для лога/артефакта.
+    pub fn reason(&self) -> String {
+        match self {
+            RunStop::LlmCalls { made, limit } => {
+                format!("run_limit: llm calls {made} >= {limit}")
+            }
+            RunStop::Duration { elapsed_sec, limit } => {
+                format!("run_limit: duration {elapsed_sec}s >= {limit}s")
+            }
+        }
+    }
+}
+
+impl RunLimits {
+    /// Проверить пределы прохода ПЕРЕД очередным claim.
+    ///
+    /// `None` — можно продолжать; `Some(RunStop)` — пора останавливаться.
+    /// Семантика «строго выше»: ровно на границе (`made == limit`) уже
+    /// останавливаемся — так лимит `1` означает ровно один вызов.
+    pub fn check(&self, llm_calls: u32, elapsed_sec: u64) -> Option<RunStop> {
+        if self.max_llm_calls > 0 && llm_calls >= self.max_llm_calls {
+            return Some(RunStop::LlmCalls {
+                made: llm_calls,
+                limit: self.max_llm_calls,
+            });
+        }
+        if self.max_duration_sec > 0 && elapsed_sec >= self.max_duration_sec {
+            return Some(RunStop::Duration {
+                elapsed_sec,
+                limit: self.max_duration_sec,
+            });
+        }
+        None
+    }
+}
+
 /// Причина блокировки. Отображается в `block_reason` и состояние задачи.
 #[derive(Debug, Clone, PartialEq)]
 pub enum BudgetBlock {
@@ -209,6 +281,64 @@ mod tests {
             check_before_call(&p, 9.0, 0, 100),
             Err(BudgetBlock::GlobalCap { .. })
         ));
+    }
+
+    #[test]
+    fn run_limits_zero_means_unlimited() {
+        let l = RunLimits::default();
+        assert_eq!(l.check(0, 0), None);
+        assert_eq!(l.check(10_000, 86_400), None);
+    }
+
+    #[test]
+    fn run_limits_stop_on_llm_calls() {
+        let l = RunLimits {
+            max_llm_calls: 3,
+            max_duration_sec: 0,
+        };
+        assert_eq!(l.check(2, 0), None);
+        // Ровно на границе — уже стоп: лимит 1 = ровно один вызов.
+        assert_eq!(l.check(3, 0), Some(RunStop::LlmCalls { made: 3, limit: 3 }));
+        assert!(matches!(l.check(4, 0), Some(RunStop::LlmCalls { .. })));
+    }
+
+    #[test]
+    fn run_limits_stop_on_duration() {
+        let l = RunLimits {
+            max_llm_calls: 0,
+            max_duration_sec: 60,
+        };
+        assert_eq!(l.check(0, 59), None);
+        assert_eq!(
+            l.check(0, 60),
+            Some(RunStop::Duration {
+                elapsed_sec: 60,
+                limit: 60
+            })
+        );
+    }
+
+    #[test]
+    fn run_limits_llm_calls_checked_first() {
+        let l = RunLimits {
+            max_llm_calls: 1,
+            max_duration_sec: 1,
+        };
+        // Оба предела достигнуты — приоритет у вызовов (детерминизм сообщения).
+        assert!(matches!(l.check(1, 1), Some(RunStop::LlmCalls { .. })));
+    }
+
+    #[test]
+    fn run_stop_reason_is_descriptive() {
+        assert!(RunStop::LlmCalls { made: 5, limit: 5 }
+            .reason()
+            .starts_with("run_limit: llm calls"));
+        assert!(RunStop::Duration {
+            elapsed_sec: 30,
+            limit: 30
+        }
+        .reason()
+        .starts_with("run_limit: duration"));
     }
 
     #[test]

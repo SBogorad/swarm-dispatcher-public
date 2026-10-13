@@ -26,7 +26,7 @@ pub use agent_loop::{
 };
 pub use allowlist::Allowlist;
 pub use audit::PgAuditSink;
-pub use budget::{BudgetBlock, BudgetPolicy};
+pub use budget::{BudgetBlock, BudgetPolicy, RunLimits, RunStop};
 pub use error::{Result, WorkerError};
 pub use poll::PollPolicy;
 pub use retry::RetryPolicy;
