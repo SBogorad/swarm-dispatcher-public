@@ -113,6 +113,18 @@ jobs:
       - name: Build sandbox image (agent-sandbox:1.85)
         run: docker build -t agent-sandbox:1.85 sandbox/
 
+      # Issue #21: SQL-мутации (S1-S5) требуют .venv/bin/python
+      # (scripts/run_mutations_sql.sh:54). Джоб gate ставил uv, а здесь шага
+      # не было — SQL-шаг падал с 'BLOCKED: .venv/bin/python not found',
+      # и S1-S5 НИКОГДА не исполнялись в CI (красный на master).
+      - name: Install uv and create pytest venv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Create .venv for SQL mutation arbiters
+        run: |
+          uv venv --quiet .venv
+          uv pip install --quiet --python .venv/bin/python pytest psycopg2-binary
+
       # Disposable PostgreSQL 16 (prefix v0 — скрипт сам проверяет
       # disposable-БД и fail-closed pre-conditions).
       - name: Provision disposable PostgreSQL 16
