@@ -103,3 +103,9 @@ step2/test_roles.py
 # сверка с relay.fast, алерт при расхождении >5%).
 scripts/reconcile_llm_cost.py
 tests/test_cost_reconciliation.py
+
+# Инцидент 2026-10-13: scratch-БД в боевом кластере + roles.sql/roles_2b.sql
+# (alter role ... password — cluster-wide) уронили прод. Предупреждения в
+# ролевых файлах + безопасный хелпер scratch-контейнера.
+step2/roles.sql
+scripts/scratch_pg.sh
