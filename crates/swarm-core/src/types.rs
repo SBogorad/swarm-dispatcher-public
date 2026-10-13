@@ -185,6 +185,19 @@ pub struct TaskStatusRow {
     pub block_reason: Option<String>,
 }
 
+/// Кандидат на ревью — строка `review_candidates()` (Issue #26).
+///
+/// Доступна роли `swarm_reviewer` (SECURITY DEFINER витрина), у которой нет
+/// прямого SELECT на `tasks`/`artifacts`.
+#[derive(Debug, Clone)]
+pub struct ReviewCandidate {
+    pub id: Uuid,
+    pub result_ref: Option<String>,
+    pub contract: serde_json::Value,
+    pub storage_path: Option<String>,
+    pub created_by: Option<String>,
+}
+
 /// Строка таблицы `tasks` для отображения в CLI / отчётах.
 #[derive(Debug, Clone)]
 pub struct TaskRow {

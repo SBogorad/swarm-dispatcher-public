@@ -90,3 +90,11 @@ scripts/run_mutations_sql.sh
 #    применять миграции. Миграция 003 переводит владельцев на swarm_owner.
 docker-compose.yml
 schema/migrations/*
+
+# Issue #26: сервис-ревьюер закрывает review -> done.
+# Новый крейт (Rust-бинарь в том же образе), витрина review_candidates,
+# проброс общего volume артефактов, DSN↔роль для reviewer и матрица прав.
+crates/swarm-reviewer/*
+crates/swarm-reviewer/**
+Dockerfile
+step2/test_roles.py

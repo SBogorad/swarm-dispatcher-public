@@ -69,6 +69,7 @@ CALLS = {
     "add_task":         f"select add_task('{uuid.uuid4()}', null, '{CONTRACT}'::jsonb, 100, 0)",
     "add_dep":          f"select add_dep({U}, {U.replace('1', '2')})",
     "submit_review":    f"select submit_review({U}, 'sha256:a', 'rev', 'approved', '[]'::jsonb)",
+    "review_candidates": "select * from review_candidates(10)",
     "verify_chain":     f"select verify_chain({U})",
     "reopen_task":      f"select reopen_task({U}, 'op')",
     "unblock_task":     f"select unblock_task({U}, 'op')",
@@ -87,7 +88,7 @@ ALLOWED = {
     "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
     "swarm_watchdog": {"reclaim_expired", "promote_ready"},
     "swarm_planner":  {"add_task", "add_dep", "promote_ready", "task_status"},
-    "swarm_reviewer": {"submit_review", "verify_chain"},
+    "swarm_reviewer": {"submit_review", "review_candidates", "verify_chain"},
     "swarm_operator": {"reopen_task", "unblock_task", "verify_chain", "task_status"},
 }
 ALLOWED["swarm_cli"] = ALLOWED["swarm_planner"] | ALLOWED["swarm_reviewer"] | ALLOWED["swarm_operator"]

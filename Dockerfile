@@ -34,6 +34,7 @@ COPY --from=builder /build/target/release/swarm-watchdog /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-worker   /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-cli      /usr/local/bin/
 COPY --from=builder /build/target/release/swarm-planner  /usr/local/bin/
+COPY --from=builder /build/target/release/swarm-reviewer /usr/local/bin/
 
 # F1: /var/swarm/artifacts уже создан выше (владелец 1001), поэтому именованный
 # volume, смонтированный сюда впервые, наследует uid 1001. Без этого volume
