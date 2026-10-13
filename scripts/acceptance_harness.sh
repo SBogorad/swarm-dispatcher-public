@@ -476,6 +476,54 @@ for name in sorted(workers):
     if svc.get("network_mode") == "host":
         fail(f"{name}: host network mode not allowed")
 print("PASS worker container boundary pinned: " + ", ".join(sorted(workers)))
+
+# Issue #24: DSN каждого сервиса обязан соответствовать его БД-роли.
+# Иначе сервис стартует, но падает на правах (watchdog под swarm_worker_w1
+# не имеет reclaim_expired/promote_ready -> цикл задач стоит).
+def get_env(svc, key):
+    env = svc.get("environment")
+    if isinstance(env, dict):
+        return env.get(key)
+    for e in env or []:
+        if str(e).startswith(key + "="):
+            return str(e)[len(key) + 1:]
+    return None
+
+def service_db_role(name, svc):
+    if name == "watchdog":
+        return "swarm_watchdog"
+    if name == "cli":
+        return "swarm_cli"
+    if name == "planner":
+        return "swarm_planner"
+    if name.startswith("worker-"):
+        # Роль = swarm_worker_<normalize(WORKER_ID)>; см. roles_2b.sql.
+        # normalize: lowercase + дефис -> подчёркивание ('w-1' -> 'w_1').
+        wid = get_env(svc, "WORKER_ID")
+        if not wid:
+            fail(f"{name}: WORKER_ID missing (cannot derive DB role)")
+        return "swarm_worker_" + str(wid).lower().replace("-", "_")
+    return None
+
+role_checked = []
+for name in sorted(services):
+    expected = service_db_role(name, services[name])
+    if expected is None:
+        continue
+    dsn = get_env(services[name], "DATABASE_URL")
+    if not dsn:
+        fail(f"{name}: DATABASE_URL missing (expected role {expected})")
+    # postgres://<user>:<pw>@host:port/db
+    try:
+        userinfo = dsn.split("://", 1)[1].split("@", 1)[0]
+        user = userinfo.split(":", 1)[0]
+    except IndexError:
+        fail(f"{name}: malformed DATABASE_URL")
+    if user != expected:
+        fail(f"{name}: DATABASE_URL role is '{user}', expected '{expected}'")
+    role_checked.append(f"{name}={user}")
+if role_checked:
+    print("PASS service DSN matches DB role: " + ", ".join(role_checked))
 PY
 }
 
