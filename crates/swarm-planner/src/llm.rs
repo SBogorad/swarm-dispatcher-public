@@ -23,6 +23,9 @@ pub struct LlmConfig {
 impl LlmConfig {
     /// Читает конфигурацию из env (прежние имена `PLANNER_LLM_*`).
     pub fn from_env() -> Result<Self> {
+        // Причина: у VarError ровно два варианта, а для отсутствующей
+        // переменной исходный текст не добавляет ничего к явному сообщению.
+        // ast-grep-ignore: required-error-context
         let provider = std::env::var("PLANNER_LLM_PROVIDER")
             .map_err(|_| PlannerError::Config("PLANNER_LLM_PROVIDER required".into()))?;
         let api_key = std::env::var("PLANNER_LLM_API_KEY").ok();

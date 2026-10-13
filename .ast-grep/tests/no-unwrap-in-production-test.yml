@@ -1,0 +1,33 @@
+# Issue #1: фикстуры для правила `no-unwrap-in-production`.
+#
+# `valid` — код, который правило НЕ должно трогать; `invalid` — который обязано.
+# Гоняется через `ast-grep test`.
+id: no-unwrap-in-production
+valid:
+  # `.expect()` с понятным сообщением — так и надо.
+  - |
+    fn ok() -> Result<i32, String> {
+        let x = foo().expect("сеть недоступна");
+        Ok(x)
+    }
+  # `.unwrap()` внутри `#[cfg(test)] mod tests` — норма (падение теста = сигнал).
+  - |
+    #[cfg(test)]
+    mod tests {
+        #[test]
+        fn t() {
+            let x = foo().unwrap();
+            assert_eq!(x, 1);
+        }
+    }
+invalid:
+  # `.unwrap()` в production-функции.
+  - |
+    fn bad() {
+        let x = foo().unwrap();
+    }
+  # `.unwrap()` в цепочке методов.
+  - |
+    fn bad_chain() -> i32 {
+        parse("1").unwrap().abs()
+    }

@@ -44,7 +44,8 @@ struct ReviewerConfig {
 fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::from_default_env().add_directive("swarm_reviewer=info".parse().unwrap()),
+            EnvFilter::from_default_env()
+                .add_directive("swarm_reviewer=info".parse().expect("static directive is valid")),
         )
         .json()
         .init();

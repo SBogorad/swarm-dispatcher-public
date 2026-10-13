@@ -15,6 +15,28 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Added (Issue #1: архитектурные проверки ast-grep)
+
+- **`ast-grep` вместо регулярных выражений.** Три правила в `.ast-grep/rules/`,
+  конфиг `sgconfig.yml`. AST-точность: `no-unwrap-in-production` ловит
+  `.unwrap()` в production-коде, но не трогает `#[cfg(test)] mod tests` и
+  интеграционные тесты/примеры (`files: **/src/**/*.rs`).
+- **Фикстуры к каждому правилу** (`.ast-grep/tests/*-test.yml`): `ast-grep test`
+  проверяет сами правила (валидный код не должен срабатывать, невалидный — должен).
+  Фикстура сразу вскрыла дыру: одиночный паттерн `$FIELD = "$VALUE"` не матчил
+  `let`-биндинг — `no-hardcoded-secrets` переведён на `any` из `let`/`const`/
+  `static`/field-инициализатора.
+- **Встроено в оба гейта.** Локально — `scripts/acceptance_harness.sh` (шаги
+  `ast-grep test` + `ast-grep scan --error`; без инструмента — BLOCKED, не «зелёно»);
+  в CI — `.github/workflows/release-gate.yml` ДО дорогой сборки (fail-fast).
+- **Версия зафиксирована** (`@ast-grep/cli@0.50.0`) — иначе правила и фикстуры
+  разойдутся с CI.
+- **Ограничение (проверено):** `ast-grep-ignore` уважается только в `scan`,
+  но НЕ в `ast-grep test` — в фикстурах исключения не проверяются.
+- Подавления оформляются как `// ast-grep-ignore: <rule-id>` (обязателен id:
+  голый `ast-grep-ignore` — ошибка `no-suppress-all`), а объяснение — отдельной
+  строкой выше (текст после двоеточия трактуется как id правила).
+
 ### Added (Issue #7/#10: выбор модели по цене успешного результата)
 
 - **Модель выбирается по измерению, а не по названию.** Дешёвая модель, которая

@@ -1,0 +1,13 @@
+# ast-grep: архитектурные проверки swarm-dispatcher (Issue #1).
+#
+# Запуск:
+#   ast-grep scan                      # все правила
+#   ast-grep scan --error              # ненулевой код возврата при находках (для CI)
+#   ast-grep test                      # проверить сами правила (фикстуры в .ast-grep/tests)
+#
+# Правила лежат в .ast-grep/rules/, фикстуры — в .ast-grep/tests/.
+# Подавление одной находки: строка-комментарий `// ast-grep-ignore` перед ней.
+ruleDirs:
+  - .ast-grep/rules
+testConfigs:
+  - testDir: .ast-grep/tests

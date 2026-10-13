@@ -1,0 +1,25 @@
+# Issue #1: фикстуры для правила `required-error-context`.
+#
+# `valid` — код, который правило НЕ должно трогать; `invalid` — который обязано.
+# Гоняется через `ast-grep test`.
+id: required-error-context
+valid:
+  # Причина сохраняется: `|e| …`.
+  - |
+    fn ok() -> Result<i32, String> {
+        let x = std::env::var("A").map_err(|e| e.to_string())?;
+        Ok(1)
+    }
+  # Преобразование типа сохраняет источник.
+  - |
+    fn ok_from() -> Result<i32, MyError> {
+        let x = std::env::var("A").map_err(MyError::from)?;
+        Ok(1)
+    }
+invalid:
+  # Полное отбрасывание причины: `|_| …`.
+  - |
+    fn bad() -> Result<i32, String> {
+        let x = std::env::var("A").map_err(|_| "A required".to_string())?;
+        Ok(1)
+    }

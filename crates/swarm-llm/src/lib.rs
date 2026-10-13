@@ -35,6 +35,9 @@ impl LlmConfig {
         // Обратная совместимость: PLANNER_LLM_* (если prefix == "PLANNER_").
         let legacy = |name: &str| std::env::var(format!("PLANNER_LLM_{name}"));
 
+        // Причина: у VarError ровно два варианта, а для отсутствующей
+        // переменной исходный текст не добавляет ничего к явному сообщению.
+        // ast-grep-ignore: required-error-context
         let provider = var("PROVIDER")
             .or_else(|_| legacy("PROVIDER"))
             .map_err(|_| LlmError::Config(format!("{prefix}PROVIDER required")))?;
