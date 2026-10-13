@@ -39,7 +39,10 @@ services:
     command: ["swarm-watchdog"]
     environment:
       # Раздельный DSN по сервисам (step 1/2): роль swarm_watchdog.
-      DATABASE_URL: postgres://swarm_worker_w1:${SWARM_PW_W1}@postgres:5432/swarm
+      # Issue #24: здесь ОБЯЗАНА быть роль swarm_watchdog (грант на
+      # reclaim_expired/promote_ready — step2/roles.sql). Воркерская роль
+      # не имеет этих прав, watchdog падал бы каждую итерацию.
+      DATABASE_URL: postgres://swarm_watchdog:${SWARM_PW_WATCHDOG}@postgres:5432/swarm
       WATCHDOG_INTERVAL: "10"
       RUST_LOG: swarm_watchdog=info
     depends_on:
