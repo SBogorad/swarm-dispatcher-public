@@ -15,6 +15,29 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Added (Issue #7/#10: выбор модели по цене успешного результата)
+
+- **Модель выбирается по измерению, а не по названию.** Дешёвая модель, которая
+  валится в `max_rework`, дороже дорогой, которая сдаёт с первого раза. Селектор
+  `crates/swarm-worker/src/model_selector.rs` берёт минимум
+  `cost_per_success_usd` — цены **успешного** результата.
+- **Каталог цен из живого прайса.** `scripts/fetch_model_catalog.py` тянет
+  `GET /api/pricing` и считает USD за 1M токенов:
+  `input = model_ratio * group_ratio * 2`, `output = input * completion_ratio`.
+  Формула сверена с per-call логом `/api/log/token` (`quota / 500000` совпадает
+  с ledger) — то есть цены не выдуманы, а подтверждены фактом.
+- **Статистика качества.** View `llm_model_quality` (миграция 010) считает по
+  модели `tasks`, `tasks_done`, `success_rate`, `cost_per_success_usd`,
+  `avg_rework` по терминальным задачам; `scripts/model_quality_report.py`
+  превращает её в JSON для воркера.
+- **Уровни задач.** Контракт может задать `quality_tier`; задача уровня `T`
+  уходит только модели с `quality_tier >= T` — слабая модель на сложной задаче
+  жжёт ретраи и дороже мощной.
+- **Выключено по умолчанию.** `SWARM_MODEL_AUTOSELECT=0` — модель берётся из
+  `LLM_MODEL`, как раньше. Любая проблема с каталогом/статистикой не роняет
+  воркер: деградация на одну модель с `warn`.
+- Юнит-тесты селектора (11) и каталога/отчёта (15, включая DB-тесты view).
+
 ### Added (Issue #4: один агент — один контролируемый проход)
 
 - **Жёсткие пределы прохода воркера.** `MAX_LLM_CALLS` (максимум LLM-вызовов

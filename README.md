@@ -127,6 +127,13 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
   лимит `MAX_TOTAL_COST_USD` (из cost ledger, fail-closed) и circuit breaker на
   401/403; жёсткие пределы прохода `MAX_LLM_CALLS` / `MAX_DURATION_SEC` и режим
   `RUN_ONCE=1` (одна задача — один проход). 0 = без лимита.
+· **Issue #7/#10: выбор модели по цене успешного результата.** Модель выбирается
+  не по названию, а по измеренной стоимости доведённой до `done` задачи
+  (`cost_per_success_usd`). Каталог цен — из `GET /api/pricing` relay.fast
+  (`scripts/fetch_model_catalog.py`), статистика качества — из view
+  `llm_model_quality` (миграция 010, `scripts/model_quality_report.py`).
+  Включается `SWARM_MODEL_AUTOSELECT=1`; по умолчанию выключено — модель
+  берётся из `LLM_MODEL`, поведение не меняется.
 
 ---
 

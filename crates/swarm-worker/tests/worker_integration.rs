@@ -90,6 +90,7 @@ fn cfg(dir: &PathBuf) -> WorkerConfig {
         budget: BudgetPolicy::default(),
         run_limits: RunLimits::default(),
         llm_calls: None,
+        model_selector: None,
     }
 }
 

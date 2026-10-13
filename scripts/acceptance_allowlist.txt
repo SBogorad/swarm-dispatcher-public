@@ -109,3 +109,12 @@ tests/test_cost_reconciliation.py
 # ролевых файлах + безопасный хелпер scratch-контейнера.
 step2/roles.sql
 scripts/scratch_pg.sh
+
+# Issue #7/#10: выбор модели по измеренной цене успешного результата.
+# Селектор в воркере, витрина качества (010) и отчёт по ней.
+crates/swarm-worker/src/model_selector.rs
+schema/migrations/010_llm_model_quality.sql
+scripts/model_quality_report.py
+scripts/fetch_model_catalog.py
+tests/test_model_quality.py
+tests/test_model_catalog.py

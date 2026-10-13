@@ -100,6 +100,7 @@ impl LlmClient {
             user: user.to_string(),
             max_tokens: None,
             temperature: None,
+            model: None,
         };
         self.inner.complete(&req).map(|r| r.text).map_err(map_err)
     }

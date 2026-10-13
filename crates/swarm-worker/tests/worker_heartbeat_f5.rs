@@ -76,6 +76,7 @@ fn cfg(dir: &PathBuf, lease_sec: i32) -> WorkerConfig {
         budget: BudgetPolicy::default(),
         run_limits: RunLimits::default(),
         llm_calls: None,
+        model_selector: None,
     }
 }
 

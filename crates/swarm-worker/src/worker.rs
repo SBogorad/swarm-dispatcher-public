@@ -6,6 +6,7 @@
 use crate::artifacts;
 use crate::budget::{self, BudgetPolicy, RunLimits};
 use crate::error::{Result, WorkerError};
+use crate::model_selector::ModelSelector;
 use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
 use crate::storage::ArtifactStore;
@@ -34,6 +35,9 @@ pub struct WorkerConfig {
     /// Issue #4: счётчик реально сделанных LLM-вызовов (включая ретраи).
     /// Разделяется с главным циклом (`main.rs`), который останавливает проход.
     pub llm_calls: Option<Arc<AtomicU32>>,
+    /// Issue #7/#10: выбор модели по измеренной цене успеха. `None` — модель
+    /// берётся из конфига LLM-клиента (поведение по умолчанию не меняется).
+    pub model_selector: Option<Arc<ModelSelector>>,
 }
 
 impl Default for WorkerConfig {
@@ -48,6 +52,7 @@ impl Default for WorkerConfig {
             budget: BudgetPolicy::default(),
             run_limits: RunLimits::default(),
             llm_calls: None,
+            model_selector: None,
         }
     }
 }
@@ -545,11 +550,27 @@ fn call_llm_with_retries(
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
     let user = prompt::user_prompt(contract);
+
+    // Issue #7/#10: выбор модели по измеренной цене успешного результата.
+    // Без селектора (`model_selector: None`) запрос уходит с моделью из конфига
+    // клиента — поведение по умолчанию не меняется.
+    let selected_model = cfg.model_selector.as_ref().and_then(|s| {
+        let sel = s.choose(contract)?;
+        info!(
+            model = %sel.model,
+            basis = ?sel.basis,
+            reason = %sel.reason,
+            "model selected"
+        );
+        Some(sel.model)
+    });
+
     let req = LlmRequest {
         system: sys,
         user,
         max_tokens: Some(cfg.max_tokens),
         temperature: None,
+        model: selected_model,
     };
 
     let mut attempt = 0u32;
