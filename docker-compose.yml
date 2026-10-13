@@ -82,13 +82,11 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      # Issue #11: worker работает как uid 1001 (Dockerfile USER 1001),
-      # поэтому tmpfs обязан иметь uid=1001, иначе Permission denied.
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1001,gid=1001
-    # F1: артефакты — в ОБЩЕМ именованном volume, а не в per-container tmpfs.
-    # ВРЕМЕННО: tmpfs вместо volume для фикса Permission denied (issue #11)
-    # volumes:
-    #   - swarm-artifacts:/var/swarm/artifacts:rw
+    # Issue #26: артефакты — в ОБЩЕМ именованном volume, чтобы ревьюер
+    # (отдельный контейнер) видел результат исполнителя. Свежий volume
+    # наследует uid 1001: образ заранее делает chown -R 1001:1001 /var/swarm.
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts:rw
     depends_on:
       postgres:
         condition: service_healthy
@@ -116,12 +114,35 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
-      # Issue #11: uid=1001 (Dockerfile USER 1001), см. worker-1.
-      - /var/swarm/artifacts:rw,noexec,nosuid,size=128m,uid=1001,gid=1001
-    # F1: тот же общий volume, что у worker-1 — артефакты видимы всем.
-    # ВРЕМЕННО: tmpfs вместо volume для фикса Permission denied (issue #11)
-    # volumes:
-    #   - swarm-artifacts:/var/swarm/artifacts:rw
+    # Issue #26: тот же общий volume, что у worker-1 — артефакт видит ревьюер.
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Ревьюер: независимая приёмка (Issue #26). Закрывает review -> done.
+  # Роль swarm_reviewer: только review_candidates/submit_review (least privilege).
+  reviewer:
+    build: .
+    command: ["swarm-reviewer"]
+    environment:
+      DATABASE_URL: postgres://swarm_reviewer:${SWARM_PW_REVIEWER:?set SWARM_PW_REVIEWER}@postgres:5432/swarm
+      REVIEWER_ID: agent_reviewer
+      ARTIFACTS_DIR: /var/swarm/artifacts
+      REVIEW_MIN_BYTES: "80"
+      REVIEW_POLL_SEC: "2.0"
+      RUST_LOG: swarm_reviewer=info
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    # Артефакты — только чтение: ревьюер не пишет в общий volume.
+    volumes:
+      - swarm-artifacts:/var/swarm/artifacts:ro
     depends_on:
       postgres:
         condition: service_healthy

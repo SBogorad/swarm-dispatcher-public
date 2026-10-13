@@ -2780,6 +2780,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "swarm-reviewer"
+version = "0.1.0"
+dependencies = [
+ "ctrlc",
+ "serde_json",
+ "swarm-core",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "swarm-watchdog"
 version = "0.1.0"
 dependencies = [

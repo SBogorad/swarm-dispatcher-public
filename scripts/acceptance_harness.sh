@@ -492,6 +492,8 @@ def get_env(svc, key):
 def service_db_role(name, svc):
     if name == "watchdog":
         return "swarm_watchdog"
+    if name == "reviewer":
+        return "swarm_reviewer"
     if name == "cli":
         return "swarm_cli"
     if name == "planner":

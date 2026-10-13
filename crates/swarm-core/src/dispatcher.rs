@@ -381,6 +381,34 @@ impl SwarmDispatcher {
         Ok(())
     }
 
+    /// Issue #26: кандидаты на ревью через `review_candidates(n)`.
+    ///
+    /// Путь чтения для роли `swarm_reviewer`: прямой SELECT на `tasks`/`artifacts`
+    /// ей закрыт (least privilege), витрина — SECURITY DEFINER.
+    pub fn review_candidates(
+        &mut self,
+        limit: i32,
+    ) -> Result<Vec<crate::types::ReviewCandidate>, DispatcherError> {
+        let rows = self
+            .client
+            .query(
+                "SELECT id, result_ref, contract, storage_path, created_by \
+                 FROM review_candidates($1)",
+                &[&limit],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(rows
+            .iter()
+            .map(|r| crate::types::ReviewCandidate {
+                id: r.get(0),
+                result_ref: r.get(1),
+                contract: r.get(2),
+                storage_path: r.get(3),
+                created_by: r.get(4),
+            })
+            .collect())
+    }
+
     /// Issue #3: суммарная стоимость всех LLM-вызовов (USD) из cost ledger.
     ///
     /// Используется hard budget guard перед каждым вызовом модели. Считается
