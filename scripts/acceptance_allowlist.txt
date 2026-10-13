@@ -77,3 +77,16 @@ scripts/run_mutations_sql.sh
 
 # Волна 5.2: пример окружения приведён к реальным именам переменных.
 .env.example
+
+# Аудит проверки (2026-10-13): находки независимого прогона release-гейта.
+# 1) compose_check не задавал WORKER_LLM_API_KEY в dummy-env — шаг падал на
+#    интерполяции compose, хотя дефекта в артефакте не было.
+# 2) harness не применял schema/migrations — в тест-БД не было llm_calls, и
+#    воркер с cost ledger (Issue #2/#3) fail-closed'ил → ложная регрессия.
+# 3) read_only:true был закомментирован в compose (регрессия P0-3, найдена
+#    после починки dummy-env); проверено, что воркер работает при read-only.
+# 4) llm_calls принадлежал суперпользователю, а не swarm_owner — нарушение
+#    инварианта каталога; дефект стал виден только когда harness начал
+#    применять миграции. Миграция 003 переводит владельцев на swarm_owner.
+docker-compose.yml
+schema/migrations/*

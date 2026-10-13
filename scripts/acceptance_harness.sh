@@ -433,6 +433,7 @@ SWARM_PW_W1=dummy_w1_password
 SWARM_PW_W2=dummy_w2_password
 SWARM_PW_W_1=dummy_w_1_password
 SWARM_PW_GPU_1=dummy_gpu_1_password
+WORKER_LLM_API_KEY=dummy_llm_api_key
 ENV
   rendered="$(mktemp)"
   docker compose --env-file "$env_file" -f "$WORKTREE/docker-compose.yml" config >"$rendered" 2>/dev/null || true
@@ -507,6 +508,7 @@ provision_database() {
     -v "$WORKTREE/step2b/roles_2b.sql:/c2/roles_2b.sql:ro"
     -v "$WORKTREE/step2/roles_patch_planner_status.sql:/c2/patch_planner.sql:ro"
     -v "$WORKTREE/step2/roles_patch_tool_call_audit.sql:/c2/patch_tool_call.sql:ro"
+    -v "$WORKTREE/schema/migrations:/c2/migrations:ro"
   )
   docker run -d "${common_args[@]}" postgres:16-alpine >/dev/null
   PG_VERSION="$(docker exec "$CONTAINER" postgres --version)"
@@ -536,6 +538,15 @@ provision_database() {
     -v gpu_1_pw=c2_gpu_1 -f /c2/roles_2b.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_planner.sql
   pg postgres "$DB_PASSWORD" -f /c2/patch_tool_call.sql
+  # Миграции применяются тем же порядком, что и в продакшн-цепочке
+  # (scripts/05-migrations.sh): лексикографически по имени файла. Без них в
+  # тест-БД отсутствует llm_calls, и воркер с cost ledger (Issue #2/#3) не
+  # проходит даже базовый сценарий — ложная регрессия в harness, а не в коде.
+  local mig
+  for mig in "$WORKTREE"/schema/migrations/*.sql; do
+    [ -e "$mig" ] || continue
+    pg postgres "$DB_PASSWORD" -f "/c2/migrations/$(basename "$mig")" || return 1
+  done
   DB_READY=1
   status PASS "disposable PostgreSQL 16 provisioned and initialized"
 }
