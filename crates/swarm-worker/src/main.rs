@@ -10,6 +10,8 @@
 //! - `AFFINITY_TAGS` (через запятую, по умолчанию пусто)
 //! - `WORKER_MAX_TOKENS` (по умолчанию 4096)
 //! - `WORKER_LLM_TIMEOUT_SEC` (по умолчанию 300)
+//! - `MAX_TOTAL_COST_USD` (по умолчанию 5.0) — глобальный лимит расходов (Issue #3)
+//! - `MAX_CONSECUTIVE_ERRORS` (по умолчанию 5) — порог самоотключения воркера
 //! - `LLM_*` — см. swarm-llm
 
 use std::path::PathBuf;
@@ -20,7 +22,7 @@ use std::time::Duration;
 
 use swarm_core::SwarmDispatcher;
 use swarm_llm::{from_env as llm_from_env, LlmClient};
-use swarm_worker::{process_lease, Outcome, RetryPolicy, WorkerConfig};
+use swarm_worker::{process_lease, BudgetPolicy, Outcome, RetryPolicy, WorkerConfig};
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
@@ -68,6 +70,15 @@ fn main() {
         llm_timeout_sec: env_u64("WORKER_LLM_TIMEOUT_SEC", 300),
         retry: RetryPolicy::default(),
         work_sec: env_u64("WORK_SECONDS", 0),
+        // Issue #3: hard budget guard. MAX_TOTAL_COST_USD — общий лимит расходов
+        // на процесс воркера; MAX_CONSECUTIVE_ERRORS — порог самоотключения.
+        budget: BudgetPolicy {
+            max_total_cost_usd: std::env::var("MAX_TOTAL_COST_USD")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(5.0),
+            max_consecutive_errors: env_u64("MAX_CONSECUTIVE_ERRORS", 5) as u32,
+        },
     };
 
     let llm: Box<dyn LlmClient> = match llm_from_env() {

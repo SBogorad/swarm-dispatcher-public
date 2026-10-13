@@ -11,7 +11,7 @@ use std::sync::Mutex;
 
 use swarm_core::{SwarmDispatcher, Verdict};
 use swarm_llm::{LlmClient, LlmError, LlmRequest, LlmResponse};
-use swarm_worker::{process_lease, Outcome, RetryPolicy, WorkerConfig};
+use swarm_worker::{process_lease, BudgetPolicy, Outcome, RetryPolicy, WorkerConfig};
 
 fn dsn() -> String {
     std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| {
@@ -87,6 +87,7 @@ fn cfg(dir: &PathBuf) -> WorkerConfig {
             max_delay_ms: 2,
         },
         work_sec: 0,
+        budget: BudgetPolicy::default(),
     }
 }
 

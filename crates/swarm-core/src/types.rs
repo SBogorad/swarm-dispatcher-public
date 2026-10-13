@@ -136,6 +136,10 @@ pub enum TaskState {
     Review,
     Done,
     Blocked,
+    /// Issue #3: исчерпан бюджет (токен-лимит или глобальный).
+    BudgetExhausted,
+    /// Issue #3: необратимый сбой (например, авторизация 401/403).
+    Failed,
 }
 
 impl TaskState {
@@ -147,6 +151,8 @@ impl TaskState {
             TaskState::Review => "review",
             TaskState::Done => "done",
             TaskState::Blocked => "blocked",
+            TaskState::BudgetExhausted => "budget_exhausted",
+            TaskState::Failed => "failed",
         }
     }
 
@@ -158,6 +164,8 @@ impl TaskState {
             "review" => TaskState::Review,
             "done" => TaskState::Done,
             "blocked" => TaskState::Blocked,
+            "budget_exhausted" => TaskState::BudgetExhausted,
+            "failed" => TaskState::Failed,
             _ => return None,
         })
     }
@@ -256,7 +264,16 @@ mod tests {
 
     #[test]
     fn task_state_roundtrip() {
-        for s in ["pending", "ready", "leased", "review", "done", "blocked"] {
+        for s in [
+            "pending",
+            "ready",
+            "leased",
+            "review",
+            "done",
+            "blocked",
+            "budget_exhausted",
+            "failed",
+        ] {
             let st = TaskState::parse(s).expect(s);
             assert_eq!(st.as_str(), s);
         }

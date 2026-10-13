@@ -22,7 +22,7 @@ use std::time::Instant;
 
 use swarm_core::SwarmDispatcher;
 use swarm_llm::{LlmClient, LlmError, LlmRequest, LlmResponse};
-use swarm_worker::{process_lease, Outcome, RetryPolicy, WorkerConfig};
+use swarm_worker::{process_lease, BudgetPolicy, Outcome, RetryPolicy, WorkerConfig};
 
 fn dsn() -> String {
     std::env::var("TEST_DATABASE_URL").unwrap_or_else(|_| {
@@ -73,6 +73,7 @@ fn cfg(dir: &PathBuf, lease_sec: i32) -> WorkerConfig {
         llm_timeout_sec: 5,
         retry: RetryPolicy::default(),
         work_sec: 0,
+        budget: BudgetPolicy::default(),
     }
 }
 

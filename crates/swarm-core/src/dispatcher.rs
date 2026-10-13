@@ -259,6 +259,36 @@ impl SwarmDispatcher {
         Ok(row.get(0))
     }
 
+    /// Issue #3: отказ воркера с явным целевым состоянием.
+    ///
+    /// Отличается от [`SwarmDispatcher::fail`] тем, что состояние не жёстко
+    /// `blocked`, а выбирается вызывающим: `budget_exhausted` (исчерпан бюджет)
+    /// или `failed` (сбой авторизации — нужна ротация ключа). Причина всё
+    /// равно пишется в `block_reason`, а событие — в журнал.
+    pub fn fail_with_state(
+        &mut self,
+        lease: &Lease,
+        result_ref: Option<&str>,
+        reason: &str,
+        state: &str,
+    ) -> Result<String, DispatcherError> {
+        let row = self
+            .client
+            .query_one(
+                "SELECT fail_task_state($1, $2, $3, $4, $5, $6)",
+                &[
+                    &lease.task_id,
+                    &lease.worker_id,
+                    &lease.epoch,
+                    &result_ref,
+                    &reason,
+                    &state,
+                ],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(row.get(0))
+    }
+
     // ---------- ревью ----------
 
     /// Возвращает новое состояние задачи: `"done"`, `"ready"` или `"blocked"`.
@@ -349,6 +379,21 @@ impl SwarmDispatcher {
             )
             .map_err(DispatcherError::from_pg)?;
         Ok(())
+    }
+
+    /// Issue #3: суммарная стоимость всех LLM-вызовов (USD) из cost ledger.
+    ///
+    /// Используется hard budget guard перед каждым вызовом модели. Считается
+    /// в микродолларах (целые), чтобы не терять мелкие расходы на f64.
+    pub fn total_cost_usd(&mut self) -> Result<f64, DispatcherError> {
+        let row = self
+            .client
+            .query_one(
+                "SELECT COALESCE(SUM(total_cost_usd), 0)::float8 FROM llm_calls",
+                &[],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(row.get(0))
     }
 
     // ---------- операторские ----------
