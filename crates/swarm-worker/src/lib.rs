@@ -30,8 +30,7 @@ pub use audit::PgAuditSink;
 pub use budget::{BudgetBlock, BudgetPolicy, RunLimits, RunStop};
 pub use error::{Result, WorkerError};
 pub use model_selector::{
-    select_model, ModelCandidate, ModelCatalog, ModelSelector, ModelStat, Selection,
-    SelectionBasis,
+    select_model, ModelCandidate, ModelCatalog, ModelSelector, ModelStat, Selection, SelectionBasis,
 };
 pub use poll::PollPolicy;
 pub use retry::RetryPolicy;

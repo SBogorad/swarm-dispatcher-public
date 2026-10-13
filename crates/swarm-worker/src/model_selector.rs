@@ -212,13 +212,11 @@ pub fn select_model(
     }
 
     // 3. По прайсу.
-    let best = eligible
-        .into_iter()
-        .min_by(|a, b| {
-            a.list_price_score(expected_output_ratio)
-                .partial_cmp(&b.list_price_score(expected_output_ratio))
-                .unwrap_or(std::cmp::Ordering::Equal)
-        })?;
+    let best = eligible.into_iter().min_by(|a, b| {
+        a.list_price_score(expected_output_ratio)
+            .partial_cmp(&b.list_price_score(expected_output_ratio))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    })?;
     Some(Selection {
         model: best.name.clone(),
         basis: SelectionBasis::ListPrice,
@@ -291,8 +289,14 @@ mod tests {
     #[test]
     fn rejects_empty_and_bad_price() {
         assert!(ModelCatalog::from_json_str(r#"{"models":[]}"#).is_err());
-        assert!(ModelCatalog::from_json_str(r#"{"models":[{"name":"x","input_usd_per_1m":-1,"output_usd_per_1m":1}]}"#).is_err());
-        assert!(ModelCatalog::from_json_str(r#"{"models":[{"name":"","input_usd_per_1m":1,"output_usd_per_1m":1}]}"#).is_err());
+        assert!(ModelCatalog::from_json_str(
+            r#"{"models":[{"name":"x","input_usd_per_1m":-1,"output_usd_per_1m":1}]}"#
+        )
+        .is_err());
+        assert!(ModelCatalog::from_json_str(
+            r#"{"models":[{"name":"","input_usd_per_1m":1,"output_usd_per_1m":1}]}"#
+        )
+        .is_err());
         assert!(ModelCatalog::from_json_str("not json").is_err());
     }
 
@@ -315,8 +319,18 @@ mod tests {
     #[test]
     fn measured_beats_list_price() {
         let stats = vec![
-            ModelStat { model: "cheap".into(), tasks: 10, success_rate: 0.2, cost_per_success_usd: 0.050 },
-            ModelStat { model: "mid".into(), tasks: 10, success_rate: 0.9, cost_per_success_usd: 0.008 },
+            ModelStat {
+                model: "cheap".into(),
+                tasks: 10,
+                success_rate: 0.2,
+                cost_per_success_usd: 0.050,
+            },
+            ModelStat {
+                model: "mid".into(),
+                tasks: 10,
+                success_rate: 0.9,
+                cost_per_success_usd: 0.008,
+            },
         ];
         let sel = select_model(&cat(), 2, &stats, 3, 0.5, 2.0).unwrap();
         assert_eq!(sel.model, "mid");
@@ -326,7 +340,12 @@ mod tests {
     /// Мало данных — не доверяем измерению, падаем на прайс.
     #[test]
     fn insufficient_samples_use_list_price() {
-        let stats = vec![ModelStat { model: "mid".into(), tasks: 1, success_rate: 1.0, cost_per_success_usd: 0.001 }];
+        let stats = vec![ModelStat {
+            model: "mid".into(),
+            tasks: 1,
+            success_rate: 1.0,
+            cost_per_success_usd: 0.001,
+        }];
         let sel = select_model(&cat(), 2, &stats, 3, 0.5, 2.0).unwrap();
         assert_eq!(sel.model, "mid");
         assert_eq!(sel.basis, SelectionBasis::ListPrice);
@@ -336,8 +355,18 @@ mod tests {
     #[test]
     fn low_success_rate_is_excluded() {
         let stats = vec![
-            ModelStat { model: "mid".into(), tasks: 20, success_rate: 0.1, cost_per_success_usd: 0.001 },
-            ModelStat { model: "strong".into(), tasks: 20, success_rate: 0.8, cost_per_success_usd: 0.02 },
+            ModelStat {
+                model: "mid".into(),
+                tasks: 20,
+                success_rate: 0.1,
+                cost_per_success_usd: 0.001,
+            },
+            ModelStat {
+                model: "strong".into(),
+                tasks: 20,
+                success_rate: 0.8,
+                cost_per_success_usd: 0.02,
+            },
         ];
         let sel = select_model(&cat(), 2, &stats, 3, 0.5, 2.0).unwrap();
         assert_eq!(sel.model, "strong");
@@ -381,7 +410,10 @@ mod tests {
         )
         .unwrap();
         let sel = select_model(&c, 1, &[], 3, 0.5, 2.0).unwrap();
-        assert_eq!(sel.model, "balanced", "0.001+0.5*2=1.001 > 0.02+0.02*2=0.06");
+        assert_eq!(
+            sel.model, "balanced",
+            "0.001+0.5*2=1.001 > 0.02+0.02*2=0.06"
+        );
     }
 
     #[test]
@@ -396,7 +428,11 @@ mod tests {
         };
         assert_eq!(s.task_tier(&serde_json::json!({"quality_tier": 3})), 3);
         assert_eq!(s.task_tier(&serde_json::json!({})), 1);
-        assert_eq!(s.task_tier(&serde_json::json!({"quality_tier": 0})), 1, "клампится к >=1");
+        assert_eq!(
+            s.task_tier(&serde_json::json!({"quality_tier": 0})),
+            1,
+            "клампится к >=1"
+        );
         let sel = s.choose(&serde_json::json!({"quality_tier": 3})).unwrap();
         assert_eq!(sel.model, "strong");
     }

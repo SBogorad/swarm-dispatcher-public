@@ -18,8 +18,11 @@ const MAX_BACKOFF_SEC: u64 = 30;
 fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::from_default_env()
-                .add_directive("swarm_watchdog=info".parse().expect("static directive is valid")),
+            EnvFilter::from_default_env().add_directive(
+                "swarm_watchdog=info"
+                    .parse()
+                    .expect("static directive is valid"),
+            ),
         )
         .json()
         .init();
