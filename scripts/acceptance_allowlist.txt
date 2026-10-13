@@ -133,3 +133,18 @@ docs/research/*
 # Техдолг (2026-10-14): drift guard против расхождения тел функций
 # schema_v0.sql ↔ step2b/roles_2b.sql + шаг в harness.
 tests/test_no_duplicate_function_bodies.py
+
+# Класс #24/#26 (гейт зелёный ≠ прод жив): живой арбитр ролей. Файл проверяет
+# реальные контейнеры (DSN-роль + права в каталоге), self-test — в harness.
+scripts/compose_roles_arbiter.sh
+
+# F8: учёт расхода, оборвавшегося до complete (тест-инструмент).
+tests/test_f8_orphan_llm_spend.py
+
+# Документация для ИИ-агентов (ночная смена 2026-10-14): как работать с репо.
+# Скоуп гейта — код/инфраструктура; этот текст сюда не относится (как
+# docs/research/* в #40).
+docs/AGENTS.md
+
+# METHODOLOGY: уточнение Принципа 11 (границы правила §4).
+docs/METHODOLOGY.md

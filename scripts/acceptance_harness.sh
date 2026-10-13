@@ -717,6 +717,11 @@ else
 fi
 if command -v docker >/dev/null 2>&1; then
   run_step "compose config with dummy environment" compose_check
+  # Арбитр ролей: self-test проверяет, что арбитр КРАСНЕЕТ на подмене роли
+  # (класс #24: watchdog под воркерской ролью). Чистые функции, стека не
+  # требует → безопасно в CI. Живой прогон (по контейнерам) — операционная
+  # проверка: scripts/compose_roles_arbiter.sh (см. docs/AGENTS.md).
+  run_step "compose roles arbiter self-test (#24)" "$WORKTREE/scripts/compose_roles_arbiter.sh" --self-test
   run_step "provision disposable PostgreSQL 16 before Rust tests" provision_database
 else
   status BLOCKED "docker unavailable: compose config and database acceptance not run"
