@@ -332,6 +332,129 @@ fn worker_auth_failure_goes_to_failed() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// 5a. Пустой ответ LLM (HTTP 200, но text="") — НЕ полезный артефакт.
+//
+// Issue #5: раньше пустой ответ писался как результат и уходил в `review`,
+// т.е. «пустая работа» засчитывалась как выполненная. Теперь — честный отказ
+// (`blocked`, block_reason=empty_response), артефакт — маркер ошибки.
+#[test]
+fn worker_empty_response_is_not_done() {
+    let mut d = admin();
+    let dir = tmpdir("emptyresp");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let t = ready_task("верни что-нибудь", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Ok(String::new())]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+    assert!(
+        matches!(out, Outcome::Blocked { .. }),
+        "пустой ответ должен быть Blocked, got {out:?}"
+    );
+    assert_ne!(state_of(t), "review", "пустая работа не должна уходить в review");
+    assert_ne!(state_of(t), "done");
+    assert_eq!(state_of(t), "blocked");
+    assert_eq!(llm.calls(), 1, "пустой ответ не ретраится (это не transient)");
+
+    // Причина зафиксирована, а result_ref указывает на маркер-ошибку, не на «результат».
+    let (block_reason, result_ref): (Option<String>, Option<String>) = {
+        let r = raw()
+            .query_one("select block_reason, result_ref from tasks where id=$1", &[&t])
+            .unwrap();
+        (r.get(0), r.get(1))
+    };
+    assert!(
+        block_reason.as_deref().unwrap_or("").contains("empty_response"),
+        "block_reason должен содержать empty_response, got {block_reason:?}"
+    );
+    assert!(result_ref.is_some(), "маркер ошибки должен быть сохранён как артефакт");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// 5b. Ответ из одних пробелов/переводов строк — тоже пустой (trim).
+#[test]
+fn worker_whitespace_response_is_empty() {
+    let mut d = admin();
+    let dir = tmpdir("wsresp");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let t = ready_task("верни что-нибудь", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Ok("   \n\t  ".into())]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+    assert!(matches!(out, Outcome::Blocked { .. }), "got {out:?}");
+    assert_eq!(state_of(t), "blocked");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// 5c. 500 — transient: ретраится до исчерпания max_attempts, затем blocked.
+#[test]
+fn worker_500_retries_then_blocked() {
+    let mut d = admin();
+    let dir = tmpdir("r500");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let t = ready_task("упадёт", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Http(500)]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+    assert!(matches!(out, Outcome::Blocked { .. }), "got {out:?}");
+    assert_eq!(state_of(t), "blocked");
+    assert_eq!(llm.calls(), 3, "500 должен ретраиться до max_attempts=3");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// 5d. 429 — transient (rate limit): ретраится, затем успех.
+#[test]
+fn worker_429_retries_then_succeeds() {
+    let mut d = admin();
+    let dir = tmpdir("r429");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let t = ready_task("после 429", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Http(429), Step::Ok("ok-after-429".into())]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+    assert!(matches!(out, Outcome::Review { .. }), "got {out:?}");
+    assert_eq!(state_of(t), "review");
+    assert_eq!(llm.calls(), 2, "429 → ретрай → успех");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// 5e. Ошибочные сценарии всё равно списывают бюджет в llm_calls.
+//
+// Issue #5: «Проверять соблюдение бюджета при всех ошибочных сценариях».
+// Неудачный вызов записывается (success=false), поэтому деньги видны в ledger.
+#[test]
+fn worker_error_paths_record_cost() {
+    let mut d = admin();
+    let dir = tmpdir("errcost");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    let t = ready_task("упадёт", 100_000);
+
+    let llm = MockLlm::new(vec![Step::Http(500)]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let _ = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+
+    let (rows, failed): (i64, i64) = {
+        let r = raw()
+            .query_one(
+                "select count(*), count(*) filter (where not success) from llm_calls where task_id=$1",
+                &[&t],
+            )
+            .unwrap();
+        (r.get(0), r.get(1))
+    };
+    assert!(rows >= 1, "неудачный вызов должен попасть в llm_calls");
+    assert_eq!(failed, rows, "все записи по ошибочному пути — success=false");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 // 6. Prompt injection инертен: description с «ignore instructions» не исполняется.
 #[test]
 fn worker_prompt_injection_inert() {

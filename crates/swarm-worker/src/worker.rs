@@ -313,6 +313,29 @@ pub fn process_lease(
                 Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record LLM call metrics"),
             } // не фейлим задачу, если запись метрики упала
 
+            // Issue #5: пустой ответ — не полезный артефакт.
+            //
+            // Раньше «пустая работа» (HTTP 200, но пустой/пробельный текст)
+            // писалась как артефакт-результат и уходила в `review`, т.е.
+            // засчитывалась как выполненная задача. Теперь это честный отказ:
+            // состояние `blocked`, `block_reason = empty_response`, а сам
+            // артефакт — маркер ошибки (не результат). Расход уже записан в
+            // `llm_calls` выше, поэтому бюджет остаётся честным.
+            if resp.text.trim().is_empty() {
+                let reason = "empty_response: LLM вернул пустой ответ";
+                warn!(task_id = %lease.task_id, %reason, "llm returned empty response");
+                let ref_ = fail_artifact(cfg, lease, reason)?;
+                d.save_artifact(
+                    lease,
+                    &ref_,
+                    &path_str(cfg, &ref_),
+                    Some("text/plain"),
+                    None,
+                )?;
+                let st = d.fail_with_state(lease, Some(&ref_), reason, "blocked")?;
+                return Ok(blocked_or_review(st, ref_, reason));
+            }
+
             let (ref_, path, size) =
                 artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
             let storage_path = match ArtifactStore::from_env()? {
