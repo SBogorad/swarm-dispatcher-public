@@ -124,3 +124,8 @@ tests/test_model_catalog.py
 sgconfig.yml
 .ast-grep/*
 .ast-grep/**
+
+# Issue #34/#8/#12: research-документы (docs/research/*) не входили в scope
+# allowlist → STRICT-гейт валил PR #35/#36/#37 на «out-of-scope path».
+# Скоуп гейта — код/инфраструктура; research-текст сюда не относится.
+docs/research/*
