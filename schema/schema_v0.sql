@@ -11,7 +11,8 @@ create table tasks (
   id           uuid primary key,
   root_id      uuid not null references tasks(id) deferrable initially deferred,
   state        text not null default 'pending'
-               check (state in ('pending','ready','leased','review','done','blocked')),
+               check (state in ('pending','ready','leased','review','done','blocked',
+                                'failed','budget_exhausted')),
   contract     jsonb not null,
   lease_epoch  bigint not null default 0,
   lease_owner  text,
@@ -390,11 +391,11 @@ begin
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
   select spent_tokens + p_tokens, budget_cap into v_spent, v_cap from tasks where id = p_task;
-  v_new := case when v_spent > v_cap then 'blocked' else 'review' end;
+  v_new := case when v_spent > v_cap then 'budget_exhausted' else 'review' end;
   update tasks
      set state = v_new, result_ref = p_result_ref, spent_tokens = v_spent,
          lease_owner = null, lease_until = null, updated_at = now(),
-         block_reason = case when v_new = 'blocked' then 'budget_exhausted' end
+         block_reason = case when v_new = 'budget_exhausted' then 'budget_exhausted' end
    where id = p_task;
   perform append_event(p_task, 'complete:' || p_epoch, 'completed', p_worker,
                        jsonb_build_object('ref', p_result_ref, 'new_state', v_new, 'tokens', p_tokens));
@@ -422,6 +423,34 @@ begin
   perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
                        jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
   return 'blocked';
+end $$;
+
+-- Issue #3: отказ воркера с явным целевым состоянием.
+-- `fail_task` всегда даёт 'blocked'; здесь состояние выбирает вызывающий:
+--   * 'budget_exhausted' — исчерпан бюджет (токен-лимит или глобальный),
+--   * 'failed'          — сбой авторизации (401/403), нужна ротация ключа.
+-- Семантика аренды та же (assert_lease), причина — в block_reason и в журнале.
+create function fail_task_state(p_task uuid, p_worker text, p_epoch bigint,
+                                p_result_ref text, p_reason text, p_state text)
+returns text language plpgsql as $$
+begin
+  if p_state not in ('failed', 'budget_exhausted', 'blocked') then
+    raise exception 'invalid target state %', p_state using errcode = 'CT001';
+  end if;
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = p_state, result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left(coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'state', p_state,
+                                          'reason', left(coalesce(p_reason, ''), 500)));
+  return p_state;
 end $$;
 
 create function submit_review(p_task uuid, p_ref text, p_reviewer text,
@@ -547,7 +576,8 @@ create function unblock_task(p_task uuid, p_actor text, p_new_budget_cap bigint 
 returns text language plpgsql as $$
 declare v_epoch bigint; t tasks%rowtype;
 begin
-  select * into t from tasks where id = p_task and state = 'blocked' for update;
+  select * into t from tasks where id = p_task
+    and state in ('blocked', 'failed', 'budget_exhausted') for update;
   if not found then raise exception 'not_blocked' using errcode = 'GR009'; end if;
   if p_new_budget_cap is not null then
     if p_new_budget_cap <= t.spent_tokens then

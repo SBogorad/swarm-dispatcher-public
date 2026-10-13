@@ -4,6 +4,7 @@
 //! save_artifact → complete. Никаких subprocess — это v0.4.
 
 use crate::artifacts;
+use crate::budget::{self, BudgetPolicy};
 use crate::error::{Result, WorkerError};
 use crate::prompt;
 use crate::retry::{jitter_unit, RetryPolicy};
@@ -26,6 +27,8 @@ pub struct WorkerConfig {
     pub retry: RetryPolicy,
     /// Для тестов: сколько ждать перед вызовом LLM (имитация работы).
     pub work_sec: u64,
+    /// Issue #3: hard budget guard (глобальный лимит + auth circuit breaker).
+    pub budget: BudgetPolicy,
 }
 
 impl Default for WorkerConfig {
@@ -37,6 +40,7 @@ impl Default for WorkerConfig {
             llm_timeout_sec: 300,
             retry: RetryPolicy::default(),
             work_sec: 0,
+            budget: BudgetPolicy::default(),
         }
     }
 }
@@ -230,6 +234,37 @@ pub fn process_lease(
         }
     }
 
+    // Issue #3: hard budget guard. Проверяем ПЕРЕД вызовом LLM:
+    //  * токен-бюджет задачи (из аренды),
+    //  * глобальный денежный лимит (из cost ledger, Issue #2).
+    // Fail-closed: если ledger недоступен, не тратим деньги — блокируем.
+    let spent_usd = match d.total_cost_usd() {
+        Ok(v) => v,
+        Err(e) => {
+            warn!(task_id = %lease.task_id, error = %e, "budget guard: ledger unavailable -> fail-closed");
+            let reason = format!("budget_check_failed: {e}");
+            let ref_ = fail_artifact(cfg, lease, &reason)?;
+            d.save_artifact(lease, &ref_, &path_str(cfg, &ref_), Some("text/plain"), None)?;
+            let st = d.fail_with_state(lease, Some(&ref_), &reason, "failed")?;
+            drop(hb);
+            return Ok(blocked_or_review(st, ref_, &reason));
+        }
+    };
+    if let Err(block) = budget::check_before_call(
+        &cfg.budget,
+        spent_usd,
+        lease.spent_tokens,
+        lease.budget_cap,
+    ) {
+        let reason = block.reason();
+        warn!(task_id = %lease.task_id, reason = %reason, spent_usd, "budget guard: blocking before LLM call");
+        let ref_ = fail_artifact(cfg, lease, &reason)?;
+        d.save_artifact(lease, &ref_, &path_str(cfg, &ref_), Some("text/plain"), None)?;
+        let st = d.fail_with_state(lease, Some(&ref_), &reason, block.state())?;
+        drop(hb);
+        return Ok(blocked_or_review(st, ref_, &reason));
+    }
+
     // Вызов LLM с ретраями.
     let result = call_llm_with_retries(llm, &contract, cfg);
 
@@ -333,9 +368,22 @@ pub fn process_lease(
                 Err(e) => warn!(task_id = %lease.task_id, error = ?e, "Failed to record failed LLM call metrics"),
             }
 
-            // Не-транзиентная или исчерпанная ошибка LLM → fail через blocked.
-            let reason = format!("llm_error: {e}");
-            warn!(task_id = %lease.task_id, %reason, "llm failed -> blocked");
+            // Не-транзиентная или исчерпанная ошибка LLM → fail.
+            // Issue #3: 401/403 — это сбой авторизации, а не бюджета. Повторять
+            // бессмысленно (инцидент argo-memory: 4 часа пустых попыток),
+            // поэтому задача уходит в 'failed' и требует ротации ключа.
+            let status = match &e {
+                WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => Some(*status),
+                _ => None,
+            };
+            let auth = budget::is_auth_failure(status);
+            let reason = if auth {
+                format!("auth_failed: LLM provider rejected credentials (HTTP {})", status.unwrap_or(0))
+            } else {
+                format!("llm_error: {e}")
+            };
+            let target_state = if auth { "failed" } else { "blocked" };
+            warn!(task_id = %lease.task_id, %reason, state = target_state, "llm failed");
             let ref_ = fail_artifact(cfg, lease, &reason)?;
             d.save_artifact(
                 lease,
@@ -346,7 +394,7 @@ pub fn process_lease(
             )?;
             // F4: честный отказ — без подделки spent_tokens. Причина попадает
             // в block_reason и в событие completed{failed:true}.
-            let st = d.fail(lease, Some(&ref_), &reason)?;
+            let st = d.fail_with_state(lease, Some(&ref_), &reason, target_state)?;
             blocked_or_review(st, ref_, &reason)
         }
     };
@@ -356,13 +404,12 @@ pub fn process_lease(
 }
 
 fn blocked_or_review(state: String, artifact_ref: String, reason: &str) -> Outcome {
-    if state == "blocked" {
-        Outcome::Blocked {
+    match state.as_str() {
+        "blocked" | "budget_exhausted" | "failed" => Outcome::Blocked {
             artifact_ref,
             reason: reason.to_string(),
-        }
-    } else {
-        Outcome::Review { artifact_ref }
+        },
+        _ => Outcome::Review { artifact_ref },
     }
 }
 

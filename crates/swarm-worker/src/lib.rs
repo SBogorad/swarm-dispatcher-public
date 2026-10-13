@@ -10,6 +10,7 @@ pub mod agent_loop;
 pub mod allowlist;
 pub mod artifacts;
 pub mod audit;
+pub mod budget;
 pub mod error;
 pub mod llm_cost;
 pub mod parse_step;
@@ -24,6 +25,7 @@ pub use agent_loop::{
 };
 pub use allowlist::Allowlist;
 pub use audit::PgAuditSink;
+pub use budget::{BudgetBlock, BudgetPolicy};
 pub use error::{Result, WorkerError};
 pub use retry::RetryPolicy;
 pub use sandbox::{shell_tools_enabled, ExecOutput, Sandbox, SandboxConfig};
