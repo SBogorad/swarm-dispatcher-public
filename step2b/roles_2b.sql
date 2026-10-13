@@ -159,11 +159,14 @@ begin
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
   select spent_tokens + p_tokens, budget_cap into v_spent, v_cap from tasks where id = p_task;
-  v_new := case when v_spent > v_cap then 'blocked' else 'review' end;
+  -- Issue #20: синхронизировано с schema/schema_v0.sql (Issue #3). Ранее здесь
+  -- было `'blocked'`, и этот create-or-replace перекрывал каноническую
+  -- семантику: в проде `budget_exhausted` из complete_task был недостижим.
+  v_new := case when v_spent > v_cap then 'budget_exhausted' else 'review' end;
   update tasks
      set state = v_new, result_ref = p_result_ref, spent_tokens = v_spent,
          lease_owner = null, lease_until = null, updated_at = now(),
-         block_reason = case when v_new = 'blocked' then 'budget_exhausted' end
+         block_reason = case when v_new = 'budget_exhausted' then 'budget_exhausted' end
    where id = p_task;
   perform append_event(p_task, 'complete:' || p_epoch, 'completed', p_worker,
                        jsonb_build_object('ref', p_result_ref, 'new_state', v_new, 'tokens', p_tokens));

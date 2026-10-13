@@ -352,11 +352,10 @@ pub fn process_lease(
             let tokens = resp.tokens_in as i64 + resp.tokens_out as i64;
             let st = d.complete(lease, &ref_, tokens)?;
             info!(task_id = %lease.task_id, new_state = %st, tokens, "completed");
-            if st == "blocked" {
-                blocked_or_review(st, ref_, "budget_exhausted")
-            } else {
-                Outcome::Review { artifact_ref: ref_ }
-            }
+            // Issue #20: complete_task при перерасходе возвращает `budget_exhausted`
+            // (а не `blocked`). blocked_or_review сам различает review/блокировку,
+            // поэтому не полагаемся на конкретную строку состояния.
+            blocked_or_review(st, ref_, "budget_exhausted")
         }
         Err(e) if is_lease_lost(&e) => Outcome::LeaseLost,
         Err(e) => {

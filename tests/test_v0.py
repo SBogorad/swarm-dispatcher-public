@@ -307,7 +307,10 @@ def test_budget_exhaustion_blocks_on_complete(db):
     ready(db, t)
     r = claim(db)
     one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
-    assert one(db, "select complete_task(%s,'w1',%s,'sha256:a',150)", t, r[2]) == "blocked"
+    # Issue #20: complete_task при перерасходе даёт канонический 'budget_exhausted'
+    # (Issue #3), а не 'blocked'. Ранее ожидание 'blocked' скрывало, что
+    # roles_2b.sql перекрывал каноническую версию из schema_v0.sql.
+    assert one(db, "select complete_task(%s,'w1',%s,'sha256:a',150)", t, r[2]) == "budget_exhausted"
 
 
 def test_complete_rejects_negative_tokens(db):

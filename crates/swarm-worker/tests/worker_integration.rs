@@ -314,6 +314,37 @@ fn worker_global_budget_exhausted_blocks_before_llm() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// 5b. Per-task перерасход токенов → complete_task даёт budget_exhausted (Issue #20).
+//
+// Раньше roles_2b.sql перекрывал канонический complete_task и возвращал
+// 'blocked'; состояние budget_exhausted из complete_task было недостижимо.
+// Здесь задача с крошечным budget_cap: pre-flight пропускает (spent=0 < cap),
+// а после ответа LLM (30 токенов > cap) complete_task должен дать
+// budget_exhausted, а воркер — Blocked (не Review).
+#[test]
+fn worker_task_budget_exhausted_on_complete() {
+    let mut d = admin();
+    let dir = tmpdir("tover");
+    d.register_worker("w1", &serde_json::json!({"ram_gb": 16}), &[])
+        .unwrap();
+    // cap=5; мок отдаёт tokens_in=10 + tokens_out=20 = 30 > 5.
+    let t = ready_task("overspend", 5);
+
+    let llm = MockLlm::new(vec![Step::Ok("too-many-tokens".into())]);
+    let lease = d.claim("w1", 60).unwrap().unwrap();
+    let out = process_lease(&mut d, &lease, &llm, &cfg(&dir), None).unwrap();
+    assert!(
+        matches!(out, Outcome::Blocked { .. }),
+        "перерасход должен дать Blocked, got {out:?}"
+    );
+    assert_eq!(
+        state_of(t),
+        "budget_exhausted",
+        "complete_task при spent > cap обязан дать budget_exhausted (Issue #20)"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 // 6. 401/403 → failed (сбой авторизации, без ретраев).
 #[test]
 fn worker_auth_failure_goes_to_failed() {
