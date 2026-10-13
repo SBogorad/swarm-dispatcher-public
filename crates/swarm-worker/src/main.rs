@@ -17,6 +17,13 @@
 //! - `RUN_ONCE` (0|1, по умолчанию 0) — один проход и выход (Issue #4)
 //! - `SWARM_POLL_INTERVAL_MS` (по умолчанию 2000) — базовая задержка опроса
 //! - `SWARM_POLL_MAX_MS` (по умолчанию 30000) — потолок backoff при простое
+//! - `SWARM_MODEL_AUTOSELECT` (0|1, по умолчанию 0) — выбор модели по цене успеха (Issue #7/#10)
+//! - `SWARM_MODEL_CATALOG_FILE` — JSON-каталог моделей (иначе одна модель из `LLM_MODEL`)
+//! - `SWARM_MODEL_STATS_FILE` — JSON-статистика по моделям от `scripts/model_quality_report.py`
+//! - `SWARM_MODEL_MIN_SAMPLES` (по умолчанию 5) — минимум задач, чтобы доверять измерению
+//! - `SWARM_MODEL_MIN_SUCCESS_RATE` (по умолчанию 0.5) — минимальная доля успеха
+//! - `SWARM_MODEL_OUTPUT_RATIO` (по умолчанию 2.0) — ожидаемое выход/вход для оценки по прайсу
+//! - `SWARM_MODEL_DEFAULT_TIER` (по умолчанию 1) — уровень задачи без `quality_tier` в контракте
 //! - `LLM_*` — см. swarm-llm
 
 use std::path::PathBuf;
@@ -28,7 +35,8 @@ use std::time::{Duration, Instant};
 use swarm_core::SwarmDispatcher;
 use swarm_llm::{from_env as llm_from_env, LlmClient};
 use swarm_worker::{
-    process_lease, BudgetPolicy, Outcome, PollPolicy, RetryPolicy, RunLimits, WorkerConfig,
+    process_lease, BudgetPolicy, ModelCatalog, ModelSelector, ModelStat, Outcome, PollPolicy,
+    RetryPolicy, RunLimits, WorkerConfig,
 };
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
@@ -38,6 +46,74 @@ fn env_u64(name: &str, dflt: u64) -> u64 {
         .ok()
         .and_then(|s| s.parse().ok())
         .unwrap_or(dflt)
+}
+
+fn env_f64(name: &str, dflt: f64) -> f64 {
+    std::env::var(name)
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(dflt)
+}
+
+/// Issue #7/#10: собрать селектор модели, если он включён.
+///
+/// Возвращает `None` (поведение по умолчанию: модель из `LLM_MODEL`), если
+/// `SWARM_MODEL_AUTOSELECT != 1`. Любая проблема с файлами каталога/статистики
+/// не роняет воркер: деградируем на одну модель из конфига с громким warn.
+fn build_model_selector(default_model: &str) -> Option<Arc<ModelSelector>> {
+    if !std::env::var("SWARM_MODEL_AUTOSELECT")
+        .map(|s| s == "1")
+        .unwrap_or(false)
+    {
+        return None;
+    }
+
+    let catalog = match std::env::var("SWARM_MODEL_CATALOG_FILE") {
+        Ok(path) => match std::fs::read_to_string(&path) {
+            Ok(s) => match ModelCatalog::from_json_str(&s) {
+                Ok(c) => c,
+                Err(e) => {
+                    warn!(error = %e, path, "model catalog invalid; falling back to configured model");
+                    ModelCatalog::single(default_model)
+                }
+            },
+            Err(e) => {
+                warn!(error = %e, path, "model catalog unreadable; falling back to configured model");
+                ModelCatalog::single(default_model)
+            }
+        },
+        Err(_) => {
+            warn!("SWARM_MODEL_CATALOG_FILE unset; selector has only the configured model");
+            ModelCatalog::single(default_model)
+        }
+    };
+
+    let stats: Vec<ModelStat> = match std::env::var("SWARM_MODEL_STATS_FILE") {
+        Ok(path) => std::fs::read_to_string(&path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_else(|| {
+                warn!(path, "model stats unreadable; selecting by list price");
+                Vec::new()
+            }),
+        Err(_) => Vec::new(),
+    };
+
+    let sel = ModelSelector {
+        catalog,
+        stats,
+        min_samples: env_u64("SWARM_MODEL_MIN_SAMPLES", 5),
+        min_success_rate: env_f64("SWARM_MODEL_MIN_SUCCESS_RATE", 0.5),
+        expected_output_ratio: env_f64("SWARM_MODEL_OUTPUT_RATIO", 2.0),
+        default_task_tier: env_u64("SWARM_MODEL_DEFAULT_TIER", 1) as u8,
+    };
+    info!(
+        candidates = sel.catalog.models.len(),
+        measured = sel.stats.len(),
+        min_samples = sel.min_samples,
+        "model autoselect enabled (Issue #7/#10)"
+    );
+    Some(Arc::new(sel))
 }
 
 fn main() {
@@ -69,6 +145,10 @@ fn main() {
         .unwrap_or_default();
 
     let llm_calls = Arc::new(AtomicU32::new(0));
+    // Issue #7/#10: модель для дефолта (когда селектор выключен или не нашёл
+    // кандидатов) — та же, что читает LLM-клиент из `LLM_MODEL`.
+    let default_model = std::env::var("LLM_MODEL").unwrap_or_else(|_| "deepseek-v4.1-flash".into());
+    let model_selector = build_model_selector(&default_model);
     let cfg = WorkerConfig {
         artifacts_dir: PathBuf::from(
             std::env::var("ARTIFACTS_DIR").unwrap_or_else(|_| "/var/swarm/artifacts".into()),
@@ -94,6 +174,7 @@ fn main() {
             max_duration_sec: env_u64("MAX_DURATION_SEC", 0),
         },
         llm_calls: Some(llm_calls.clone()),
+        model_selector,
     };
 
     let llm: Box<dyn LlmClient> = match llm_from_env() {

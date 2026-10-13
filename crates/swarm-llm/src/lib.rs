@@ -95,6 +95,18 @@ pub struct LlmRequest {
     pub user: String,
     pub max_tokens: Option<u32>,
     pub temperature: Option<f32>,
+    /// Модель для ЭТОГО запроса (Issue #7/#10). `None` → модель из конфига.
+    ///
+    /// Нужно, чтобы выбирать модель по измеренной стоимости успеха, не
+    /// пересоздавая HTTP-клиент (в нём же ключ и base_url).
+    pub model: Option<String>,
+}
+
+impl LlmRequest {
+    /// Модель, которой реально уйдёт запрос: явная из запроса или из конфига.
+    pub fn effective_model<'a>(&'a self, cfg_model: &'a str) -> &'a str {
+        self.model.as_deref().unwrap_or(cfg_model)
+    }
 }
 
 /// Ответ LLM.
@@ -284,7 +296,7 @@ impl HttpLlmClient {
     ) -> Result<LlmResponse, LlmError> {
         let url = format!("{}/v1/chat/completions", base.trim_end_matches('/'));
         let body = OpenAiRequest {
-            model: &self.cfg.model,
+            model: req.effective_model(&self.cfg.model),
             messages: vec![
                 ChatMessage {
                     role: "system",
@@ -340,7 +352,7 @@ impl HttpLlmClient {
             .unwrap_or("https://api.anthropic.com");
         let url = format!("{}/v1/messages", base.trim_end_matches('/'));
         let body = AnthropicRequest {
-            model: &self.cfg.model,
+            model: req.effective_model(&self.cfg.model),
             max_tokens,
             system: &req.system,
             messages: vec![ChatMessage {
@@ -443,6 +455,7 @@ mod tests {
                 user: "u".into(),
                 max_tokens: None,
                 temperature: None,
+                model: None,
             })
             .unwrap();
         assert_eq!(r.text, "hello-from-mock");
@@ -472,6 +485,7 @@ mod tests {
             user: "u".into(),
             max_tokens: None,
             temperature: None,
+            model: None,
         };
         let r1 = c.complete(&req).unwrap();
         assert_eq!(r1.text, "not json", "первый ответ — невалидный");
@@ -500,6 +514,7 @@ mod tests {
             user: "u".into(),
             max_tokens: None,
             temperature: None,
+            model: None,
         });
         assert!(matches!(err, Err(LlmError::Config(_))));
     }

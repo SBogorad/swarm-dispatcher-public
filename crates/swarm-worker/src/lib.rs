@@ -13,6 +13,7 @@ pub mod audit;
 pub mod budget;
 pub mod error;
 pub mod llm_cost;
+pub mod model_selector;
 pub mod parse_step;
 pub mod poll;
 pub mod prompt;
@@ -28,6 +29,10 @@ pub use allowlist::Allowlist;
 pub use audit::PgAuditSink;
 pub use budget::{BudgetBlock, BudgetPolicy, RunLimits, RunStop};
 pub use error::{Result, WorkerError};
+pub use model_selector::{
+    select_model, ModelCandidate, ModelCatalog, ModelSelector, ModelStat, Selection,
+    SelectionBasis,
+};
 pub use poll::PollPolicy;
 pub use retry::RetryPolicy;
 pub use sandbox::{shell_tools_enabled, ExecOutput, Sandbox, SandboxConfig};

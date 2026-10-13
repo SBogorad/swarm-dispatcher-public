@@ -134,6 +134,7 @@ pub fn run(
             user: crate::prompt::agent_user_prompt(contract, &history),
             max_tokens: Some(cfg.max_tokens),
             temperature: None,
+            model: None,
         };
         let resp = llm.complete(&req)?;
         let step = parse_step(&resp.text)?;
