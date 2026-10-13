@@ -76,7 +76,7 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-#    read_only: true
+    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
       # Issue #11: worker работает как uid 1001 (Dockerfile USER 1001),
@@ -110,7 +110,7 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-#    read_only: true
+    read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
       # Issue #11: uid=1001 (Dockerfile USER 1001), см. worker-1.
