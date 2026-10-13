@@ -683,6 +683,29 @@ review_gate_acceptance() {
 run_step "diff allowlist ($BASE..$BRANCH)" check_diff_scope
 run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
+# Техдолг (2026-10-14): drift guard против расхождения тел функций между
+# schema/schema_v0.sql и step2b/roles_2b.sql. roles_2b.sql перекрывает пять
+# функций воркера (добавляя identity-проверку); если кто-то поправит тело в
+# одном файле и забудет в другом — тест краснеет. Класс дефекта уже дважды
+# кусал: submit_review (F16г) и complete_task (Issue #20).
+# Тест не требует БД. Окружение готовим ТЕМ ЖЕ venv, что и python-арбитры:
+# pytest + psycopg2-binary обязаны стоять вместе в .venv, иначе предыдущий
+# шаг «rbac/python suites» создал бы .venv с одним pytest и без psycopg2 →
+# все DB-арбитры падают на ImportError (регрессия PR #39, доказана в CI
+# run 38439933042). Единый провижн устраняет расхождение.
+_dg_py="$WORKTREE/.venv/bin/python"
+if [[ ! -x "$_dg_py" ]]; then
+  if command -v uv >/dev/null 2>&1; then
+    (cd "$WORKTREE" && uv venv --quiet .venv \
+       && uv pip install --quiet --python .venv/bin/python pytest psycopg2-binary) || true
+  fi
+fi
+if [[ -x "$_dg_py" ]]; then
+  run_worktree_step "duplicate function-body drift guard (schema_v0 vs roles_2b)" \
+    .venv/bin/python -m pytest -q tests/test_no_duplicate_function_bodies.py
+else
+  status BLOCKED "drift guard blocked: .venv with pytest+psycopg2 unavailable"
+fi
 # Issue #1: архитектурные проверки ast-grep. `test` проверяет сами правила по
 # фикстурам (падение → exit 4), `scan --error` — код репозитория (находка → exit 1).
 # Fail-closed: без инструмента гейт не «зелёный», а BLOCKED (как cargo/docker).

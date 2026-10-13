@@ -129,3 +129,7 @@ sgconfig.yml
 # allowlist → STRICT-гейт валил PR #35/#36/#37 на «out-of-scope path».
 # Скоуп гейта — код/инфраструктура; research-текст сюда не относится.
 docs/research/*
+
+# Техдолг (2026-10-14): drift guard против расхождения тел функций
+# schema_v0.sql ↔ step2b/roles_2b.sql + шаг в harness.
+tests/test_no_duplicate_function_bodies.py
