@@ -30,12 +30,16 @@ alter table public.tasks
                    'failed','budget_exhausted'));
 
 -- 2. complete_task: каноническая семантика #3 (см. Issue #20).
+--    F8: тело синхронизировано с schema/schema_v0.sql — расход учитывается
+--    триггером ledger (llm_calls_spend_sync), а не прибавлением p_tokens здесь
+--    (иначе двойной счёт); добавлен гейт по root_budget_cap.
 create or replace function public.complete_task(p_task uuid, p_worker text,
                                                 p_epoch bigint,
                                                 p_result_ref text,
                                                 p_tokens bigint default 0)
 returns text language plpgsql as $$
-declare v_new text; v_spent bigint; v_cap bigint;
+declare v_new text; v_spent bigint; v_cap bigint; v_root_cap bigint;
+        v_root_spent bigint; v_ledger bigint;
 begin
   perform assert_worker_identity(p_worker);
   perform assert_lease(p_task, p_worker, p_epoch);
@@ -45,10 +49,23 @@ begin
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
-  select spent_tokens + p_tokens, budget_cap into v_spent, v_cap from tasks where id = p_task;
+  -- F8: единый источник истины — ledger `llm_calls` (триггер llm_calls_spend_sync).
+  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  if v_ledger = 0 and p_tokens > 0 then
+    update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
+  end if;
+  select spent_tokens, budget_cap, root_budget_cap
+    into v_spent, v_cap, v_root_cap from tasks where id = p_task;
   v_new := case when v_spent > v_cap then 'budget_exhausted' else 'review' end;
+  if v_new <> 'budget_exhausted' and v_root_cap is not null then
+    select coalesce(sum(s.spent_tokens), 0) into v_root_spent
+      from tasks s where s.root_id = (select root_id from tasks where id = p_task);
+    if v_root_spent > v_root_cap then
+      v_new := 'budget_exhausted';
+    end if;
+  end if;
   update tasks
-     set state = v_new, result_ref = p_result_ref, spent_tokens = v_spent,
+     set state = v_new, result_ref = p_result_ref,
          lease_owner = null, lease_until = null, updated_at = now(),
          block_reason = case when v_new = 'budget_exhausted' then 'budget_exhausted' end
    where id = p_task;

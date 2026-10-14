@@ -82,6 +82,8 @@ revoke all on all functions in schema public from public;
 --    validate_contract, event_hash, c_num) не выдаются никому: журнал нельзя подделать снаружи.
 grant execute on function claim_task, heartbeat, save_artifact, complete_task, register_worker
   to swarm_worker;
+-- F8: воркеру нужен свежий бюджет задачи (локальный + по дереву) перед вызовом LLM.
+grant execute on function task_budget_state(uuid) to swarm_worker;
 grant execute on function reclaim_expired, promote_ready to swarm_watchdog;
 grant execute on function add_task, add_dep, promote_ready to swarm_planner;
 grant execute on function submit_review, verify_chain to swarm_reviewer;

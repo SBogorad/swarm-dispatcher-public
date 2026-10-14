@@ -290,9 +290,36 @@ pub fn process_lease(
             return Ok(blocked_or_review(st, ref_, &reason));
         }
     };
-    if let Err(block) =
-        budget::check_before_call(&cfg.budget, spent_usd, lease.spent_tokens, lease.budget_cap)
+    // F8: свежий бюджет задачи (локальный + по дереву). Снимок из аренды
+    // устаревает после любого расхода, в т.ч. сделанного по тому же дереву.
+    // Fail-closed: недоступен бюджет — не тратим деньги.
+    let (fresh_spent, fresh_cap, root_spent, root_cap) = match d.task_budget_state(lease.task_id)
     {
+        Ok(v) => v,
+        Err(e) => {
+            warn!(task_id = %lease.task_id, error = %e, "budget guard: task budget unavailable -> fail-closed");
+            let reason = format!("budget_check_failed: {e}");
+            let ref_ = fail_artifact(cfg, lease, &reason)?;
+            d.save_artifact(
+                lease,
+                &ref_,
+                &path_str(cfg, &ref_),
+                Some("text/plain"),
+                None,
+            )?;
+            let st = d.fail_with_state(lease, Some(&ref_), &reason, "failed")?;
+            drop(hb);
+            return Ok(blocked_or_review(st, ref_, &reason));
+        }
+    };
+    if let Err(block) = budget::check_before_call(
+        &cfg.budget,
+        spent_usd,
+        fresh_spent,
+        fresh_cap,
+        root_spent,
+        root_cap,
+    ) {
         let reason = block.reason();
         warn!(task_id = %lease.task_id, reason = %reason, spent_usd, "budget guard: blocking before LLM call");
         let ref_ = fail_artifact(cfg, lease, &reason)?;

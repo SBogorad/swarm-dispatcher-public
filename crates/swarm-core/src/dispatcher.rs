@@ -173,6 +173,27 @@ impl SwarmDispatcher {
         }))
     }
 
+    /// F8: свежее состояние бюджета задачи (локальный + по дереву).
+    ///
+    /// `Lease.spent_tokens` — снимок на момент claim; перед вызовом LLM воркер
+    /// обязан видеть расход, сделанный после выдачи (в т.ч. по тому же дереву).
+    /// Возвращает `(spent, budget_cap, root_spent, root_budget_cap)`;
+    /// `root_budget_cap` = `None`, если лимита по дереву нет.
+    pub fn task_budget_state(
+        &mut self,
+        task_id: Uuid,
+    ) -> Result<(i64, i64, i64, Option<i64>), DispatcherError> {
+        let row = self
+            .client
+            .query_one(
+                "SELECT out_spent, out_budget, out_root_spent, out_root_budget \
+                 FROM task_budget_state($1)",
+                &[&task_id],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok((row.get(0), row.get(1), row.get(2), row.get(3)))
+    }
+
     /// Не бросает исключение при потере аренды — возвращает `Ok(false)`.
     /// Так воркер может реагировать на потерю без `catch`.
     pub fn heartbeat(&mut self, lease: &Lease, extend_sec: i32) -> Result<bool, DispatcherError> {
