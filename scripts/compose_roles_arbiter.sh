@@ -183,6 +183,42 @@ for wr in $worker_roles; do
   fi
 done
 
+# --- негативные инварианты безопасности (директива аудитора) -----------------
+# Позитивные проверки (есть ли право) доказывают работоспособность, но НЕ
+# изоляцию. Арбитр обязан проверять и запреты:
+#   (a) у сервисной роли НЕТ rolsuper/rolbypassrls;
+#   (b) нет ПРЯМЫХ изменяющих прав на защищённые таблицы — доступ только
+#       через SECURITY DEFINER RPC (иначе воркер может править tasks/events
+#       в обход инвариантов и identity-проверок).
+#       ИСКЛЮЧЕНИЕ — llm_calls: воркер ОБЯЗАН писать туда cost ledger
+#       (грант INSERT/SELECT из migration 002). Для неё запрещаем только
+#       UPDATE/DELETE (ledger неизменяем), INSERT — легитимен.
+IMMUTABLE_LEDGER="llm_calls"
+RPC_ONLY_TABLES="tasks events artifacts reviews task_deps workers"
+for role in $seen_roles; do
+  privs="$(q "select rolsuper::text || '|' || rolbypassrls::text from pg_roles where rolname='$role'")"
+  case "$privs" in
+    "false|false") echo "PASS catalog: $role не super/bypassrls" ;;
+    "") echo "WARN catalog: роль $role не найдена в pg_roles" ;;
+    *) echo "FAIL catalog: $role имеет rolsuper/rolbypassrls ($privs)"; fail=1 ;;
+  esac
+  # Таблицы только-через-RPC: любой INSERT/UPDATE/DELETE — нарушение.
+  for tbl in $RPC_ONLY_TABLES; do
+    direct="$(q "select has_table_privilege('$role','$tbl','INSERT') or has_table_privilege('$role','$tbl','UPDATE') or has_table_privilege('$role','$tbl','DELETE')")"
+    if [[ "$direct" == "t" ]]; then
+      echo "FAIL catalog: $role имеет прямой DML на $tbl (в обход RPC)"; fail=1
+    fi
+  done
+  # Неизменяемый ledger: запрещены UPDATE/DELETE (INSERT — легитимен).
+  for tbl in $IMMUTABLE_LEDGER; do
+    mut="$(q "select has_table_privilege('$role','$tbl','UPDATE') or has_table_privilege('$role','$tbl','DELETE')")"
+    if [[ "$mut" == "t" ]]; then
+      echo "FAIL catalog: $role может менять/удалять $tbl (ledger должен быть неизменяем)"; fail=1
+    fi
+  done
+done
+echo "PASS catalog: негативные инварианты проверены (super/bypassrls, прямой DML)"
+
 # Прямой запрет класса #24: watchdog не под ролью воркера.
 if [[ -n "$watchdog_role" ]]; then
   case "$watchdog_role" in
