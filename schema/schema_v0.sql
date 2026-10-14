@@ -452,6 +452,37 @@ begin
       from tasks t where t.id = p_task;
 end $$;
 
+-- FIND-CODE-02: контур обратной связи при доработке.
+--
+-- Ревьюер при `changes_requested` пишет причину в `reviews.checks`, но воркер
+-- её не читал (claim_task отдавал только контракт) → перегенерировал то же
+-- решение вслепую (корень `changes_requested = 39` на проде).
+--
+-- Возвращает число возвратов и диагностику последнего ревью. Требует ЖИВУЮ
+-- аренду (`assert_lease`) и identity воркера — чужую диагностику не прочитать.
+create function task_rework_feedback(p_task uuid, p_worker text, p_epoch bigint)
+returns table (out_rework int, out_last_review jsonb)
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_rework int;
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  select t.rework into v_rework from tasks t where t.id = p_task;
+  if not found then
+    raise exception 'task_not_found' using errcode = 'GR000';
+  end if;
+  return query
+    select v_rework,
+           (select jsonb_build_object(
+                     'verdict', r.verdict,
+                     'artifact_ref', r.artifact_ref,
+                     'checks', r.checks,
+                     'reviewer', r.reviewer)
+              from reviews r
+             where r.task_id = p_task
+             order by r.id desc
+             limit 1);
+end $$;
+
 -- Продлевает только действующую аренду; истёкшую «оживить» нельзя.
 create function heartbeat(p_task uuid, p_worker text, p_epoch bigint, p_extend_sec int default 300)
 returns boolean language plpgsql as $$

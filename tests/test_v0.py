@@ -676,3 +676,67 @@ def test_find_new_01_fail_task_functions_granted_to_workers(db):
         # Общая группа swarm_worker НЕ должна иметь доступ (identity-модель, F3).
         assert one(db, "select has_function_privilege('swarm_worker',%s,'EXECUTE')", fn) is False, \
             f"FIND-NEW-01: общая swarm_worker не должна иметь EXECUTE на {fn}"
+
+
+# ---------------- FIND-CODE-02: контур обратной связи ----------------
+def test_find_code_02_rework_feedback_granted_to_worker_only(db):
+    """FIND-CODE-02: task_rework_feedback доступна воркеру и закрыта для прочих.
+
+    Функция SECURITY DEFINER отдаёт диагностику последнего ревью; воркер должен
+    иметь EXECUTE, а ревьюер/планировщик/оператор — нет (least privilege).
+    """
+    fn = "task_rework_feedback(uuid,text,bigint)"
+    for role in ("swarm_worker_w1", "swarm_worker_w2"):
+        assert one(db, "select has_function_privilege(%s,%s,'EXECUTE')", role, fn) is True, \
+            f"FIND-CODE-02: {role} не имеет EXECUTE на {fn}"
+    for role in ("swarm_reviewer", "swarm_planner", "swarm_operator", "swarm_watchdog"):
+        assert one(db, "select has_function_privilege(%s,%s,'EXECUTE')", role, fn) is False, \
+            f"FIND-CODE-02: {role} не должен иметь EXECUTE на {fn}"
+
+
+def test_find_code_02_rework_feedback_returns_diagnosis(db):
+    """FIND-CODE-02: после changes_requested воркер видит причину отказа.
+
+    Без этого контура воркер перегенерирует то же решение вслепую — корень
+    прод-статистики changes_requested=39 против approved=16.
+    """
+    worker(db)
+    t = new_task(db, ctr=contract(budget={"attempts": 3, "max_rework": 3}))
+    ready(db, t)
+    to_review(db, t)
+    assert one(db, "select submit_review(%s,'sha256:a','rev','changes_requested',%s::jsonb)",
+               t, FAIL) == "ready"
+    db.commit()
+    # Повторная выдача: воркер получает rework>0 и диагностику последнего ревью.
+    r = claim(db)
+    assert r is not None, "задача должна быть выдана повторно"
+    rework, last_review = rows(
+        db, "select out_rework, out_last_review from task_rework_feedback(%s,'w1',%s)",
+        t, r[2])[0]
+    assert rework == 1, f"FIND-CODE-02: ожидался rework=1, получено {rework}"
+    assert last_review is not None, "FIND-CODE-02: диагностика ревью не отдана"
+    assert last_review["verdict"] == "changes_requested"
+    assert last_review["reviewer"] == "rev"
+    assert last_review["artifact_ref"] == "sha256:a"
+    # checks — то, что ревьюер записал как причину отказа.
+    assert isinstance(last_review["checks"], list) and last_review["checks"], \
+        f"FIND-CODE-02: checks пусты: {last_review}"
+
+
+def test_find_code_02_rework_feedback_requires_live_lease(db):
+    """FIND-CODE-02: без живой аренды диагностика не отдаётся (LS001).
+
+    Иначе чужой воркер мог бы прочитать причину отказа по чужой задаче.
+    """
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    r = claim(db)
+    db.commit()
+    # Чужой epoch — аренды нет.
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute(
+            "select out_rework, out_last_review from task_rework_feedback(%s,'w1',%s)",
+            (t, r[2] + 99))
+    assert code(e) == "LS001"
+    db.rollback()

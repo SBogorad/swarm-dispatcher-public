@@ -206,6 +206,9 @@ pub fn process_lease(
                     budget_cap: 0,
                     spent_tokens: 0,
                     worker_id: worker_id.clone(),
+                    // Heartbeat аренду не создаёт — поля обратной связи не нужны.
+                    rework: 0,
+                    last_review: None,
                 };
                 match d.heartbeat(&l, extend) {
                     Ok(true) => {}
@@ -342,7 +345,7 @@ pub fn process_lease(
     // `started_at = now - 1s` («примерно») — это делало метрики недостоверными.
     let call_started_at = chrono::Utc::now();
     let call_started = Instant::now();
-    let result = call_llm_with_retries(llm, &contract, cfg);
+    let result = call_llm_with_retries(llm, &contract, cfg, lease.rework, lease.last_review.as_ref());
     let call_duration_ms = call_started.elapsed().as_millis() as i64;
     let call_completed_at = chrono::Utc::now();
 
@@ -598,13 +601,19 @@ fn is_lease_lost(e: &WorkerError) -> bool {
 }
 
 /// Вызов LLM с ретраями по политике.
+///
+/// FIND-CODE-02: `rework` и `last_review` — контур обратной связи. При
+/// `rework > 0` в промпт попадает диагностика последнего отказа ревьюера,
+/// иначе воркер перегенерирует то же решение вслепую.
 fn call_llm_with_retries(
     llm: &dyn LlmClient,
     contract: &serde_json::Value,
     cfg: &WorkerConfig,
+    rework: i32,
+    last_review: Option<&serde_json::Value>,
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
-    let user = prompt::user_prompt(contract);
+    let user = prompt::user_prompt_with_rework(contract, rework, last_review);
     let selected_model = select_model(cfg, contract);
 
     let req = LlmRequest {
