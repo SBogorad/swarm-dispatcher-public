@@ -36,10 +36,15 @@ VOLUMES: dict[str, dict] = {
     },
     "INFRA": {
         "title": "Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)",
-        "globs": ["schema/*", "step2/*", "step2b/*", "scripts/*",
-                  "docker-compose.yml", "Dockerfile", ".env.example",
-                  ".dockerignore", ".gitignore", "LICENSE", "tests/*.py",
-                  ".github/workflows/*"],
+        # FIND-NEW-05: `schema/*` НЕ рекурсивен — Path.glob('schema/*')
+        # возвращает только `schema/migrations` (каталог), а `p.is_file()`
+        # его отбрасывает. В итоге все 11 миграций (в т.ч. фикс F8 —
+        # 011_budget_sync_and_root_cap.sql) выпадали из аудит-тома.
+        # `schema/**/*.sql` рекурсивно берёт и schema_v0.sql, и migrations/*.
+        "globs": ["schema/*", "schema/**/*.sql", "step2/*", "step2b/*",
+                  "scripts/*", "docker-compose.yml", "Dockerfile",
+                  ".env.example", ".dockerignore", ".gitignore", "LICENSE",
+                  "tests/*.py", ".github/workflows/*"],
     },
     "DOCS": {
         "title": "Документация и отчёты (без писем history/inbound)",
