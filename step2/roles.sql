@@ -84,6 +84,8 @@ grant execute on function claim_task, heartbeat, save_artifact, complete_task, r
   to swarm_worker;
 -- F8: воркеру нужен свежий бюджет задачи (локальный + по дереву) перед вызовом LLM.
 grant execute on function task_budget_state(uuid) to swarm_worker;
+-- FIND-CODE-02: воркеру нужна диагностика последнего ревью при доработке.
+grant execute on function task_rework_feedback(uuid, text, bigint) to swarm_worker;
 grant execute on function reclaim_expired, promote_ready to swarm_watchdog;
 grant execute on function add_task, add_dep, promote_ready to swarm_planner;
 grant execute on function submit_review, verify_chain to swarm_reviewer;

@@ -163,14 +163,49 @@ impl SwarmDispatcher {
             return Ok(None);
         }
         let r = &rows[0];
+        let task_id: Uuid = r.get(0);
+        let epoch: i64 = r.get(2);
+        // FIND-CODE-02: контур обратной связи. Отдельный RPC, а не лишние
+        // колонки `claim_task`: смена возвращаемого типа ломает применение
+        // миграций (`create or replace` не меняет row type) и требует DROP +
+        // перевыдачи гранта. Здесь же — обычный вызов привилегированной
+        // функции, доступный только держателю живой аренды.
+        let (rework, last_review) = self.rework_feedback(task_id, worker_id, epoch)?;
         Ok(Some(Lease {
-            task_id: r.get(0),
+            task_id,
             contract: r.get(1), // сырой JSON: никакого from_value здесь
-            epoch: r.get(2),
+            epoch,
             budget_cap: r.get(3),
             spent_tokens: r.get(4),
             worker_id: worker_id.to_owned(),
+            rework,
+            last_review,
         }))
+    }
+
+    /// FIND-CODE-02: диагностика последнего ревью для возвращённой задачи.
+    /// Возвращает `(rework, last_review)`; при отсутствии ревью — `(n, None)`.
+    /// `task_rework_feedback` — SECURITY DEFINER с проверкой аренды и identity,
+    /// поэтому чужой воркер не прочтёт диагностику чужой задачи.
+    fn rework_feedback(
+        &mut self,
+        task_id: Uuid,
+        worker_id: &str,
+        epoch: i64,
+    ) -> Result<(i32, Option<serde_json::Value>), DispatcherError> {
+        let rows = self
+            .client
+            .query(
+                "SELECT out_rework, out_last_review \
+                 FROM task_rework_feedback($1, $2, $3)",
+                &[&task_id, &worker_id, &epoch],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        if rows.is_empty() {
+            return Ok((0, None));
+        }
+        let r = &rows[0];
+        Ok((r.get(0), r.get(1)))
     }
 
     /// F8: свежее состояние бюджета задачи (локальный + по дереву).

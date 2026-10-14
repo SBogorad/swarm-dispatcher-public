@@ -96,6 +96,15 @@ pub struct Lease {
     pub budget_cap: i64,
     pub spent_tokens: i64,
     pub worker_id: String,
+    /// FIND-CODE-02: число возвратов задачи на доработку. `> 0` означает, что
+    /// предыдущая попытка была отвергнута ревьюером.
+    pub rework: i32,
+    /// FIND-CODE-02: диагностика последнего ревью
+    /// (`{verdict, artifact_ref, checks, reviewer}`) или `null`, если ревью
+    /// ещё не было. Воркер при `rework > 0` обязан подложить это в промпт,
+    /// иначе он перегенерирует то же решение вслепую (корень
+    /// `changes_requested = 39` на проде).
+    pub last_review: Option<serde_json::Value>,
 }
 
 impl Lease {
