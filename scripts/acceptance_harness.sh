@@ -314,6 +314,38 @@ shell_checks() {
   fi
 }
 
+# rustfmt guard (техдолг, ночная смена 2026-10-15).
+#
+# `cargo fmt --check` был КРАСНЫМ на master, потому что его не запускал ни CI
+# (компонент rustfmt ставится, но шага нет), ни harness. PR #38 привёл HEAD к
+# канону, но последующие #45/#51 внесли новый неотформатированный код
+# (`prompt.rs`, `worker.rs`), и это никто не заметил — ровно класс «проверки,
+# которой нет». Теперь форматирование — шаг гейта.
+#
+# Fail-closed: rustfmt отсутствует → BLOCKED (не «зелено»). Отдельно важно, что
+# `cargo fmt` без установленного rustfmt завершается 0, ничего не проверяя, —
+# поэтому сначала проверяем `cargo fmt --version`, иначе шаг был бы вечно зелёным.
+# Версии не флейки: rustfmt 1.94.1 (пин CI, dtolnay/rust-toolchain@1.94.1) и
+# 1.99.0 (локальный) дают байт-идентичный вывод на этом дереве (проверено
+# 2026-10-15: одинаковые 6 диффов до фикса, одинаковый результат после).
+fmt_check() {
+  local out rc ver
+  if ! ver="$(cargo fmt --version 2>/dev/null)"; then
+    status BLOCKED "rustfmt unavailable: cargo fmt --check not run"
+    return 0
+  fi
+  set +e
+  out="$(cd "$WORKTREE" && cargo fmt --check 2>&1)"
+  rc=$?
+  set -e
+  if ((rc == 0)); then
+    status PASS "rustfmt formatting ($ver)" 0 "cargo fmt --check"
+  else
+    printf '%s\n' "$out"
+    status FAIL "rustfmt: код не отформатирован (cargo fmt --check, см. log)" "$rc" "cargo fmt --check"
+  fi
+}
+
 # FIND-01 (Волна 5.2, переработан): после снятия feature-гейта модули shell-tools
 # компилируются ВСЕГДА, и символы модуля физически живут в бинаре (мангалинг:
 # `swarm_worker7sandbox`, а не `swarm_worker::sandbox`). Поэтому старая
@@ -688,6 +720,13 @@ review_gate_acceptance() {
 run_step "diff allowlist ($BASE..$BRANCH)" check_diff_scope
 run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
+# rustfmt guard (техдолг 2026-10-15): держим `cargo fmt --check` зелёным на HEAD.
+# Дешёвый шаг без БД/Docker — сразу после синтаксиса, до дорогой сборки.
+if command -v cargo >/dev/null 2>&1; then
+  run_step "rustfmt formatting (cargo fmt --check)" fmt_check
+else
+  status BLOCKED "cargo unavailable: rustfmt check not run"
+fi
 # Техдолг (2026-10-14): drift guard против расхождения тел функций между
 # schema/schema_v0.sql и step2b/roles_2b.sql. roles_2b.sql перекрывает пять
 # функций воркера (добавляя identity-проверку); если кто-то поправит тело в

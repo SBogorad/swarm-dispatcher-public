@@ -160,3 +160,10 @@ docs/METHODOLOGY.md
 .githooks/*
 scripts/secret_scan.sh
 scripts/build_audit_zip.sh
+
+# Техдолг (2026-10-15): `cargo fmt --check` красный на master — rustfmt-фикс
+# двух файлов воркера + fail-closed шаг fmt_check в harness (класс «проверки,
+# которой нет»: rustfmt ставился, но не запускался ни в CI, ни в гейте).
+crates/swarm-worker/src/prompt.rs
+crates/swarm-worker/src/worker.rs
+scripts/acceptance_harness.sh

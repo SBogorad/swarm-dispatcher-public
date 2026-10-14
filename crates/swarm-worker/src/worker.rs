@@ -296,8 +296,7 @@ pub fn process_lease(
     // F8: свежий бюджет задачи (локальный + по дереву). Снимок из аренды
     // устаревает после любого расхода, в т.ч. сделанного по тому же дереву.
     // Fail-closed: недоступен бюджет — не тратим деньги.
-    let (fresh_spent, fresh_cap, root_spent, root_cap) = match d.task_budget_state(lease.task_id)
-    {
+    let (fresh_spent, fresh_cap, root_spent, root_cap) = match d.task_budget_state(lease.task_id) {
         Ok(v) => v,
         Err(e) => {
             warn!(task_id = %lease.task_id, error = %e, "budget guard: task budget unavailable -> fail-closed");
@@ -345,7 +344,13 @@ pub fn process_lease(
     // `started_at = now - 1s` («примерно») — это делало метрики недостоверными.
     let call_started_at = chrono::Utc::now();
     let call_started = Instant::now();
-    let result = call_llm_with_retries(llm, &contract, cfg, lease.rework, lease.last_review.as_ref());
+    let result = call_llm_with_retries(
+        llm,
+        &contract,
+        cfg,
+        lease.rework,
+        lease.last_review.as_ref(),
+    );
     let call_duration_ms = call_started.elapsed().as_millis() as i64;
     let call_completed_at = chrono::Utc::now();
 
@@ -473,8 +478,8 @@ pub fn process_lease(
             // "unknown", из-за чего `llm_calls.model` и витрины llm_costs_daily /
             // llm_model_quality теряли, какая ИМЕННО модель даёт ошибки. Теперь
             // берём выбранную селектором модель либо модель по умолчанию клиента.
-            let attempted_model = select_model(cfg, &contract)
-                .unwrap_or_else(|| llm.default_model().to_string());
+            let attempted_model =
+                select_model(cfg, &contract).unwrap_or_else(|| llm.default_model().to_string());
             match d.record_llm_call(
                 lease.task_id,
                 &lease.worker_id,
