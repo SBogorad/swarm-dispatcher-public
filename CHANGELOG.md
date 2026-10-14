@@ -15,6 +15,24 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Fixed (техдолг — `cargo fmt --check` красный на HEAD + шаг форматирования в гейте)
+
+- **Форматирование приведено к канону rustfmt.** `prompt.rs` и `worker.rs`
+  (`crates/swarm-worker/src`) были не отформатированы на `master`: PR #38
+  привёл HEAD к канону, но последующие #45/#51 внесли новый код без прогона
+  rustfmt. Изменений семантики нет — `cargo check --workspace --locked` зелёный.
+- **Гейт теперь проверяет форматирование.** Шаг `fmt_check` в
+  `scripts/acceptance_harness.sh`: `cargo fmt --check`, fail-closed (rustfmt
+  отсутствует → `BLOCKED`, не «зелено»). Причина — класс «проверки, которой
+  нет»: CI ставил компонент rustfmt, но шага не было ни в CI, ни в harness,
+  поэтому расхождение жило незамеченным.
+- **Отдельно учтено:** `cargo fmt` без установленного rustfmt завершается 0,
+  ничего не проверяя, — поэтому шаг сначала проверяет `cargo fmt --version`
+  (иначе проверка была бы «зелёной всегда»). Версии не флейки: rustfmt 1.94.1
+  (пин CI) и 1.99.0 (локальный) дают байт-идентичный вывод на этом дереве.
+- **Проверка проверки поломкой** (Принцип 3): намеренно испорченный файл →
+  `FAIL`, чистое дерево → `PASS`, rustfmt недоступен → `BLOCKED`.
+
 ### Fixed (F8 — бюджет не ограничивал реальные расходы, KNOWN_LIMITATIONS §5.10)
 
 - **Синхронный учёт расхода.** Триггер `AFTER INSERT ON llm_calls`

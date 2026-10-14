@@ -72,7 +72,10 @@ pub fn user_prompt_with_rework(
         .get("verdict")
         .and_then(|v| v.as_str())
         .unwrap_or("changes_requested");
-    let reviewer = review.get("reviewer").and_then(|v| v.as_str()).unwrap_or("");
+    let reviewer = review
+        .get("reviewer")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
     let checks = review
         .get("checks")
         .map(|c| serde_json::to_string_pretty(c).unwrap_or_default())
@@ -216,7 +219,10 @@ mod tests {
     fn user_prompt_has_no_feedback_without_rework() {
         let c = json!({"kind": "code.generate", "checks": [{"type":"cmd","run":"true"}]});
         let p = user_prompt_with_rework(&c, 0, None);
-        assert!(!p.contains("повторная попытка"), "без rework секции быть не должно: {p}");
+        assert!(
+            !p.contains("повторная попытка"),
+            "без rework секции быть не должно: {p}"
+        );
     }
 
     #[test]
@@ -242,7 +248,10 @@ mod tests {
     fn user_prompt_rework_without_review_record_still_flags_retry() {
         let c = json!({"kind": "code.generate", "checks": [{"type":"cmd","run":"true"}]});
         let p = user_prompt_with_rework(&c, 1, None);
-        assert!(p.contains("повторная попытка"), "нет отметки о повторе: {p}");
+        assert!(
+            p.contains("повторная попытка"),
+            "нет отметки о повторе: {p}"
+        );
         assert!(p.contains("rework=1"));
     }
 }
