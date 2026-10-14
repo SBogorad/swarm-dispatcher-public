@@ -223,8 +223,28 @@ begin
     raise exception 'contract_invalid: budget.attempts out of range 1..100' using errcode = 'CT001';
   end if;
   if jsonb_exists(c->'budget', 'max_rework')
-     and (c->'budget'->>'max_rework')::numeric > 50 then
+     and ((c->'budget'->>'max_rework')::numeric < 0
+          or (c->'budget'->>'max_rework')::numeric > 50) then
     raise exception 'contract_invalid: budget.max_rework out of range 0..50' using errcode = 'CT001';
+  end if;
+  -- FIND-NEW-03: max_depth/max_children/max_tasks раньше проверялись только на
+  -- ТИП, но не на диапазон: `max_tasks: 0` блокировал дерево, `max_tasks: 1e9`
+  -- снимал защиту от взрыва графа. Верхние границы — с запасом к дефолтам
+  -- add_task (max_tasks 200, max_depth 10, max_children 20).
+  if jsonb_exists(c->'budget', 'max_depth')
+     and ((c->'budget'->>'max_depth')::numeric < 1
+          or (c->'budget'->>'max_depth')::numeric > 50) then
+    raise exception 'contract_invalid: budget.max_depth out of range 1..50' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_children')
+     and ((c->'budget'->>'max_children')::numeric < 1
+          or (c->'budget'->>'max_children')::numeric > 100) then
+    raise exception 'contract_invalid: budget.max_children out of range 1..100' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_tasks')
+     and ((c->'budget'->>'max_tasks')::numeric < 1
+          or (c->'budget'->>'max_tasks')::numeric > 1000) then
+    raise exception 'contract_invalid: budget.max_tasks out of range 1..1000' using errcode = 'CT001';
   end if;
   if jsonb_exists(c->'needs', 'min_ram_gb')
      and ((c->'needs'->>'min_ram_gb')::numeric < 0
@@ -464,8 +484,14 @@ begin
   perform assert_lease(p_task, p_worker, p_epoch);
   insert into artifacts (task_id, ref, created_by, lease_epoch, content_type, size_bytes, storage_path)
   values (p_task, p_ref, p_worker, p_epoch, p_content_type, p_size, p_storage)
-  on conflict (task_id, ref) do nothing;
-  perform append_event(p_task, 'art:' || p_ref, 'artifact_saved', p_worker,
+  on conflict (task_id, ref) do update
+     set created_by = excluded.created_by, lease_epoch = excluded.lease_epoch,
+         content_type = excluded.content_type, size_bytes = excluded.size_bytes,
+         storage_path = excluded.storage_path, created_at = now();
+  -- FIND-NEW-02: `lease_epoch` в ключе. Без него повторное сохранение того же ref
+  -- на новой эпохе давало коллизию event_id, append_event тихо возвращал false,
+  -- и переход состояния оставался без следа в хэш-цепочке events.
+  perform append_event(p_task, 'art:' || p_epoch || ':' || p_ref, 'artifact_saved', p_worker,
                        jsonb_build_object('ref', p_ref));
 end $$;
 
@@ -617,7 +643,13 @@ begin
                         case when p_verdict = 'rejected' then 'rejected' else 'max_rework' end end,
          updated_at = now()
    where id = p_task;
-  perform append_event(p_task, 'review:' || p_ref || ':' || p_reviewer, 'review_submitted',
+  -- FIND-NEW-02: `t.lease_epoch` в ключе события. Без него повторное ревью того
+  -- же ref после reopen (или детерминированная пересборка на новой эпохе) давало
+  -- коллизию event_id, append_event тихо возвращал false, и переход состояния
+  -- оставался БЕЗ следа в хэш-цепочке events. Эпоха растёт на +1 в claim_task,
+  -- поэтому ключ всегда уникален.
+  perform append_event(p_task, 'review:' || t.lease_epoch || ':' || p_ref || ':' || p_reviewer,
+                       'review_submitted',
                        p_reviewer, jsonb_build_object('verdict', p_verdict, 'new_state', v_new));
   if v_new = 'done' then perform promote_ready(); end if;
   return v_new;

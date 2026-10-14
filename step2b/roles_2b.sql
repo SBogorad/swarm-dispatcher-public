@@ -149,8 +149,11 @@ begin
   perform assert_lease(p_task, p_worker, p_epoch);
   insert into artifacts (task_id, ref, created_by, lease_epoch, content_type, size_bytes, storage_path)
   values (p_task, p_ref, p_worker, p_epoch, p_content_type, p_size, p_storage)
-  on conflict (task_id, ref) do nothing;
-  perform append_event(p_task, 'art:' || p_ref, 'artifact_saved', p_worker,
+  on conflict (task_id, ref) do update
+     set created_by = excluded.created_by, lease_epoch = excluded.lease_epoch,
+         content_type = excluded.content_type, size_bytes = excluded.size_bytes,
+         storage_path = excluded.storage_path, created_at = now();
+  perform append_event(p_task, 'art:' || p_epoch || ':' || p_ref, 'artifact_saved', p_worker,
                        jsonb_build_object('ref', p_ref));
 end $$;
 
@@ -196,17 +199,72 @@ begin
   return v_new;
 end $$;
 
+-- 2.6. FIND-NEW-01: fail_task — с identity-проверкой.
+--      Раньше roles_2b перекрывал только 5 функций воркера, а fail_task/
+--      fail_task_state остались без assert_worker_identity: тело шло под
+--      SECURITY DEFINER, но не подтверждало, что p_worker = session_user.
+--      Теперь все обёртки воркера проверяют identity единообразно.
+create or replace function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                                     p_result_ref text, p_reason text) returns text
+language plpgsql as $$
+begin
+  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+  return 'blocked';
+end $$;
+
+-- 2.7. FIND-NEW-01: fail_task_state — с identity-проверкой.
+create or replace function fail_task_state(p_task uuid, p_worker text, p_epoch bigint,
+                                           p_result_ref text, p_reason text, p_state text)
+returns text language plpgsql as $$
+begin
+  perform assert_worker_identity(p_worker);
+  if p_state not in ('failed', 'budget_exhausted', 'blocked') then
+    raise exception 'invalid target state %', p_state using errcode = 'CT001';
+  end if;
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = p_state, result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left(coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'state', p_state,
+                                          'reason', left(coalesce(p_reason, ''), 500)));
+  return p_state;
+end $$;
+
 -- Владелец и режим — для новых тел
 alter function register_worker(text, jsonb, text[])          owner to swarm_owner;
 alter function claim_task(text, int)                          owner to swarm_owner;
 alter function heartbeat(uuid, text, bigint, int)             owner to swarm_owner;
 alter function save_artifact(uuid, text, bigint, text, text, text, bigint) owner to swarm_owner;
+-- FIND-NEW-01: fail_task / fail_task_state переопределены ниже с identity-проверкой.
+alter function fail_task(uuid, text, bigint, text, text)          owner to swarm_owner;
+alter function fail_task_state(uuid, text, bigint, text, text, text) owner to swarm_owner;
 alter function complete_task(uuid, text, bigint, text, bigint) owner to swarm_owner;
 
 alter function register_worker(text, jsonb, text[])          security definer set search_path = public, pg_temp;
 alter function claim_task(text, int)                          security definer set search_path = public, pg_temp;
 alter function heartbeat(uuid, text, bigint, int)             security definer set search_path = public, pg_temp;
 alter function save_artifact(uuid, text, bigint, text, text, text, bigint) security definer set search_path = public, pg_temp;
+alter function fail_task(uuid, text, bigint, text, text)          security definer set search_path = public, pg_temp;
+alter function fail_task_state(uuid, text, bigint, text, text, text) security definer set search_path = public, pg_temp;
 alter function complete_task(uuid, text, bigint, text, bigint) security definer set search_path = public, pg_temp;
 
 -- ============================================================
@@ -240,6 +298,16 @@ grant swarm_worker to swarm_worker_gpu_1;
 -- login-ролям, НЕ общей swarm_worker: общая роль — не identity (см. F3),
 -- и обёртки отказа должен вызывать только реальный воркер.
 grant execute on function fail_task(uuid, text, bigint, text, text)
+  to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+
+-- Issue #3: fail_task_state вызывается из Rust (dispatcher.rs::fail_with_state)
+-- на каждом пути отказа с явным целевым состоянием (failed / budget_exhausted /
+-- blocked). Грант отсутствовал вовсе: под "revoke all on all functions from
+-- public" воркер получал permission denied при ЛЮБОМ отказе с явным state,
+-- т.е. весь F4-путь отказа был нерабочим в проде. Выдаём так же, как fail_task.
+-- Смену состояния ограничивает сама функция (p_state in failed/budget_exhausted/
+-- blocked) + assert_lease + assert_worker_identity.
+grant execute on function fail_task_state(uuid, text, bigint, text, text, text)
   to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
 
 -- ============================================================

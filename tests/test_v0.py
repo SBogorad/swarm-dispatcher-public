@@ -566,3 +566,113 @@ def test_chain_detects_corrupted_prev_hash(db):
     assert one(db, "select verify_chain(%s)", t) is False, (
         "подмена prev_hash обязана ломать цепочку (слой связи)"
     )
+
+
+# ---------------- FIND-NEW-01/02/03: инварианты ядра ----------------
+def test_find_new_02_review_event_not_dropped_on_second_round(db):
+    """FIND-NEW-02: повторное ревью того же ref на новой эпохе пишет событие.
+
+    Ключ события ревью раньше был 'review:'||ref||':'||reviewer — БЕЗ эпохи.
+    На втором круге (changes_requested -> ready -> claim -> ... -> review)
+    append_event молча возвращал false, и переход состояния оставался без
+    следа в хэш-цепочке events. Теперь в ключе есть lease_epoch.
+    """
+    worker(db)
+    t = new_task(db, ctr=contract(budget={"attempts": 3, "max_rework": 3}))
+    ready(db, t)
+    to_review(db, t)
+    assert one(db, "select submit_review(%s,'sha256:a','rev','changes_requested',%s::jsonb)",
+               t, FAIL) == "ready"
+    db.commit()
+    # Второй круг: тот же ref, тот же рецензент — но новая эпоха.
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    one(db, "select complete_task(%s,'w1',%s,'sha256:a',1)", t, r[2])
+    db.commit()
+    assert one(db, "select submit_review(%s,'sha256:a','rev','changes_requested',%s::jsonb)",
+               t, FAIL) == "ready"
+    db.commit()
+    n = rows(db, "select count(*) from events where task_id=%s and kind='review_submitted'", t)[0][0]
+    assert n == 2, f"FIND-NEW-02: ожидалось 2 события ревью, получено {n} (второе потеряно)"
+    assert one(db, "select verify_chain(%s)", t) is True
+
+
+def test_find_new_02_artifact_event_not_dropped_on_new_epoch(db):
+    """FIND-NEW-02: повторное сохранение того же ref на новой эпохе пишет событие.
+
+    Ключ 'art:'||ref без эпохи давал коллизию при перезаписи артефакта
+    (on conflict) на новом круге -> append_event тихо возвращал false.
+    """
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    db.commit()
+    # Повторная запись того же ref на той же задаче (эпоха та же) — идемпотентно
+    # обновляет артефакт, но событие НЕ дублируется (ключ совпал).
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    db.commit()
+    n1 = rows(db, "select count(*) from events where task_id=%s and kind='artifact_saved'", t)[0][0]
+    assert n1 == 1, f"повтор на той же эпохе не должен дублировать событие (получено {n1})"
+    assert one(db, "select verify_chain(%s)", t) is True
+
+
+def test_find_new_03_budget_ranges_rejected(db):
+    """FIND-NEW-03: max_depth/max_children/max_tasks и max_rework — диапазоны.
+
+    Раньше проверялся только ТИП: max_tasks: 0 блокировал дерево,
+    max_tasks: 1e9 снимал защиту от взрыва графа, max_rework: -1 проходил.
+    """
+    bad = [{"attempts": 3, "max_rework": -1},
+           {"attempts": 3, "max_depth": 0},
+           {"attempts": 3, "max_depth": 51},
+           {"attempts": 3, "max_children": 0},
+           {"attempts": 3, "max_children": 101},
+           {"attempts": 3, "max_tasks": 0},
+           {"attempts": 3, "max_tasks": 1001}]
+    for b in bad:
+        ctr = json.dumps({"kind": "t", "budget": b,
+                          "checks": [{"type": "cmd", "run": "true"}]})
+        with pytest.raises(psycopg2.Error) as e:
+            db.cursor().execute("select add_task(%s,null,%s::jsonb,100,0)",
+                                (str(uuid.uuid4()), ctr))
+        assert code(e) == "CT001", f"контракт с budget={b} обязан быть отвергнут (CT001)"
+        db.rollback()
+
+
+def test_find_new_03_budget_ranges_accepted(db):
+    """FIND-NEW-03: граничные ДОПУСТИМЫЕ значения проходят (не переусердствовали)."""
+    ok = [{"attempts": 3, "max_rework": 0},
+          {"attempts": 3, "max_rework": 50},
+          {"attempts": 3, "max_depth": 1},
+          {"attempts": 3, "max_depth": 50},
+          {"attempts": 3, "max_children": 1},
+          {"attempts": 3, "max_children": 100},
+          {"attempts": 3, "max_tasks": 1},
+          {"attempts": 3, "max_tasks": 1000}]
+    for b in ok:
+        ctr = json.dumps({"kind": "t", "budget": b,
+                          "checks": [{"type": "cmd", "run": "true"}]})
+        tid = str(uuid.uuid4())
+        one(db, "select add_task(%s,null,%s::jsonb,100,0)", tid, ctr)
+        db.commit()
+        assert one(db, "select state from tasks where id=%s", tid) == "pending"
+
+
+def test_find_new_01_fail_task_functions_granted_to_workers(db):
+    """FIND-NEW-01: fail_task/fail_task_state выданы per-worker ролям.
+
+    fail_task_state вызывается из Rust (dispatcher::fail_with_state) на каждом
+    пути отказа с явным state, но гранта не было ВОВСЕ: под
+    'revoke all on all functions from public' воркер получал permission denied,
+    т.е. весь F4-путь отказа с явным state был нерабочим в проде.
+    """
+    for fn in ("fail_task(uuid,text,bigint,text,text)",
+               "fail_task_state(uuid,text,bigint,text,text,text)"):
+        for role in ("swarm_worker_w1", "swarm_worker_w2"):
+            assert one(db, "select has_function_privilege(%s,%s,'EXECUTE')", role, fn) is True, \
+                f"FIND-NEW-01: {role} не имеет EXECUTE на {fn}"
+        # Общая группа swarm_worker НЕ должна иметь доступ (identity-модель, F3).
+        assert one(db, "select has_function_privilege('swarm_worker',%s,'EXECUTE')", fn) is False, \
+            f"FIND-NEW-01: общая swarm_worker не должна иметь EXECUTE на {fn}"

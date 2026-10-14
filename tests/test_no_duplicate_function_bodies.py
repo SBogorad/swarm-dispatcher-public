@@ -44,6 +44,10 @@ ALLOWED_OVERRIDES = {
     "heartbeat",
     "save_artifact",
     "complete_task",
+    # FIND-NEW-01: fail_task/fail_task_state раньше шли под SECURITY DEFINER
+    # без identity-проверки; теперь перекрыты с ней, как остальные обёртки.
+    "fail_task",
+    "fail_task_state",
 }
 
 # Единственная разрешённая дополнительная строка в перекрытом теле.

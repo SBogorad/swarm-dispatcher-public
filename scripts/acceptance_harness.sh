@@ -638,6 +638,10 @@ review_gate_acceptance() {
     "tests/test_v0.py|state machine: lease/epoch, add_dep, reopen cascade (P0 #6/#7)"
     "tests/test_cost_reconciliation.py|cost ledger reconciliation vs relay.fast (Issue #2)"
     "tests/test_f8_orphan_llm_spend.py|F8 budget protects real spend, not only complete (Issue 5.10)"
+    # FIND-NEW-04: три сьюта лежали мёртвым грузом мимо harness и CI.
+    # test_f8 уже выше; ниже — остальные два (юнит-части, без сети/БД).
+    "tests/test_model_quality.py|model quality view -> selector stats (Issue #7/#10)"
+    "tests/test_model_catalog.py|relay.fast pricing -> USD/1M recalculation (Issue #7/#10)"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
