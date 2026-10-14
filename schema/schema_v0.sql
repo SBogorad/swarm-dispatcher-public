@@ -513,7 +513,10 @@ begin
   -- повторно, иначе расход считался бы дважды. Совместимость: если по
   -- задаче ещё нет ни одной строки ledger, а p_tokens > 0 (старый контракт
   -- вызова, напр. прямые тесты), учитываем p_tokens ровно один раз здесь.
-  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  -- FIND-CODE-04: фильтр по ТЕКУЩЕЙ эпохе. Без `and lease_epoch = p_epoch`
+  -- любая запись ledger за прошлые эпохи навсегда делала v_ledger > 0, и
+  -- p_tokens новой эпохи молча терялся (расход занижался).
+  select count(*) into v_ledger from llm_calls where task_id = p_task and lease_epoch = p_epoch;
   if v_ledger = 0 and p_tokens > 0 then
     update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
   end if;

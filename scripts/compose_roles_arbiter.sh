@@ -106,6 +106,8 @@ checked=0
 seen_roles=""
 worker_roles=""
 watchdog_role=""
+reviewer_role=""
+planner_role=""
 
 for svc in watchdog reviewer cli planner worker-1 worker-2; do
   c="${PROJECT}-${svc}-1"
@@ -132,6 +134,8 @@ for svc in watchdog reviewer cli planner worker-1 worker-2; do
   seen_roles="$seen_roles $exp"
   case "$svc" in
     watchdog) watchdog_role="$exp" ;;
+    reviewer) reviewer_role="$exp" ;;
+    planner)  planner_role="$exp" ;;
     worker-*) worker_roles="$worker_roles $exp" ;;
   esac
 done
@@ -164,6 +168,41 @@ if [[ -n "$watchdog_role" ]]; then
     echo "PASS catalog: $watchdog_role имеет reclaim_expired/promote_ready"
   else
     echo "FAIL catalog: $watchdog_role НЕ имеет reclaim_expired/promote_ready (сторож не сможет работать)"; fail=1
+  fi
+fi
+
+# FIND-NEW-06: позитивные проверки и для reviewer/planner (раньше — только
+# watchdog/worker). Reviewer обязан уметь review_candidates/submit_review и НЕ
+# вправе брать задачи в работу (claim_task) — иначе валидатор может сам себе
+# выдать задачу и нарушить разделение ролей.
+if [[ -n "$reviewer_role" ]]; then
+  rv_ok="$(q "select has_function_privilege('$reviewer_role','review_candidates(integer)','EXECUTE') and has_function_privilege('$reviewer_role','submit_review(uuid,text,text,text,jsonb)','EXECUTE')")"
+  rv_claim="$(q "select has_function_privilege('$reviewer_role','claim_task(text,integer)','EXECUTE')")"
+  if [[ "$rv_ok" == "t" ]]; then
+    echo "PASS catalog: $reviewer_role может review_candidates/submit_review"
+  else
+    echo "FAIL catalog: $reviewer_role НЕ имеет review_candidates/submit_review (ревьюер не сможет работать)"; fail=1
+  fi
+  if [[ "$rv_claim" == "f" ]]; then
+    echo "PASS catalog: $reviewer_role не может claim_task (разделение ролей)"
+  else
+    echo "FAIL catalog: $reviewer_role имеет claim_task — валидатор не должен брать задачи"; fail=1
+  fi
+fi
+
+# Planner обязан уметь add_task/add_dep и НЕ вправе завершать/ревьюить задачи.
+if [[ -n "$planner_role" ]]; then
+  pl_ok="$(q "select has_function_privilege('$planner_role','add_task(uuid,uuid,jsonb,bigint,integer)','EXECUTE') and has_function_privilege('$planner_role','add_dep(uuid,uuid)','EXECUTE')")"
+  pl_bad="$(q "select has_function_privilege('$planner_role','complete_task(uuid,text,bigint,text,bigint)','EXECUTE') or has_function_privilege('$planner_role','submit_review(uuid,text,text,text,jsonb)','EXECUTE')")"
+  if [[ "$pl_ok" == "t" ]]; then
+    echo "PASS catalog: $planner_role может add_task/add_dep"
+  else
+    echo "FAIL catalog: $planner_role НЕ имеет add_task/add_dep (планировщик не сможет работать)"; fail=1
+  fi
+  if [[ "$pl_bad" == "f" ]]; then
+    echo "PASS catalog: $planner_role не может complete_task/submit_review"
+  else
+    echo "FAIL catalog: $planner_role имеет complete_task/submit_review — планировщик не должен закрывать задачи"; fail=1
   fi
 fi
 

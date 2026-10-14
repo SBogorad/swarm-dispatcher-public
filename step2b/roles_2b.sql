@@ -174,7 +174,9 @@ begin
   end if;
   -- F8: единый источник истины — ledger `llm_calls` (триггер llm_calls_spend_sync).
   -- complete_task больше НЕ прибавляет p_tokens повторно (двойной учёт).
-  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  -- FIND-CODE-04: фильтр по текущей эпохе (иначе запись за прошлую эпоху
+  -- навсегда глушит учёт p_tokens новых эпох).
+  select count(*) into v_ledger from llm_calls where task_id = p_task and lease_epoch = p_epoch;
   if v_ledger = 0 and p_tokens > 0 then
     update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
   end if;

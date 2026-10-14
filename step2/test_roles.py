@@ -63,6 +63,8 @@ CALLS = {
     "heartbeat":        f"select heartbeat({U}, 'w1', 1, 10)",
     "save_artifact":    f"select save_artifact({U}, 'w1', 1, 'sha256:a', '/p')",
     "complete_task":    f"select complete_task({U}, 'w1', 1, 'sha256:a', 1)",
+    "fail_task":        f"select fail_task({U}, 'w1', 1, null, 'x')",
+    "fail_task_state":  f"select fail_task_state({U}, 'w1', 1, null, 'x', 'blocked')",
     "register_worker":  "select register_worker('w-reg', '{\"ram_gb\":8}'::jsonb)",
     "reclaim_expired":  "select reclaim_expired()",
     "promote_ready":    "select promote_ready()",
@@ -85,7 +87,8 @@ INTERNAL = {
 }
 
 ALLOWED = {
-    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
+    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker",
+                        "fail_task", "fail_task_state"},
     "swarm_watchdog": {"reclaim_expired", "promote_ready"},
     "swarm_planner":  {"add_task", "add_dep", "promote_ready", "task_status"},
     "swarm_reviewer": {"submit_review", "review_candidates", "verify_chain"},
