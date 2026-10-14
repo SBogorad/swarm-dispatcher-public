@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS_CORE" generated="2026-10-14T09:14:54+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="DOCS_CORE" generated="2026-10-14T14:34:24+07:00" generator="scripts/build_project_bundle.py">
   <title>Ключевая документация (ТЗ, архитектура, ограничения, отчёты)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
-  <git is_git="true" head="f28d62585d03ab05f3633472ce255392bf299a32"/>
+  <git is_git="true" head="24249f7159b17c092fcd9bffc43ed2fc7f708815"/>
   <manifest>
-    <files count="29" total_bytes="325032"/>
+    <files count="29" total_bytes="326787"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -29,7 +29,7 @@
       <entry path="REPORT_v0.5_load_test.md" lang="markdown" bytes="6549" lines="54" sha256="25f04d076b3889356552ade608248fd60d32d3a46639eb53ac6baeed6eed0ac3" md5="21f79b88fb05d134b470123dd93e3762"/>
       <entry path="RESUME.md" lang="markdown" bytes="16782" lines="355" sha256="097dac9b7b545570b2929b92fd047f3b98cc9187073ab06d5d4f04b04d273359" md5="752cbbf3b39f16db88bc4c8fe74e962a"/>
       <entry path="docs/ARCHITECTURE.md" lang="markdown" bytes="12226" lines="381" sha256="4c800238c5ce8398b72f182c8fbb6ca81310d30b3461886d55421ca0b63caa31" md5="9af85db97ba09c8ce5c36dc2ae5bc553"/>
-      <entry path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="27566" lines="391" sha256="61c8979df5b0e1c3203a536a35505dd3b74c5f3380a61b2fdf4e65303ba65029" md5="9e534726ec6360c38afbadb888c24aba"/>
+      <entry path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="29321" lines="409" sha256="90ba91bd69599f941cac7adcf361ad1982b9fbd0ef517a292a8255a51b3b4326" md5="25761eb28539e93f591198f74e2fad7e"/>
       <entry path="docs/METHODOLOGY.md" lang="markdown" bytes="17263" lines="271" sha256="8828f0bc85bc961b2a1aed1157e93423ba2ce14f20e7b23dfd23eafd6d1d6357" md5="5108dcf649827ac01cdafe0e20e755ba"/>
       <entry path="docs/PROJECT_STATE.md" lang="markdown" bytes="5600" lines="89" sha256="b5075619dc0228415cd75910cd447770212ea93ba44d7417f235797fd44dc663" md5="a24efbb9fcd394139405f39d14a09d3c"/>
       <entry path="docs/TZ_v0.2_step1_fixes.md" lang="markdown" bytes="13920" lines="398" sha256="994f7dae8362bde94e86ffc8df3ce2668b17c6de5138fbcd4b0bc042302a721a" md5="fc4a121e93d0f139e0db739bb4b01aef"/>
@@ -3335,7 +3335,7 @@ graph TB
 · S3 для артефактов — v1.0 (в v0.x локальная ФС).
 ]]></content>
     </file>
-    <file path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="27566" lines="391" sha256="61c8979df5b0e1c3203a536a35505dd3b74c5f3380a61b2fdf4e65303ba65029" md5="9e534726ec6360c38afbadb888c24aba">
+    <file path="docs/KNOWN_LIMITATIONS.md" lang="markdown" bytes="29321" lines="409" sha256="90ba91bd69599f941cac7adcf361ad1982b9fbd0ef517a292a8255a51b3b4326" md5="25761eb28539e93f591198f74e2fad7e">
       <content><![CDATA[
 # Известные ограничения v0.1
 
@@ -3678,6 +3678,24 @@ graph TB
   пользователей/контекстов даёт один `root_id` — второй запуск упрётся в PK.
 - **F18 (`LlmError::Http` включает всё тело) — ОТКРЫТО.** `body: String` без
   обрезки попадает в логи и fail-артефакт (`crates/swarm-llm/src/error.rs:13`).
+
+#### INFO (by-design, код не усложняем): ранний `budget_exhausted` после реклейма эпохи с расходом
+
+Редкий пограничный случай, зафиксирован по решению владельца (аудит 1e71428, п. 5).
+`reclaim_expired` при исчерпанном бюджете переводит задачу сразу в `budget_exhausted`
+(см. F8 выше). Если аренда была оборвана уже ПОСЛЕ оплаченного вызова LLM в предыдущей
+эпохе, задача помечается исчерпанной до того, как новая эпоха успевает начать работу:
+
+- расход предыдущей эпохи — реальный (строки в `llm_calls` есть, триггер их учёл),
+  поэтому `spent_tokens >= budget_cap` — это факт, а не ошибка;
+- оператор может поднять потолок штатным путём — `unblock_task(task, 'operator',
+  p_new_budget_cap)` с `p_new_budget_cap > spent_tokens` (см. F4), задача вернётся
+  в `pending`/`ready`;
+- осознанно НЕ добавляем автоматику «сброса» локального расхода при смене эпохи: это
+  открыло бы обход бюджета через цикл оборванных аренд — ровно то, что F8 и закрывает.
+
+Итог: поведение корректное и самодостаточное (операторский `unblock_task`),
+документируем как INFO; усложнять код под этот кейс не требуется.
 
 ### 5.11. Allowlist — защита в глубину, а не граница безопасности
 
