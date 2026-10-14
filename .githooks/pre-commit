@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# pre-commit: блокирует коммит, если в индексе есть реальный секрет.
+# Активация (один раз на клон): git config core.hooksPath .githooks
+# Проверка хука: scripts/secret_scan.sh --self-test
+set -Eeuo pipefail
+root="$(git rev-parse --show-toplevel)"
+exec bash "$root/scripts/secret_scan.sh" --cached

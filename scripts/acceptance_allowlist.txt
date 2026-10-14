@@ -148,3 +148,9 @@ docs/AGENTS.md
 
 # METHODOLOGY: уточнение Принципа 11 (границы правила §4).
 docs/METHODOLOGY.md
+
+# Директива аудитора (2026-10-14): негативные инварианты ролей в арбитре,
+# автосекрет-скан через git-хуки, упаковка аудит-пакета без сжатия.
+.githooks/*
+scripts/secret_scan.sh
+scripts/build_audit_zip.sh
