@@ -215,7 +215,8 @@ begin
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
-  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  -- FIND-CODE-04: фильтр по текущей эпохе (см. schema_v0.sql).
+  select count(*) into v_ledger from llm_calls where task_id = p_task and lease_epoch = p_epoch;
   if v_ledger = 0 and p_tokens > 0 then
     update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
   end if;

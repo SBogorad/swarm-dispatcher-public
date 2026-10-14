@@ -466,11 +466,17 @@ pub fn process_lease(
                 WorkerError::Llm(swarm_llm::LlmError::Http { status, .. }) => Some(*status as i32),
                 _ => None,
             };
+            // FIND-CODE-03: имя модели для аудита. Раньше здесь был хардкод
+            // "unknown", из-за чего `llm_calls.model` и витрины llm_costs_daily /
+            // llm_model_quality теряли, какая ИМЕННО модель даёт ошибки. Теперь
+            // берём выбранную селектором модель либо модель по умолчанию клиента.
+            let attempted_model = select_model(cfg, &contract)
+                .unwrap_or_else(|| llm.default_model().to_string());
             match d.record_llm_call(
                 lease.task_id,
                 &lease.worker_id,
                 lease.epoch,
-                "unknown", // модель неизвестна при ошибке до ответа
+                &attempted_model,
                 "relay.fast",
                 0,
                 0,
@@ -599,20 +605,7 @@ fn call_llm_with_retries(
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
     let user = prompt::user_prompt(contract);
-
-    // Issue #7/#10: выбор модели по измеренной цене успешного результата.
-    // Без селектора (`model_selector: None`) запрос уходит с моделью из конфига
-    // клиента — поведение по умолчанию не меняется.
-    let selected_model = cfg.model_selector.as_ref().and_then(|s| {
-        let sel = s.choose(contract)?;
-        info!(
-            model = %sel.model,
-            basis = ?sel.basis,
-            reason = %sel.reason,
-            "model selected"
-        );
-        Some(sel.model)
-    });
+    let selected_model = select_model(cfg, contract);
 
     let req = LlmRequest {
         system: sys,
@@ -643,6 +636,21 @@ fn call_llm_with_retries(
             }
         }
     }
+}
+
+/// Issue #7/#10: выбор модели по измеренной цене успешного результата.
+/// `None` — модель берётся из конфига клиента (поведение по умолчанию).
+fn select_model(cfg: &WorkerConfig, contract: &serde_json::Value) -> Option<String> {
+    cfg.model_selector.as_ref().and_then(|s| {
+        let sel = s.choose(contract)?;
+        info!(
+            model = %sel.model,
+            basis = ?sel.basis,
+            reason = %sel.reason,
+            "model selected"
+        );
+        Some(sel.model)
+    })
 }
 
 /// Хелпер для тестов: собрать клиент-мок из файла.

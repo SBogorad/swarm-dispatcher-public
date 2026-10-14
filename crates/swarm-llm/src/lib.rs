@@ -124,6 +124,14 @@ pub struct LlmResponse {
 /// Трейт клиента — позволяет подменять реализацию в тестах.
 pub trait LlmClient: Send + Sync {
     fn complete(&self, req: &LlmRequest) -> Result<LlmResponse, LlmError>;
+
+    /// FIND-CODE-03: модель по умолчанию этого клиента — для аудита
+    /// (`llm_calls.model`) при ошибке ДО ответа, когда реальное имя модели из
+    /// ответа ещё неизвестно. Дефолт `"unknown"` сохраняет совместимость с
+    /// тестовыми клиентами; HttpLlmClient отдаёт свою настроенную модель.
+    fn default_model(&self) -> &str {
+        "unknown"
+    }
 }
 
 /// HTTP-клиент (blocking).
@@ -409,6 +417,10 @@ impl HttpLlmClient {
 impl LlmClient for HttpLlmClient {
     fn complete(&self, req: &LlmRequest) -> Result<LlmResponse, LlmError> {
         self.dispatch(req)
+    }
+
+    fn default_model(&self) -> &str {
+        &self.cfg.model
     }
 }
 
