@@ -145,12 +145,24 @@ jobs:
           docker run -d --name mut_pg \
             -e POSTGRES_PASSWORD=pw -e POSTGRES_USER=swarm \
             -p 55440:5432 postgres:16-alpine
+          # Гонка init: официальный entrypoint postgres:16-alpine на время
+          # применения init-скриптов поднимает ВРЕМЕННЫЙ сервер только на
+          # unix-socket, затем гасит его и стартует настоящий (TCP :5432).
+          # `pg_isready` без `-h` отвечает на временном сервере → ложная
+          # готовность, а следующий psql ловит 'database system is shutting
+          # down' (дважды валил PR #44 не по коду). Ждём реальную БД запросом
+          # `select 1` по TCP — ровно как acceptance_harness.sh (стр. 568).
+          ready=0
           for i in $(seq 1 60); do
-            docker exec mut_pg pg_isready -U swarm >/dev/null 2>&1 && break
+            if docker exec -e PGPASSWORD=pw mut_pg \
+              psql -X -h 127.0.0.1 -U swarm -d postgres -c 'select 1' >/dev/null 2>&1; then
+              ready=1; break
+            fi
             sleep 1
           done
-          docker exec -i mut_pg psql -U swarm -d postgres -c 'create database v0sandbox'
-          docker exec -i mut_pg psql -U swarm -d v0sandbox < schema/schema_v0.sql
+          ((ready == 1)) || { echo 'FATAL: mut_pg не поднялся за 60с'; docker logs mut_pg; exit 1; }
+          docker exec -e PGPASSWORD=pw -i mut_pg psql -X -h 127.0.0.1 -U swarm -d postgres -c 'create database v0sandbox'
+          docker exec -e PGPASSWORD=pw -i mut_pg psql -X -h 127.0.0.1 -U swarm -d v0sandbox < schema/schema_v0.sql
 
       - name: Run mutation testing (M1-M6 Rust, fail on survivors)
         env:
