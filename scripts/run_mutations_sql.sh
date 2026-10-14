@@ -22,13 +22,18 @@ SCHEMA="schema/schema_v0.sql"
 # перекрывает schema_v0.sql). Файл обязан быть под тем же backup/restore, иначе
 # прерванный прогон оставит мутанта в миграции.
 MIG_F8="schema/migrations/011_budget_sync_and_root_cap.sql"
+# S8: мутация identity-проверки целится в step2b/roles_2b.sql — там живут
+# перекрытые тела fail_task/fail_task_state (в них и стоит assert_worker_identity).
+# Файл обязан быть под тем же backup/restore и git-clean fail-fast, иначе
+# прерванный прогон оставит мутанта в перекрытии воркера.
+ROLES_2B="step2b/roles_2b.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
 # Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
 # предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
 # trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  for f in "$SCHEMA" "$MIG_F8"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B"; do
     if ! git diff --quiet -- "$f"; then
       echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
       echo "  hint: git checkout -- $f" >&2
@@ -63,13 +68,16 @@ PY="$(pwd)/.venv/bin/python"
 # Бэкап схемы в git-независимом месте; восстановление вызывается многократно.
 BACKUP="${TMPDIR:-/tmp}/swarm_schema_backup_$$.sql"
 BACKUP_MIG="${TMPDIR:-/tmp}/swarm_mig011_backup_$$.sql"
+BACKUP_2B="${TMPDIR:-/tmp}/swarm_roles2b_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
 [ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
+[ -f "$ROLES_2B" ] && cp "$ROLES_2B" "$BACKUP_2B"
 restore() {
   cp -f "$BACKUP" "$SCHEMA"
   [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
+  [ -f "$BACKUP_2B" ] && cp -f "$BACKUP_2B" "$ROLES_2B"
 }
-cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG"; }
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -86,8 +94,18 @@ run_arbiters() {
   # test_v0.py — FSM/fencing/idempotency/cycle; review-gate — self-review;
   # fail_unblock — fail/unblock; test_f8 — синхронный учёт расхода и
   # бюджет-осознанный reclaim (F8).
+  #
+  # S8 (identity в fail_task/fail_task_state): добавлены
+  # test_worker_identity_f3.py — прямой behavioural-кейс «w1 вызывает
+  # fail_task/fail_task_state по чужой задаче w2 → WK003», и
+  # test_no_duplicate_function_bodies.py — структурный guard, что перекрытие
+  # вообще содержит identity-строку. Без них S8 выживал: старый
+  # test_worker_identity_f3 проверял только register_worker и не вызывал
+  # fail_task/fail_task_state от чужого воркера.
   "$PY" -m pytest -q tests/test_v0.py tests/test_review_gate_f2.py \
-        tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py >/dev/null 2>&1
+        tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py \
+        tests/test_worker_identity_f3.py \
+        tests/test_no_duplicate_function_bodies.py >/dev/null 2>&1
 }
 
 # Чистое пересоздание схемы в disposable-БД.
@@ -214,8 +232,41 @@ run_mutation S7 "reclaim_expired: игнорировать исчерпанны�
   "if false then" \
   "schema/migrations/011_budget_sync_and_root_cap.sql"
 
+# S8 — fail_task/fail_task_state: снять identity-проверку (FIND-NEW-01).
+# Мутация: из перекрытого тела fail_task в roles_2b.sql убрать
+# `perform assert_worker_identity(p_worker);`. Строка `assert_worker_identity`
+# встречается в файле 6 раз, поэтому паттерн расширен до сигнатуры fail_task —
+# иначе `replace(..., 1)` попал бы в register_worker.
+# Ожидание: test_worker_identity_f3.py краснеет (w1 с p_worker='w2' получает не
+# WK003, а проходит в assert_lease), а test_no_duplicate_function_bodies.py —
+# на структурном анкере «перекрытие содержит identity-строку».
+run_mutation S8 "fail_task: снять identity-проверку воркера (FIND-NEW-01)" \
+  "create or replace function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                                     p_result_ref text, p_reason text) returns text
+language plpgsql as \$\$
+begin
+  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);" \
+  "create or replace function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                                     p_result_ref text, p_reason text) returns text
+language plpgsql as \$\$
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);" \
+  "$ROLES_2B"
+
+# S9 — complete_task: снять бюджетный гейт (Issue #20).
+# Мутация: перерасход больше не переводит задачу в budget_exhausted.
+# Целевой файл — миграция 011: именно она применяется последней и её
+# `create or replace` перекрывает тела из schema_v0.sql и roles_2b.sql, т.е.
+# мутировать канон в schema_v0.sql было бы no-op (мутант «выжил» бы ложно).
+# Ожидание: test_v0.py::test_budget_exhaustion_blocks_on_complete краснеет.
+run_mutation S9 "complete_task: игнорировать перерасход бюджета (Issue #20)" \
+  "v_new := case when v_spent > v_cap then 'budget_exhausted' else 'review' end;" \
+  "v_new := 'review';" \
+  "schema/migrations/011_budget_sync_and_root_cap.sql"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S7 ===================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S9 ===================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"

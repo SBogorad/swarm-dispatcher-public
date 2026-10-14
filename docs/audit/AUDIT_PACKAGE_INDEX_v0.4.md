@@ -1,6 +1,6 @@
 # Аудит-пакет проекта `swarm-dispatcher` — индекс
 
-**Сгенерировано:** 2026-10-14T09:14:54+07:00
+**Сгенерировано:** 2026-10-14T14:34:24+07:00
 **Генератор:** `scripts/build_project_bundle.py` + `scripts/build_audit_index.py`
 **Схема:** `swarm-dispatcher.audit-bundle.v2`
 
@@ -10,37 +10,37 @@
 
 | Том | Содержание | Файлов | Строк | Исходники, байт | XML, байт |
 |-----|------------|-------:|------:|----------------:|----------:|
-| `CODE` | Код проекта (Rust + тесты + манифесты) | 58 | 16246 | 573575 | 601381 |
-| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 60 | 9090 | 424921 | 453345 |
-| `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 29 | 6317 | 325032 | 339129 |
-| `DOCS` | Документация и отчёты (без писем history/inbound) | 54 | 11536 | 730413 | 755925 |
-| **Итого** | | **201** | | **2053941** | **2149780** |
+| `CODE` | Код проекта (Rust + тесты + манифесты) | 58 | 16403 | 582319 | 610125 |
+| `INFRA` | Инфраструктура (SQL, init-скрипты, контейнеры, конфиг) | 61 | 9660 | 459832 | 488749 |
+| `DOCS_CORE` | Ключевая документация (ТЗ, архитектура, ограничения, отчёты) | 29 | 6335 | 326787 | 340884 |
+| `DOCS` | Документация и отчёты (без писем history/inbound) | 54 | 11554 | 732168 | 757680 |
+| **Итого** | | **202** | | **2101106** | **2197438** |
 
 ## Хеши томов (для передачи аудитору)
 
 ### CODE — `PROJECT_CODE_BUNDLE_v0.4.xml`
 
-- Размер: 601381 байт
-- `sha256`: `cf2d3d113759f396d45fe2a1dadac879c32d6d419ae47c841b50ffcb39cde43b`
-- `md5`: `e7390143a97becc14faedc69837f60ad`
+- Размер: 610125 байт
+- `sha256`: `c3b241e5186e8b224f84fcbe195cd54dbcafb72f5f84374f80bfb4b8e59ae237`
+- `md5`: `8bdfaacb5333039969f0fb767d5da4eb`
 
 ### INFRA — `PROJECT_INFRA_BUNDLE_v0.4.xml`
 
-- Размер: 453345 байт
-- `sha256`: `411d46ae305ae6841f1fcab564e53ba6f6060b9b007c88751c035499978187da`
-- `md5`: `a3775df50765fbe58f2ee4d12d25b9f8`
+- Размер: 488749 байт
+- `sha256`: `460a22e0dad1415c665697f741686de22638ba8ee54f8a222d9fe0ad186b9701`
+- `md5`: `78c1a8c0ab511f4a3dcc74c5e6b24a3a`
 
 ### DOCS_CORE — `PROJECT_DOCS_CORE_BUNDLE_v0.4.xml`
 
-- Размер: 339129 байт
-- `sha256`: `e406f882e006bcf137771f28ea343fb6b6f7ca0f1a341c65814f569c05115dcf`
-- `md5`: `2598ce32497007318fe452e5d8ceaee7`
+- Размер: 340884 байт
+- `sha256`: `85d1e1c3bc70b74bb15905d940c1d780e82420b79bf9387c080c18b7680f7c80`
+- `md5`: `daf1db00462a2699d47c0b7319b56c1f`
 
 ### DOCS — `PROJECT_DOCS_BUNDLE_v0.4.xml`
 
-- Размер: 755925 байт
-- `sha256`: `0e78021d448f2f12a9abcb20d39dfee2cf681571fed0a32d1f2048a5f0454e69`
-- `md5`: `f19fc25b659d45ecf8f26049108007c8`
+- Размер: 757680 байт
+- `sha256`: `326ec538dac70b2cd9698694ca2965aedd7faaa37983e4c96e3a000e07ffa361`
+- `md5`: `15378f3148918d463cb28e46424e1e42`
 
 ## Исключено сознательно
 
@@ -63,15 +63,15 @@
 | 4 | `crates/swarm-cli/src/main.rs` | rust | 6676 | 205 | `7202eb0ae1412fa3686c1067e7281b1d1c3a06de5504b35e17825e2b3c608e2b` |
 | 5 | `crates/swarm-cli/tests/cli_exit_codes.rs` | rust | 5221 | 124 | `ef30033ec8bfed4354db9481bee8be88766b834b616e65baeca5b046d1725075` |
 | 6 | `crates/swarm-core/Cargo.toml` | toml | 345 | 17 | `aa491b9d7ab721880f0f86efaa5c02875e9d3ab1a1dba37e474f2c70d81c1f40` |
-| 7 | `crates/swarm-core/src/dispatcher.rs` | rust | 19248 | 539 | `6be41c75a535fdb6d587644a8e0b61fa1dcc861e233d60f29c734c1f02c57ab7` |
+| 7 | `crates/swarm-core/src/dispatcher.rs` | rust | 21051 | 574 | `55347b034e038ce2ec9ba066a63ae2a587d86c6472f1db72d317dee79a5438d7` |
 | 8 | `crates/swarm-core/src/errors.rs` | rust | 6946 | 189 | `9fcf70110b95e28e44cf68de7a4edb1f770b7148ed06e055f4d14e635f854489` |
 | 9 | `crates/swarm-core/src/lib.rs` | rust | 235 | 7 | `b9210371c22830287ec2681249d835ddc7e793d67a8078ddc5c228586ec277b0` |
-| 10 | `crates/swarm-core/src/types.rs` | rust | 10140 | 302 | `b39f3811b77263cc289b9ca482b8af97df96f1d88f180f9b8ab5535625309023` |
+| 10 | `crates/swarm-core/src/types.rs` | rust | 10867 | 311 | `c6442b3343035f6d5170ae4e93c7b23987004bcde1ab4b0cb481de1048026243` |
 | 11 | `crates/swarm-core/tests/alt/integration_alt.rs` | rust | 6600 | 198 | `eacfdbdbf6ec6f8bffffce35221e52c43481ff19caaaa477f256096c38a798bb` |
 | 12 | `crates/swarm-core/tests/integration_verified.rs` | rust | 14237 | 427 | `412bfb378aa4ce381c1c7464cad7f01495e16a3599d689ee2ed239fcc839d9f3` |
 | 13 | `crates/swarm-llm/Cargo.toml` | toml | 367 | 11 | `f3da8011038d37fc95332a7158f11c0ba44141d51e85842acd62d682276ab86b` |
 | 14 | `crates/swarm-llm/src/error.rs` | rust | 1147 | 43 | `83ed168ea6bab9202c19d61f06106e2878fecd62b007a0b179cbdbfa8010445e` |
-| 15 | `crates/swarm-llm/src/lib.rs` | rust | 20832 | 559 | `9ee7012beafcce1b960318e1e10d2d5479baf270edadafa3702b4f1f2de049a7` |
+| 15 | `crates/swarm-llm/src/lib.rs` | rust | 21437 | 571 | `ca831efb993162c5c6bca076ffc4b5efe48cacbd8190d4d4885fb2da083626f7` |
 | 16 | `crates/swarm-planner/Cargo.toml` | toml | 557 | 24 | `abe2418a29d3ea9ec317ad9f5f82cbe947d6cc1ad708a25a04f1220f65171bdc` |
 | 17 | `crates/swarm-planner/src/error.rs` | rust | 516 | 23 | `cec97ee8df913e6a866ea76742a0fb127aace1f46b2e3f16c0e5470b8e5f37f8` |
 | 18 | `crates/swarm-planner/src/lib.rs` | rust | 14192 | 367 | `bbfebbee4a08b980cfe48d63ce66ce1db8ee0d20a350c3d37563ab0b6d7ab68c` |
@@ -106,17 +106,17 @@
 | 47 | `crates/swarm-worker/src/model_selector.rs` | rust | 17077 | 439 | `87cffd7ddd791446a37d71e523860f294f9a77818ef6fd45421d4bef2fe7d7cc` |
 | 48 | `crates/swarm-worker/src/parse_step.rs` | rust | 16165 | 369 | `74f8e69be76842679fdc4f61caedda7471f1c32fb1087f784e4f9d0592315246` |
 | 49 | `crates/swarm-worker/src/poll.rs` | rust | 4689 | 108 | `afa9a01909806541f9685cc03fc8b1916290896fc693c08ec51e1151d7da1b30` |
-| 50 | `crates/swarm-worker/src/prompt.rs` | rust | 10918 | 223 | `545d0f976c299606ac894c951623e4949ee970c23ebcb687cc1b6604b3d2d9e0` |
+| 50 | `crates/swarm-worker/src/prompt.rs` | rust | 15305 | 307 | `050c5c3a2eef864c1055dc956cd7e66e0f34a99782acee718ae802a53b3037da` |
 | 51 | `crates/swarm-worker/src/retry.rs` | rust | 3238 | 103 | `f44b5d1792135f71da38191f257ecf54d4bf2facfa32f7ffb9d67a3d8bea35b9` |
 | 52 | `crates/swarm-worker/src/sandbox.rs` | rust | 43984 | 1089 | `85239ad81c7be5642576b6fcfe2492bbad2b3162dfd372020b7642fff8ce86f0` |
 | 53 | `crates/swarm-worker/src/storage.rs` | rust | 5657 | 165 | `73e82baa6fea1d489c9778a4578f251dc902f351683012d2e391b864e60be4c3` |
-| 54 | `crates/swarm-worker/src/worker.rs` | rust | 31484 | 707 | `6e67d8cd785ad1c71755f274124dc4f9db27c58965c1de2be2201c88e996382c` |
+| 54 | `crates/swarm-worker/src/worker.rs` | rust | 32706 | 724 | `b708ea691b5c4f93371105d46fbffebfdd305335e7fd868e121e12865986b7c7` |
 | 55 | `crates/swarm-worker/tests/runtime_gate.rs` | rust | 4101 | 95 | `4f692d18ab4c0e12e09b363cb22abc72c4dcbbebeece1dd68a4e942b10d1c236` |
 | 56 | `crates/swarm-worker/tests/worker_heartbeat_f5.rs` | rust | 7997 | 232 | `27fe55b56a6315c19d2c68266e5df766e7c68735bbb56812435a462784700611` |
 | 57 | `crates/swarm-worker/tests/worker_integration.rs` | rust | 30268 | 791 | `7d3302b0293a59d79d12f5fda09572fadc5a11e452e321366c38264e097a4d96` |
 | 58 | `crates/swarm-worker/tests/worker_sandbox.rs` | rust | 18040 | 508 | `a31490f7bd007d2a78a79dacc600f1c052f584a8f8cdd2b552eb001dacbd3c60` |
 
-### INFRA (60 файлов)
+### INFRA (61 файлов)
 
 | # | Путь | Язык | Байт | Строк | sha256 |
 |--:|------|------|-----:|------:|--------|
@@ -137,49 +137,50 @@
 | 15 | `schema/migrations/008_llm_cost_reconciliation.sql` | sql | 4151 | 68 | `f41e18694998eb042b63125f19afefb75ddc3b34f3629d267e0947c484cfde6c` |
 | 16 | `schema/migrations/009_llm_cost_baseline.sql` | sql | 4369 | 67 | `ca91dafa9fbeae4ddd42606a1cb9441446f185fa069248aba5314873354b28b4` |
 | 17 | `schema/migrations/010_llm_model_quality.sql` | sql | 3823 | 66 | `555254ce6cc207a73ff29ba417fd9bbc8c872cf9653defc69b636c7f18f8ed86` |
-| 18 | `schema/migrations/011_budget_sync_and_root_cap.sql` | sql | 16238 | 303 | `5fa446ab8d097bd00294f78299a25a7ba1dd730f567e4269376c661b51dd4d77` |
-| 19 | `schema/schema_v0.sql` | sql | 39164 | 727 | `efab9dc5875037e92caa4d97f31f8fdf30537150d89bab5e0f211b1d7828470b` |
-| 20 | `scripts/02-roles.sh` | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` |
-| 21 | `scripts/03-role-patches.sh` | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` |
-| 22 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
-| 23 | `scripts/05-migrations.sh` | bash | 1059 | 22 | `3e4f8bc621181fc73284a099777cdf49cdceb3a0d6d1cd2e8f9f2714f822c359` |
-| 24 | `scripts/acceptance_allowlist.txt` | text | 7161 | 156 | `ff6679e13c11035fe3541d1c964e6cbf7112824a6627aa4eefbb1006b7928b5f` |
-| 25 | `scripts/acceptance_harness.sh` | bash | 37365 | 767 | `05bcb0f07de4fa34db60923ec85ab827d6cb964e23226520946562f6837967e3` |
-| 26 | `scripts/build_audit_bundle.py` | python | 7014 | 183 | `ec6147bb3c3feb8a8f54313032217b276661530e552acad44690e96fabd8ad98` |
-| 27 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
-| 28 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
-| 29 | `scripts/build_audit_zip.sh` | bash | 2988 | 62 | `b0b75a1454d4ccff108e023ca761414198a1a585070937b469ac08d9241ae63a` |
-| 30 | `scripts/build_project_bundle.py` | python | 9127 | 205 | `873589b0b692724faf2b419674ce28fe5584d9516f3ccd88c6b6eb1b2bf09ff8` |
-| 31 | `scripts/compose_roles_arbiter.sh` | bash | 13668 | 247 | `4d16017c3e374dd57883121bcd75e481fd5366641d6ea606063330943d60fdf3` |
-| 32 | `scripts/fetch_model_catalog.py` | python | 7241 | 150 | `51ef91b1e53cabf0e7162a8f9222ff8e9b28baeaf4547992149d44609221515c` |
-| 33 | `scripts/model_quality_report.py` | python | 5195 | 127 | `c8865ee4221bfea9bf931730ca532a578e6d10dcfb4b8597ced0be739616bb1b` |
-| 34 | `scripts/reconcile_llm_cost.py` | python | 11193 | 229 | `850801343d9e05c59be5516f9f7b78fe03b17d8ad8ddc8921e37f1dce912621c` |
-| 35 | `scripts/run_mutations_sql.sh` | bash | 11836 | 224 | `bc87ed42b002310c398289090b5d28f76c64b974af879f4b868fd0016aab707a` |
-| 36 | `scripts/run_mutations_v04.sh` | bash | 7217 | 160 | `fd1545b233d1935dd0b1a4f838c12713c99145b164a1a5f328d63841cfa6155d` |
-| 37 | `scripts/scratch_pg.sh` | bash | 4762 | 87 | `0c6849cb6f3a84d95f90a04f078bc253a34f05a760f55c0c688bbe70818d1141` |
-| 38 | `scripts/secret_scan.sh` | bash | 4625 | 101 | `b2b7fcd3728eaf97d29d62929471da94061dd664e83b0b4d89c07f5962a24c0b` |
-| 39 | `scripts/start_demo.sh` | bash | 3769 | 84 | `484fc96b5df851d1d9c9f3d93925f09b6345fdc223e171b643e4c6f59500db1f` |
-| 40 | `scripts/upload_release_gdrive.sh` | bash | 4125 | 89 | `e959b61e21afaf8958512e1e1e4f79c0fa092d64c09a607aee0a69b1b99af531` |
-| 41 | `step2/roles.sql` | sql | 6698 | 94 | `56c551d6633521b438d7aa062eaa0e07aa65058f5a88cdf62a78ec6cef52da29` |
-| 42 | `step2/roles_patch_planner_status.sql` | sql | 766 | 12 | `59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f` |
-| 43 | `step2/roles_patch_tool_call_audit.sql` | sql | 2908 | 41 | `78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8` |
-| 44 | `step2/test_review_gate.py` | python | 5367 | 150 | `153cbf184b1b48b4521635af9bc59472fcd6c82276020b9d8340f76bd27bc56f` |
-| 45 | `step2/test_roles.py` | python | 11382 | 242 | `0b6a84cd4e2a4c74151bb0a604409669b1c02457c18def49fa84dc15330a66df` |
-| 46 | `step2b/roles_2b.sql` | sql | 15188 | 268 | `7f124cfd1306b5d93f4254e423e57cc77dcfa5ba98170a13676c6fef51be8817` |
-| 47 | `step2b/test_roles_2b.py` | python | 13409 | 319 | `9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645` |
-| 48 | `tests/conftest.py` | python | 5222 | 119 | `48ee8a80a659e18327a82a59922ea0e6535072286f706feadc109b592ffd59f8` |
-| 49 | `tests/test_contract_form_f15.py` | python | 3252 | 84 | `587691172a6e41fefb6d1a09efc02be0bf736be03ef41b2404030aada6366399` |
-| 50 | `tests/test_cost_reconciliation.py` | python | 8406 | 213 | `89abf3781055cec3f878e7d43028ad157b6205eb056f9128107e79158e75f237` |
-| 51 | `tests/test_f8_orphan_llm_spend.py` | python | 15492 | 327 | `1c7594135f0de2b30933eec398a3eca40b54c6d69b13f8f8c43e5f6602e79a78` |
-| 52 | `tests/test_fail_unblock_f4.py` | python | 7200 | 162 | `14d7be23675f8dcdb30b1f12a27102a7a903a5b1fb564f138fcea9ec7f98d227` |
-| 53 | `tests/test_find04_record_tool_call_identity.py` | python | 8165 | 212 | `57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180` |
-| 54 | `tests/test_model_catalog.py` | python | 3869 | 106 | `8b3eb7ec23ab8656814da9c6740ad501a88d73780113fdb2620c59ca4904704c` |
-| 55 | `tests/test_model_quality.py` | python | 6058 | 149 | `7ad7d911efa02764c86367123e483119530556f961c01392ded93198d766d0bd` |
-| 56 | `tests/test_no_duplicate_function_bodies.py` | python | 7554 | 157 | `0cc45015a07adc30710c7f4982499bea4a7611d1eabd916a76fa2f6d9e839594` |
-| 57 | `tests/test_review_gate_f2.py` | python | 6018 | 172 | `327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8` |
-| 58 | `tests/test_review_gate_wave4.py` | python | 5016 | 143 | `0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65` |
-| 59 | `tests/test_v0.py` | python | 21741 | 568 | `132772e6cbd2a7d93af8662628742d4927773864bc6d6a795022fc67cd23be0f` |
-| 60 | `tests/test_worker_identity_f3.py` | python | 5272 | 142 | `e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a` |
+| 18 | `schema/migrations/011_budget_sync_and_root_cap.sql` | sql | 16350 | 304 | `2aeced55e9050db6bcdd259e815a88e0b2d6eeca0721cf729ccdb9d79348739b` |
+| 19 | `schema/migrations/012_claim_task_rework_feedback.sql` | sql | 3668 | 58 | `e7e475a46e5a4c646edda6f7a9c3646ed9735cedcf437f43cbd7d64aecb6b0ee` |
+| 20 | `schema/schema_v0.sql` | sql | 43501 | 793 | `9700738c431f11afc15b4ba5f29b1a983caccb53106ac2f26d9a50cbd225de94` |
+| 21 | `scripts/02-roles.sh` | bash | 831 | 20 | `cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64` |
+| 22 | `scripts/03-role-patches.sh` | bash | 1169 | 26 | `e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d` |
+| 23 | `scripts/03-roles-2b.sh` | bash | 934 | 24 | `2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609` |
+| 24 | `scripts/05-migrations.sh` | bash | 1059 | 22 | `3e4f8bc621181fc73284a099777cdf49cdceb3a0d6d1cd2e8f9f2714f822c359` |
+| 25 | `scripts/acceptance_allowlist.txt` | text | 7587 | 162 | `ac2a10d1b2c6d2fc38f2ff5c8945ae13fa6009bf6f8d006e425469c996129af4` |
+| 26 | `scripts/acceptance_harness.sh` | bash | 37760 | 771 | `30a6e75beea70f1a17aa70338b9ebed321d60654710b030691b137aa4604d63b` |
+| 27 | `scripts/build_audit_bundle.py` | python | 7014 | 183 | `ec6147bb3c3feb8a8f54313032217b276661530e552acad44690e96fabd8ad98` |
+| 28 | `scripts/build_audit_index.py` | python | 5563 | 128 | `0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51` |
+| 29 | `scripts/build_audit_report.py` | python | 7385 | 162 | `0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f` |
+| 30 | `scripts/build_audit_zip.sh` | bash | 3347 | 66 | `94005b7dd0105068d5d84f8c6dc3fab4b9b7d8ce00cf588b8af369fd346e274f` |
+| 31 | `scripts/build_project_bundle.py` | python | 9127 | 205 | `873589b0b692724faf2b419674ce28fe5584d9516f3ccd88c6b6eb1b2bf09ff8` |
+| 32 | `scripts/compose_roles_arbiter.sh` | bash | 16209 | 286 | `544d108fc0a3b142cbc9de0917e55796a657967030276576ffc3f8f6219b71ab` |
+| 33 | `scripts/fetch_model_catalog.py` | python | 7241 | 150 | `51ef91b1e53cabf0e7162a8f9222ff8e9b28baeaf4547992149d44609221515c` |
+| 34 | `scripts/model_quality_report.py` | python | 5195 | 127 | `c8865ee4221bfea9bf931730ca532a578e6d10dcfb4b8597ced0be739616bb1b` |
+| 35 | `scripts/reconcile_llm_cost.py` | python | 11193 | 229 | `850801343d9e05c59be5516f9f7b78fe03b17d8ad8ddc8921e37f1dce912621c` |
+| 36 | `scripts/run_mutations_sql.sh` | bash | 15504 | 275 | `3f389950141a903160d5ad7cd590ecd0ca5ddc2b78ff6d5e8fde9352cced8e5a` |
+| 37 | `scripts/run_mutations_v04.sh` | bash | 7217 | 160 | `fd1545b233d1935dd0b1a4f838c12713c99145b164a1a5f328d63841cfa6155d` |
+| 38 | `scripts/scratch_pg.sh` | bash | 4762 | 87 | `0c6849cb6f3a84d95f90a04f078bc253a34f05a760f55c0c688bbe70818d1141` |
+| 39 | `scripts/secret_scan.sh` | bash | 4625 | 101 | `b2b7fcd3728eaf97d29d62929471da94061dd664e83b0b4d89c07f5962a24c0b` |
+| 40 | `scripts/start_demo.sh` | bash | 3769 | 84 | `484fc96b5df851d1d9c9f3d93925f09b6345fdc223e171b643e4c6f59500db1f` |
+| 41 | `scripts/upload_release_gdrive.sh` | bash | 4125 | 89 | `e959b61e21afaf8958512e1e1e4f79c0fa092d64c09a607aee0a69b1b99af531` |
+| 42 | `step2/roles.sql` | sql | 6907 | 96 | `ee30bd42fcdf426bc2775e6d4111dbbcd19c4598b15ec07630b48159eebc1d9f` |
+| 43 | `step2/roles_patch_planner_status.sql` | sql | 766 | 12 | `59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f` |
+| 44 | `step2/roles_patch_tool_call_audit.sql` | sql | 2908 | 41 | `78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8` |
+| 45 | `step2/test_review_gate.py` | python | 5367 | 150 | `153cbf184b1b48b4521635af9bc59472fcd6c82276020b9d8340f76bd27bc56f` |
+| 46 | `step2/test_roles.py` | python | 11595 | 245 | `f12d61a926455d49a406ade65f7201ec529d4277ecba42d8aff4358a5070c804` |
+| 47 | `step2b/roles_2b.sql` | sql | 19753 | 338 | `16a6d8b5a7292ee7d5c17a86c9835604d899070c4ae924285d43aa75fe1e519c` |
+| 48 | `step2b/test_roles_2b.py` | python | 13409 | 319 | `9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645` |
+| 49 | `tests/conftest.py` | python | 5222 | 119 | `48ee8a80a659e18327a82a59922ea0e6535072286f706feadc109b592ffd59f8` |
+| 50 | `tests/test_contract_form_f15.py` | python | 3252 | 84 | `587691172a6e41fefb6d1a09efc02be0bf736be03ef41b2404030aada6366399` |
+| 51 | `tests/test_cost_reconciliation.py` | python | 8406 | 213 | `89abf3781055cec3f878e7d43028ad157b6205eb056f9128107e79158e75f237` |
+| 52 | `tests/test_f8_orphan_llm_spend.py` | python | 15492 | 327 | `1c7594135f0de2b30933eec398a3eca40b54c6d69b13f8f8c43e5f6602e79a78` |
+| 53 | `tests/test_fail_unblock_f4.py` | python | 7200 | 162 | `14d7be23675f8dcdb30b1f12a27102a7a903a5b1fb564f138fcea9ec7f98d227` |
+| 54 | `tests/test_find04_record_tool_call_identity.py` | python | 8165 | 212 | `57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180` |
+| 55 | `tests/test_model_catalog.py` | python | 3869 | 106 | `8b3eb7ec23ab8656814da9c6740ad501a88d73780113fdb2620c59ca4904704c` |
+| 56 | `tests/test_model_quality.py` | python | 6058 | 149 | `7ad7d911efa02764c86367123e483119530556f961c01392ded93198d766d0bd` |
+| 57 | `tests/test_no_duplicate_function_bodies.py` | python | 7808 | 161 | `f71cce832e5003da07c6a39138be3cb661e93585dde4ba78e98c86d49852b892` |
+| 58 | `tests/test_review_gate_f2.py` | python | 6018 | 172 | `327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8` |
+| 59 | `tests/test_review_gate_wave4.py` | python | 5016 | 143 | `0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65` |
+| 60 | `tests/test_v0.py` | python | 31321 | 742 | `93dfe0429d1385a6430d7609ed742a6c5ac62d90443aa1a88d26719080aaa4bc` |
+| 61 | `tests/test_worker_identity_f3.py` | python | 9856 | 230 | `5c398d0ae3b8401d80d75bd5686db5d96344cb6028864b6b47752cef3b198d8a` |
 
 ### DOCS_CORE (29 файлов)
 
@@ -201,7 +202,7 @@
 | 14 | `REPORT_v0.5_load_test.md` | markdown | 6549 | 54 | `25f04d076b3889356552ade608248fd60d32d3a46639eb53ac6baeed6eed0ac3` |
 | 15 | `RESUME.md` | markdown | 16782 | 355 | `097dac9b7b545570b2929b92fd047f3b98cc9187073ab06d5d4f04b04d273359` |
 | 16 | `docs/ARCHITECTURE.md` | markdown | 12226 | 381 | `4c800238c5ce8398b72f182c8fbb6ca81310d30b3461886d55421ca0b63caa31` |
-| 17 | `docs/KNOWN_LIMITATIONS.md` | markdown | 27566 | 391 | `61c8979df5b0e1c3203a536a35505dd3b74c5f3380a61b2fdf4e65303ba65029` |
+| 17 | `docs/KNOWN_LIMITATIONS.md` | markdown | 29321 | 409 | `90ba91bd69599f941cac7adcf361ad1982b9fbd0ef517a292a8255a51b3b4326` |
 | 18 | `docs/METHODOLOGY.md` | markdown | 17263 | 271 | `8828f0bc85bc961b2a1aed1157e93423ba2ce14f20e7b23dfd23eafd6d1d6357` |
 | 19 | `docs/PROJECT_STATE.md` | markdown | 5600 | 89 | `b5075619dc0228415cd75910cd447770212ea93ba44d7417f235797fd44dc663` |
 | 20 | `docs/TZ_v0.2_step1_fixes.md` | markdown | 13920 | 398 | `994f7dae8362bde94e86ffc8df3ce2668b17c6de5138fbcd4b0bc042302a721a` |
@@ -237,7 +238,7 @@
 | 16 | `docs/AGENTS.md` | markdown | 6056 | 85 | `c465c5a4d759f9181502e32e81a03ad79ef358055bb28ad1f765243ee9c4f6fc` |
 | 17 | `docs/ARCHITECTURE.md` | markdown | 12226 | 381 | `4c800238c5ce8398b72f182c8fbb6ca81310d30b3461886d55421ca0b63caa31` |
 | 18 | `docs/DISTRIBUTED_WORKER_MVP.md` | markdown | 9203 | 126 | `7e046a39fa49669ed7f20e59878b681825bec5d3361bca56b3978ccb0467006d` |
-| 19 | `docs/KNOWN_LIMITATIONS.md` | markdown | 27566 | 391 | `61c8979df5b0e1c3203a536a35505dd3b74c5f3380a61b2fdf4e65303ba65029` |
+| 19 | `docs/KNOWN_LIMITATIONS.md` | markdown | 29321 | 409 | `90ba91bd69599f941cac7adcf361ad1982b9fbd0ef517a292a8255a51b3b4326` |
 | 20 | `docs/METHODOLOGY.md` | markdown | 17263 | 271 | `8828f0bc85bc961b2a1aed1157e93423ba2ce14f20e7b23dfd23eafd6d1d6357` |
 | 21 | `docs/PROJECT_STATE.md` | markdown | 5600 | 89 | `b5075619dc0228415cd75910cd447770212ea93ba44d7417f235797fd44dc663` |
 | 22 | `docs/TZ_v0.2_step1_fixes.md` | markdown | 13920 | 398 | `994f7dae8362bde94e86ffc8df3ce2668b17c6de5138fbcd4b0bc042302a721a` |

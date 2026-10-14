@@ -141,6 +141,12 @@ scripts/compose_roles_arbiter.sh
 # F8: учёт расхода, оборвавшегося до complete (тест-инструмент).
 tests/test_f8_orphan_llm_spend.py
 
+# P0 (аудит 1e71428, закрытие): мутации S8/S9 + behavioural-кейсы identity в
+# fail_task/fail_task_state. F3-файл расширен проверками «w1 вызывает
+# fail_task/fail_task_state по чужой аренде w2 → WK003», без которых мутация S8
+# выживала (run_arbiters не покрывал этот путь).
+tests/test_worker_identity_f3.py
+
 # Документация для ИИ-агентов (ночная смена 2026-10-14): как работать с репо.
 # Скоуп гейта — код/инфраструктура; этот текст сюда не относится (как
 # docs/research/* в #40).

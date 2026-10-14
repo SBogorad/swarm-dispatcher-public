@@ -140,3 +140,91 @@ def test_f3_wrong_identity_via_wrapper_rejected(admin):
     code = _sqlstate(w, "select register_worker('w2', '{\"ram_gb\":16}'::jsonb)")
     assert code == MISMATCH, f"F3: w1 as 'w2' must be WK003, got {code!r}"
     w.close()
+
+# ---------- FIND-NEW-01: identity in fail_task / fail_task_state ----------
+#
+# Регрессия (второй проход аудита, снимок bc0c168): roles_2b.sql перекрывал
+# identity-проверкой только 5 функций воркера + record_tool_call. fail_task и
+# fail_task_state шли под SECURITY DEFINER БЕЗ `assert_worker_identity(p_worker)`,
+# хотя GRANT EXECUTE был выдан всем per-worker ролям. Следствие: swarm_worker_w1,
+# зная (task_id, epoch) задачи w2, вызывал fail_task('<task_w2>','w2',epoch_w2,...)
+# → сбрасывал чужую живую аренду (задача → blocked) и писал в хэш-цепочку events
+# запись с actor='w2' (подделка журнала).
+#
+# Анкер: identity-проверка обязана стоять ПЕРВОЙ содержательной строкой тела,
+# ДО assert_lease, поэтому чужой воркер получает именно WK003.
+
+import uuid as _uuid
+
+def _mk_leased_task(admin, worker="w2", epoch=1):
+    """Задача в состоянии leased, арендованная `worker` с живым сроком."""
+    t = str(_uuid.uuid4())
+    admin.cursor().execute(
+        """insert into tasks(id, root_id, state, contract, priority, attempts,
+                             budget_cap, spent_tokens, lease_epoch,
+                             lease_owner, lease_until)
+           values (%s,%s,'leased',%s::jsonb,0,1,1000,0,%s,%s,now()+interval '5 min')""",
+        (t, t, '{"kind":"k","checks":[{"type":"cmd"}]}', epoch, worker),
+    )
+    return t
+
+def test_f3_fail_task_foreign_worker_rejected(admin):
+    """swarm_worker_w1 calling fail_task for w2's lease must be WK003.
+
+    Без identity-проверки вызов доходил до assert_lease, где lease_owner='w2'
+    совпадал с переданным p_worker='w2' → LS001 не срабатывал, и чужую аренду
+    можно было сбросить. С проверкой — WK003 ещё до assert_lease.
+    """
+    t = _mk_leased_task(admin, worker="w2", epoch=1)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select fail_task(%s,'w2',1,null,'sabotage')", (t,))
+    assert code == MISMATCH, (
+        f"F3/FIND-NEW-01: w1 calling fail_task for w2 must be WK003, got {code!r}"
+    )
+    w.close()
+
+    # Задача w2 не тронута: чужая аренда не сброшена.
+    cur = admin.cursor()
+    cur.execute("select state, lease_owner from tasks where id = %s", (t,))
+    state, owner = cur.fetchone()
+    assert (state, owner) == ("leased", "w2"), (
+        f"F3/FIND-NEW-01: чужую аренду сбросили (state={state!r}, owner={owner!r})"
+    )
+
+def test_f3_fail_task_state_foreign_worker_rejected(admin):
+    """swarm_worker_w1 calling fail_task_state for w2's lease must be WK003."""
+    t = _mk_leased_task(admin, worker="w2", epoch=1)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(
+        w, "select fail_task_state(%s,'w2',1,null,'sabotage','blocked')", (t,)
+    )
+    assert code == MISMATCH, (
+        f"F3/FIND-NEW-01: w1 calling fail_task_state for w2 must be WK003, got {code!r}"
+    )
+    w.close()
+
+    cur = admin.cursor()
+    cur.execute("select state, lease_owner from tasks where id = %s", (t,))
+    state, owner = cur.fetchone()
+    assert (state, owner) == ("leased", "w2"), (
+        f"F3/FIND-NEW-01: чужую аренду сбросили (state={state!r}, owner={owner!r})"
+    )
+
+def test_f3_fail_task_own_identity_passes(admin):
+    """swarm_worker_w1 failing ITS OWN lease must pass identity (LS001/OK, not WK003).
+
+    Положительный контроль: без него мутация «убрать всю проверку целиком»
+    осталась бы незамеченной, а мы бы не отличили «identity работает» от
+    «вызов всегда падает по другой причине».
+    """
+    t = _mk_leased_task(admin, worker="w1", epoch=1)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select fail_task(%s,'w1',1,null,'boom')", (t,))
+    assert code is None, (
+        f"F3/FIND-NEW-01: w1 failing its own lease must succeed, got {code!r}"
+    )
+    w.close()
+
+    cur = admin.cursor()
+    cur.execute("select state from tasks where id = %s", (t,))
+    assert cur.fetchone()[0] == "blocked"

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-14T09:14:54+07:00" generator="scripts/build_project_bundle.py">
+<audit-volume schema="swarm-dispatcher.audit-bundle.v2" volume="INFRA" generated="2026-10-14T14:34:24+07:00" generator="scripts/build_project_bundle.py">
   <title>Инфраструктура (SQL, init-скрипты, контейнеры, конфиг)</title>
   <project>swarm-dispatcher</project>
   <root>/home/d88u525/Projects/rust/swarm-dispatcher</root>
-  <git is_git="true" head="f28d62585d03ab05f3633472ce255392bf299a32"/>
+  <git is_git="true" head="24249f7159b17c092fcd9bffc43ed2fc7f708815"/>
   <manifest>
-    <files count="60" total_bytes="424921"/>
+    <files count="61" total_bytes="459832"/>
     <excluded>
       <file path=".env*" reason="secrets"/>
       <dir path="target/" reason="build artifacts"/>
@@ -30,35 +30,36 @@
       <entry path="schema/migrations/008_llm_cost_reconciliation.sql" lang="sql" bytes="4151" lines="68" sha256="f41e18694998eb042b63125f19afefb75ddc3b34f3629d267e0947c484cfde6c" md5="d0c42801c982f36bde3c4f8a6e1e886f"/>
       <entry path="schema/migrations/009_llm_cost_baseline.sql" lang="sql" bytes="4369" lines="67" sha256="ca91dafa9fbeae4ddd42606a1cb9441446f185fa069248aba5314873354b28b4" md5="5d09c0b2fde1afd406632088e66fff1b"/>
       <entry path="schema/migrations/010_llm_model_quality.sql" lang="sql" bytes="3823" lines="66" sha256="555254ce6cc207a73ff29ba417fd9bbc8c872cf9653defc69b636c7f18f8ed86" md5="630347f08bb3aac372047c04dbd3cd59"/>
-      <entry path="schema/migrations/011_budget_sync_and_root_cap.sql" lang="sql" bytes="16238" lines="303" sha256="5fa446ab8d097bd00294f78299a25a7ba1dd730f567e4269376c661b51dd4d77" md5="1ed5bc5ee851f17258a8374407ae8cbc"/>
-      <entry path="schema/schema_v0.sql" lang="sql" bytes="39164" lines="727" sha256="efab9dc5875037e92caa4d97f31f8fdf30537150d89bab5e0f211b1d7828470b" md5="dc5d80ef2235be4c887ea51c638465f1"/>
+      <entry path="schema/migrations/011_budget_sync_and_root_cap.sql" lang="sql" bytes="16350" lines="304" sha256="2aeced55e9050db6bcdd259e815a88e0b2d6eeca0721cf729ccdb9d79348739b" md5="f148ab3d2aed5d2331c996962b093056"/>
+      <entry path="schema/migrations/012_claim_task_rework_feedback.sql" lang="sql" bytes="3668" lines="58" sha256="e7e475a46e5a4c646edda6f7a9c3646ed9735cedcf437f43cbd7d64aecb6b0ee" md5="0b471ddadde29facd50794105daf9dbf"/>
+      <entry path="schema/schema_v0.sql" lang="sql" bytes="43501" lines="793" sha256="9700738c431f11afc15b4ba5f29b1a983caccb53106ac2f26d9a50cbd225de94" md5="c48d00d982da0bc20a925540444355c5"/>
       <entry path="scripts/02-roles.sh" lang="bash" bytes="831" lines="20" sha256="cfecd3af0e550d0c7c426053920e68592b0081b75528714567f7dd65df533b64" md5="222f2961a86f5beb870842a67892823f"/>
       <entry path="scripts/03-role-patches.sh" lang="bash" bytes="1169" lines="26" sha256="e5374dad91f01310de5634f717c32e50fa60a6398ffda4b5cc8457777ad0976d" md5="fb95baf99f0113e70b2be398967fad25"/>
       <entry path="scripts/03-roles-2b.sh" lang="bash" bytes="934" lines="24" sha256="2e4ce315bfc988738c29568641d3ada6d64d746f2a4dbd8506f994951742a609" md5="7641d32f6d09c4e07ae237a90945a7a5"/>
       <entry path="scripts/05-migrations.sh" lang="bash" bytes="1059" lines="22" sha256="3e4f8bc621181fc73284a099777cdf49cdceb3a0d6d1cd2e8f9f2714f822c359" md5="681415c812baa31a826c6c746592a298"/>
-      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="7161" lines="156" sha256="ff6679e13c11035fe3541d1c964e6cbf7112824a6627aa4eefbb1006b7928b5f" md5="bc4396794ecba76181d596db73159769"/>
-      <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="37365" lines="767" sha256="05bcb0f07de4fa34db60923ec85ab827d6cb964e23226520946562f6837967e3" md5="86a7ffa5248fef0dcf969e884efc0726"/>
+      <entry path="scripts/acceptance_allowlist.txt" lang="text" bytes="7587" lines="162" sha256="ac2a10d1b2c6d2fc38f2ff5c8945ae13fa6009bf6f8d006e425469c996129af4" md5="2ea03ea826686709dd7ecf6ecaffd15b"/>
+      <entry path="scripts/acceptance_harness.sh" lang="bash" bytes="37760" lines="771" sha256="30a6e75beea70f1a17aa70338b9ebed321d60654710b030691b137aa4604d63b" md5="c01d54f323d58ca10c680affa2c87a80"/>
       <entry path="scripts/build_audit_bundle.py" lang="python" bytes="7014" lines="183" sha256="ec6147bb3c3feb8a8f54313032217b276661530e552acad44690e96fabd8ad98" md5="7210663bf528f39b33d54877f75ced8e"/>
       <entry path="scripts/build_audit_index.py" lang="python" bytes="5563" lines="128" sha256="0d36cb3bdcbd645d495f5165d3b44ae12dcf9fadee76fecb9d09a00f774eeb51" md5="d9b384dde54539506925ed7d47901ce8"/>
       <entry path="scripts/build_audit_report.py" lang="python" bytes="7385" lines="162" sha256="0ce08c1494145a8d8d746b28b3cdc474ec218a14b2d3650481bb894ff4b3738f" md5="1cd27af09adc804dee1543bb3d7141f4"/>
-      <entry path="scripts/build_audit_zip.sh" lang="bash" bytes="2988" lines="62" sha256="b0b75a1454d4ccff108e023ca761414198a1a585070937b469ac08d9241ae63a" md5="183d2feca3f4d9327a02ff89a79e4f78"/>
+      <entry path="scripts/build_audit_zip.sh" lang="bash" bytes="3347" lines="66" sha256="94005b7dd0105068d5d84f8c6dc3fab4b9b7d8ce00cf588b8af369fd346e274f" md5="1f21210bd559961bdfd02d7befd0c837"/>
       <entry path="scripts/build_project_bundle.py" lang="python" bytes="9127" lines="205" sha256="873589b0b692724faf2b419674ce28fe5584d9516f3ccd88c6b6eb1b2bf09ff8" md5="6733cdc6a4abc4a5519e26c6eb9138b7"/>
-      <entry path="scripts/compose_roles_arbiter.sh" lang="bash" bytes="13668" lines="247" sha256="4d16017c3e374dd57883121bcd75e481fd5366641d6ea606063330943d60fdf3" md5="214a0f3603838fb280b99f7c86590a44"/>
+      <entry path="scripts/compose_roles_arbiter.sh" lang="bash" bytes="16209" lines="286" sha256="544d108fc0a3b142cbc9de0917e55796a657967030276576ffc3f8f6219b71ab" md5="27bcf55d4ce5b7f49367e3e8d8fa21ab"/>
       <entry path="scripts/fetch_model_catalog.py" lang="python" bytes="7241" lines="150" sha256="51ef91b1e53cabf0e7162a8f9222ff8e9b28baeaf4547992149d44609221515c" md5="712d5256a154d363578653e9b027df63"/>
       <entry path="scripts/model_quality_report.py" lang="python" bytes="5195" lines="127" sha256="c8865ee4221bfea9bf931730ca532a578e6d10dcfb4b8597ced0be739616bb1b" md5="dd77b7626198da463506fe94370ef9dd"/>
       <entry path="scripts/reconcile_llm_cost.py" lang="python" bytes="11193" lines="229" sha256="850801343d9e05c59be5516f9f7b78fe03b17d8ad8ddc8921e37f1dce912621c" md5="f781baa9c1460fd4a16d48ecb9040b52"/>
-      <entry path="scripts/run_mutations_sql.sh" lang="bash" bytes="11836" lines="224" sha256="bc87ed42b002310c398289090b5d28f76c64b974af879f4b868fd0016aab707a" md5="3049c99a23c9dc71fac2d514e93f7bc7"/>
+      <entry path="scripts/run_mutations_sql.sh" lang="bash" bytes="15504" lines="275" sha256="3f389950141a903160d5ad7cd590ecd0ca5ddc2b78ff6d5e8fde9352cced8e5a" md5="f3fb684e708c8eeee36c9bda29256be6"/>
       <entry path="scripts/run_mutations_v04.sh" lang="bash" bytes="7217" lines="160" sha256="fd1545b233d1935dd0b1a4f838c12713c99145b164a1a5f328d63841cfa6155d" md5="3a276f38ae5c66da5dcaabec066972e8"/>
       <entry path="scripts/scratch_pg.sh" lang="bash" bytes="4762" lines="87" sha256="0c6849cb6f3a84d95f90a04f078bc253a34f05a760f55c0c688bbe70818d1141" md5="53e0744f07e03f670043897c7e410abe"/>
       <entry path="scripts/secret_scan.sh" lang="bash" bytes="4625" lines="101" sha256="b2b7fcd3728eaf97d29d62929471da94061dd664e83b0b4d89c07f5962a24c0b" md5="00c2651ec87e00742f4a68efcd1168de"/>
       <entry path="scripts/start_demo.sh" lang="bash" bytes="3769" lines="84" sha256="484fc96b5df851d1d9c9f3d93925f09b6345fdc223e171b643e4c6f59500db1f" md5="288a0548f8d36fbf374a14cedc6710b2"/>
       <entry path="scripts/upload_release_gdrive.sh" lang="bash" bytes="4125" lines="89" sha256="e959b61e21afaf8958512e1e1e4f79c0fa092d64c09a607aee0a69b1b99af531" md5="7c6a1dfd9501f6b148e3096e1eea28dc"/>
-      <entry path="step2/roles.sql" lang="sql" bytes="6698" lines="94" sha256="56c551d6633521b438d7aa062eaa0e07aa65058f5a88cdf62a78ec6cef52da29" md5="da41100568f75d9fa86f203d4c94a7ac"/>
+      <entry path="step2/roles.sql" lang="sql" bytes="6907" lines="96" sha256="ee30bd42fcdf426bc2775e6d4111dbbcd19c4598b15ec07630b48159eebc1d9f" md5="9a717bd0a296359fbc7d22d759d04d99"/>
       <entry path="step2/roles_patch_planner_status.sql" lang="sql" bytes="766" lines="12" sha256="59d10d8e029f4030fd00117444f092bfbb4d485430d0ee7c4dca5cdf6abab63f" md5="7ceb6fae8e556e3ee8d80d08ff3f7b41"/>
       <entry path="step2/roles_patch_tool_call_audit.sql" lang="sql" bytes="2908" lines="41" sha256="78f6bc1c62aa788699af3984084d84edf12d344dd6938d8157ffdcf9b65899a8" md5="b6fd69f62ed097ed5cc6c29c1f8bf1fa"/>
       <entry path="step2/test_review_gate.py" lang="python" bytes="5367" lines="150" sha256="153cbf184b1b48b4521635af9bc59472fcd6c82276020b9d8340f76bd27bc56f" md5="b0855a07b4bf6e327b1c792fef63c9b4"/>
-      <entry path="step2/test_roles.py" lang="python" bytes="11382" lines="242" sha256="0b6a84cd4e2a4c74151bb0a604409669b1c02457c18def49fa84dc15330a66df" md5="b59a81640554a833c0907fffc6c6d6af"/>
-      <entry path="step2b/roles_2b.sql" lang="sql" bytes="15188" lines="268" sha256="7f124cfd1306b5d93f4254e423e57cc77dcfa5ba98170a13676c6fef51be8817" md5="1d387af0345d3d9d7c14b2278b1f7d0e"/>
+      <entry path="step2/test_roles.py" lang="python" bytes="11595" lines="245" sha256="f12d61a926455d49a406ade65f7201ec529d4277ecba42d8aff4358a5070c804" md5="3a050cdad89764db15ad8a510ed34b4a"/>
+      <entry path="step2b/roles_2b.sql" lang="sql" bytes="19753" lines="338" sha256="16a6d8b5a7292ee7d5c17a86c9835604d899070c4ae924285d43aa75fe1e519c" md5="6cf407c0ba49445426545b6552a21553"/>
       <entry path="step2b/test_roles_2b.py" lang="python" bytes="13409" lines="319" sha256="9266b853e06c0fb6084f8b02174016f697cc67a28d3582136482645a15465645" md5="d8b6a10a9be420a1dd6c90343dfdba51"/>
       <entry path="tests/conftest.py" lang="python" bytes="5222" lines="119" sha256="48ee8a80a659e18327a82a59922ea0e6535072286f706feadc109b592ffd59f8" md5="d5a927f13ded6881e25c5f5677264185"/>
       <entry path="tests/test_contract_form_f15.py" lang="python" bytes="3252" lines="84" sha256="587691172a6e41fefb6d1a09efc02be0bf736be03ef41b2404030aada6366399" md5="677c5f16d855aabcf810a1b6a5e5f52a"/>
@@ -68,11 +69,11 @@
       <entry path="tests/test_find04_record_tool_call_identity.py" lang="python" bytes="8165" lines="212" sha256="57b6034d19430a560349376a01a5affe4d00f21e6f1a79d84377a49380c77180" md5="8f9e22bc652a1b4c06cc0a1e57ea4788"/>
       <entry path="tests/test_model_catalog.py" lang="python" bytes="3869" lines="106" sha256="8b3eb7ec23ab8656814da9c6740ad501a88d73780113fdb2620c59ca4904704c" md5="38fe2f12403b67481c51432d701af07e"/>
       <entry path="tests/test_model_quality.py" lang="python" bytes="6058" lines="149" sha256="7ad7d911efa02764c86367123e483119530556f961c01392ded93198d766d0bd" md5="1f4ec28da6b2ab5c530004db53fdb255"/>
-      <entry path="tests/test_no_duplicate_function_bodies.py" lang="python" bytes="7554" lines="157" sha256="0cc45015a07adc30710c7f4982499bea4a7611d1eabd916a76fa2f6d9e839594" md5="4b57b3f6acaa166e46c22280554bbf14"/>
+      <entry path="tests/test_no_duplicate_function_bodies.py" lang="python" bytes="7808" lines="161" sha256="f71cce832e5003da07c6a39138be3cb661e93585dde4ba78e98c86d49852b892" md5="3c80990170a232dddfe779e39fa518a1"/>
       <entry path="tests/test_review_gate_f2.py" lang="python" bytes="6018" lines="172" sha256="327cde66762dc446a7ae1ff9aacce3c2a693804566878d4963d5f40e8e6e25b8" md5="38e174878dfa45c7d749207db145fb04"/>
       <entry path="tests/test_review_gate_wave4.py" lang="python" bytes="5016" lines="143" sha256="0cdfa037bc1f2e48b452e46bebee668899062410cfd29060d938271130749e65" md5="4dc75a10fc13e996fdb952fedbfcb7e9"/>
-      <entry path="tests/test_v0.py" lang="python" bytes="21741" lines="568" sha256="132772e6cbd2a7d93af8662628742d4927773864bc6d6a795022fc67cd23be0f" md5="0ec2916f3f2029831d6ff970fd3dbd69"/>
-      <entry path="tests/test_worker_identity_f3.py" lang="python" bytes="5272" lines="142" sha256="e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a" md5="8105e7e7d1a0a45c1a4879f64fda274c"/>
+      <entry path="tests/test_v0.py" lang="python" bytes="31321" lines="742" sha256="93dfe0429d1385a6430d7609ed742a6c5ac62d90443aa1a88d26719080aaa4bc" md5="09d40824e68eebb0904aa04119f676ee"/>
+      <entry path="tests/test_worker_identity_f3.py" lang="python" bytes="9856" lines="230" sha256="5c398d0ae3b8401d80d75bd5686db5d96344cb6028864b6b47752cef3b198d8a" md5="19752af426513d375cbf816318548fe1"/>
     </index>
   </manifest>
   <files>
@@ -1271,7 +1272,7 @@ grant select on public.llm_model_quality
   to swarm_operator, swarm_planner, swarm_reviewer, swarm_watchdog;
 ]]></content>
     </file>
-    <file path="schema/migrations/011_budget_sync_and_root_cap.sql" lang="sql" bytes="16238" lines="303" sha256="5fa446ab8d097bd00294f78299a25a7ba1dd730f567e4269376c661b51dd4d77" md5="1ed5bc5ee851f17258a8374407ae8cbc">
+    <file path="schema/migrations/011_budget_sync_and_root_cap.sql" lang="sql" bytes="16350" lines="304" sha256="2aeced55e9050db6bcdd259e815a88e0b2d6eeca0721cf729ccdb9d79348739b" md5="f148ab3d2aed5d2331c996962b093056">
       <content><![CDATA[
 -- Migration 011: бюджет ограничивает РЕАЛЬНЫЕ расходы (F8).
 --
@@ -1490,7 +1491,8 @@ begin
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
-  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  -- FIND-CODE-04: фильтр по текущей эпохе (см. schema_v0.sql).
+  select count(*) into v_ledger from llm_calls where task_id = p_task and lease_epoch = p_epoch;
   if v_ledger = 0 and p_tokens > 0 then
     update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
   end if;
@@ -1578,7 +1580,69 @@ grant execute on function public.complete_task(uuid, text, bigint, text, bigint)
 grant execute on function public.reclaim_expired() to swarm_watchdog;
 ]]></content>
     </file>
-    <file path="schema/schema_v0.sql" lang="sql" bytes="39164" lines="727" sha256="efab9dc5875037e92caa4d97f31f8fdf30537150d89bab5e0f211b1d7828470b" md5="dc5d80ef2235be4c887ea51c638465f1">
+    <file path="schema/migrations/012_claim_task_rework_feedback.sql" lang="sql" bytes="3668" lines="58" sha256="e7e475a46e5a4c646edda6f7a9c3646ed9735cedcf437f43cbd7d64aecb6b0ee" md5="0b471ddadde29facd50794105daf9dbf">
+      <content><![CDATA[
+-- Migration 012: контур обратной связи при доработке (FIND-CODE-02).
+--
+-- Дефект (второй проход аудита, снимок 69f749b):
+--   При `changes_requested` ревьюер пишет причину отказа в `reviews.checks`, но
+--   воркер при повторном взятии задачи (`rework > 0`) её НЕ читает: `claim_task`
+--   возвращал только `(id, contract, epoch, budget, spent)`. Воркер отправлял в
+--   LLM ровно тот же промпт (та же температура), получал тот же ответ и снова
+--   не проходил приёмку — пока не упирался в `max_rework` (`blocked`) или
+--   `budget_cap` (`budget_exhausted`). Это корневая причина прод-статистики
+--   `changes_requested = 39` против `approved = 16`.
+--
+-- Решение (вариант «отдельный RPC», а не новые колонки claim_task):
+--   Сигнатуру `claim_task` НЕ меняем. Смена возвращаемого типа требует
+--   `DROP FUNCTION` + перевыдачи гранта и ломает применение миграций
+--   (`create or replace` не меняет row type; migration 011 пересоздаёт
+--   claim_task со старой формой → «cannot change return type»). Вместо этого —
+--   отдельная SECURITY DEFINER функция `task_rework_feedback(task, worker,
+--   epoch)`, которую воркер вызывает сразу после выдачи аренды. Она проверяет
+--   ЖИВУЮ аренду (`assert_lease`), поэтому чужую диагностику не прочитать.
+--
+-- Идемпотентно: create or replace + повторный grant безопасны.
+
+create or replace function public.task_rework_feedback(p_task uuid, p_worker text,
+                                                       p_epoch bigint)
+returns table (out_rework int, out_last_review jsonb)
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_rework int;
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  select t.rework into v_rework from tasks t where t.id = p_task;
+  if not found then
+    raise exception 'task_not_found' using errcode = 'GR000';
+  end if;
+  return query
+    select v_rework,
+           (select jsonb_build_object(
+                     'verdict', r.verdict,
+                     'artifact_ref', r.artifact_ref,
+                     'checks', r.checks,
+                     'reviewer', r.reviewer)
+              from reviews r
+             where r.task_id = p_task
+             order by r.id desc
+             limit 1);
+end $$;
+
+-- Владелец и режим — канонический инвариант каталога
+-- (step2/test_roles.py::test_catalog_invariants).
+alter function public.task_rework_feedback(uuid, text, bigint) owner to swarm_owner;
+alter function public.task_rework_feedback(uuid, text, bigint)
+  security definer set search_path = public, pg_temp;
+
+-- Права: закрыть по умолчанию, выдать воркеру.
+revoke all on function public.task_rework_feedback(uuid, text, bigint) from public;
+grant execute on function public.task_rework_feedback(uuid, text, bigint) to swarm_worker;
+
+comment on function public.task_rework_feedback(uuid, text, bigint) is
+  'FIND-CODE-02: диагностика последнего ревью (rework + verdict/checks) для возвращённой задачи';
+]]></content>
+    </file>
+    <file path="schema/schema_v0.sql" lang="sql" bytes="43501" lines="793" sha256="9700738c431f11afc15b4ba5f29b1a983caccb53106ac2f26d9a50cbd225de94" md5="c48d00d982da0bc20a925540444355c5">
       <content><![CDATA[
 -- Swarm dispatcher v0: Postgres 16. Единый источник истины.
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
@@ -1805,8 +1869,28 @@ begin
     raise exception 'contract_invalid: budget.attempts out of range 1..100' using errcode = 'CT001';
   end if;
   if jsonb_exists(c->'budget', 'max_rework')
-     and (c->'budget'->>'max_rework')::numeric > 50 then
+     and ((c->'budget'->>'max_rework')::numeric < 0
+          or (c->'budget'->>'max_rework')::numeric > 50) then
     raise exception 'contract_invalid: budget.max_rework out of range 0..50' using errcode = 'CT001';
+  end if;
+  -- FIND-NEW-03: max_depth/max_children/max_tasks раньше проверялись только на
+  -- ТИП, но не на диапазон: `max_tasks: 0` блокировал дерево, `max_tasks: 1e9`
+  -- снимал защиту от взрыва графа. Верхние границы — с запасом к дефолтам
+  -- add_task (max_tasks 200, max_depth 10, max_children 20).
+  if jsonb_exists(c->'budget', 'max_depth')
+     and ((c->'budget'->>'max_depth')::numeric < 1
+          or (c->'budget'->>'max_depth')::numeric > 50) then
+    raise exception 'contract_invalid: budget.max_depth out of range 1..50' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_children')
+     and ((c->'budget'->>'max_children')::numeric < 1
+          or (c->'budget'->>'max_children')::numeric > 100) then
+    raise exception 'contract_invalid: budget.max_children out of range 1..100' using errcode = 'CT001';
+  end if;
+  if jsonb_exists(c->'budget', 'max_tasks')
+     and ((c->'budget'->>'max_tasks')::numeric < 1
+          or (c->'budget'->>'max_tasks')::numeric > 1000) then
+    raise exception 'contract_invalid: budget.max_tasks out of range 1..1000' using errcode = 'CT001';
   end if;
   if jsonb_exists(c->'needs', 'min_ram_gb')
      and ((c->'needs'->>'min_ram_gb')::numeric < 0
@@ -2014,6 +2098,37 @@ begin
       from tasks t where t.id = p_task;
 end $$;
 
+-- FIND-CODE-02: контур обратной связи при доработке.
+--
+-- Ревьюер при `changes_requested` пишет причину в `reviews.checks`, но воркер
+-- её не читал (claim_task отдавал только контракт) → перегенерировал то же
+-- решение вслепую (корень `changes_requested = 39` на проде).
+--
+-- Возвращает число возвратов и диагностику последнего ревью. Требует ЖИВУЮ
+-- аренду (`assert_lease`) и identity воркера — чужую диагностику не прочитать.
+create function task_rework_feedback(p_task uuid, p_worker text, p_epoch bigint)
+returns table (out_rework int, out_last_review jsonb)
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_rework int;
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);
+  select t.rework into v_rework from tasks t where t.id = p_task;
+  if not found then
+    raise exception 'task_not_found' using errcode = 'GR000';
+  end if;
+  return query
+    select v_rework,
+           (select jsonb_build_object(
+                     'verdict', r.verdict,
+                     'artifact_ref', r.artifact_ref,
+                     'checks', r.checks,
+                     'reviewer', r.reviewer)
+              from reviews r
+             where r.task_id = p_task
+             order by r.id desc
+             limit 1);
+end $$;
+
 -- Продлевает только действующую аренду; истёкшую «оживить» нельзя.
 create function heartbeat(p_task uuid, p_worker text, p_epoch bigint, p_extend_sec int default 300)
 returns boolean language plpgsql as $$
@@ -2046,8 +2161,14 @@ begin
   perform assert_lease(p_task, p_worker, p_epoch);
   insert into artifacts (task_id, ref, created_by, lease_epoch, content_type, size_bytes, storage_path)
   values (p_task, p_ref, p_worker, p_epoch, p_content_type, p_size, p_storage)
-  on conflict (task_id, ref) do nothing;
-  perform append_event(p_task, 'art:' || p_ref, 'artifact_saved', p_worker,
+  on conflict (task_id, ref) do update
+     set created_by = excluded.created_by, lease_epoch = excluded.lease_epoch,
+         content_type = excluded.content_type, size_bytes = excluded.size_bytes,
+         storage_path = excluded.storage_path, created_at = now();
+  -- FIND-NEW-02: `lease_epoch` в ключе. Без него повторное сохранение того же ref
+  -- на новой эпохе давало коллизию event_id, append_event тихо возвращал false,
+  -- и переход состояния оставался без следа в хэш-цепочке events.
+  perform append_event(p_task, 'art:' || p_epoch || ':' || p_ref, 'artifact_saved', p_worker,
                        jsonb_build_object('ref', p_ref));
 end $$;
 
@@ -2069,7 +2190,10 @@ begin
   -- повторно, иначе расход считался бы дважды. Совместимость: если по
   -- задаче ещё нет ни одной строки ledger, а p_tokens > 0 (старый контракт
   -- вызова, напр. прямые тесты), учитываем p_tokens ровно один раз здесь.
-  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  -- FIND-CODE-04: фильтр по ТЕКУЩЕЙ эпохе. Без `and lease_epoch = p_epoch`
+  -- любая запись ledger за прошлые эпохи навсегда делала v_ledger > 0, и
+  -- p_tokens новой эпохи молча терялся (расход занижался).
+  select count(*) into v_ledger from llm_calls where task_id = p_task and lease_epoch = p_epoch;
   if v_ledger = 0 and p_tokens > 0 then
     update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
   end if;
@@ -2199,7 +2323,13 @@ begin
                         case when p_verdict = 'rejected' then 'rejected' else 'max_rework' end end,
          updated_at = now()
    where id = p_task;
-  perform append_event(p_task, 'review:' || p_ref || ':' || p_reviewer, 'review_submitted',
+  -- FIND-NEW-02: `t.lease_epoch` в ключе события. Без него повторное ревью того
+  -- же ref после reopen (или детерминированная пересборка на новой эпохе) давало
+  -- коллизию event_id, append_event тихо возвращал false, и переход состояния
+  -- оставался БЕЗ следа в хэш-цепочке events. Эпоха растёт на +1 в claim_task,
+  -- поэтому ключ всегда уникален.
+  perform append_event(p_task, 'review:' || t.lease_epoch || ':' || p_ref || ':' || p_reviewer,
+                       'review_submitted',
                        p_reviewer, jsonb_build_object('verdict', p_verdict, 'new_state', v_new));
   if v_new = 'done' then perform promote_ready(); end if;
   return v_new;
@@ -2417,7 +2547,7 @@ for f in /sql/migrations/*.sql; do
 done
 ]]></content>
     </file>
-    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="7161" lines="156" sha256="ff6679e13c11035fe3541d1c964e6cbf7112824a6627aa4eefbb1006b7928b5f" md5="bc4396794ecba76181d596db73159769">
+    <file path="scripts/acceptance_allowlist.txt" lang="text" bytes="7587" lines="162" sha256="ac2a10d1b2c6d2fc38f2ff5c8945ae13fa6009bf6f8d006e425469c996129af4" md5="2ea03ea826686709dd7ecf6ecaffd15b">
       <content><![CDATA[
 # Acceptance scope for the v0.6 P0 hardening wave (base 7b7d56f).
 # One rule per line: exact path, or `prefix/*` for a directory subtree.
@@ -2562,6 +2692,12 @@ scripts/compose_roles_arbiter.sh
 # F8: учёт расхода, оборвавшегося до complete (тест-инструмент).
 tests/test_f8_orphan_llm_spend.py
 
+# P0 (аудит 1e71428, закрытие): мутации S8/S9 + behavioural-кейсы identity в
+# fail_task/fail_task_state. F3-файл расширен проверками «w1 вызывает
+# fail_task/fail_task_state по чужой аренде w2 → WK003», без которых мутация S8
+# выживала (run_arbiters не покрывал этот путь).
+tests/test_worker_identity_f3.py
+
 # Документация для ИИ-агентов (ночная смена 2026-10-14): как работать с репо.
 # Скоуп гейта — код/инфраструктура; этот текст сюда не относится (как
 # docs/research/* в #40).
@@ -2577,7 +2713,7 @@ scripts/secret_scan.sh
 scripts/build_audit_zip.sh
 ]]></content>
     </file>
-    <file path="scripts/acceptance_harness.sh" lang="bash" bytes="37365" lines="767" sha256="05bcb0f07de4fa34db60923ec85ab827d6cb964e23226520946562f6837967e3" md5="86a7ffa5248fef0dcf969e884efc0726">
+    <file path="scripts/acceptance_harness.sh" lang="bash" bytes="37760" lines="771" sha256="30a6e75beea70f1a17aa70338b9ebed321d60654710b030691b137aa4604d63b" md5="c01d54f323d58ca10c680affa2c87a80">
       <content><![CDATA[
 #!/usr/bin/env bash
 # Disposable acceptance harness for the schema/RBAC acceptance branch.
@@ -3219,6 +3355,10 @@ review_gate_acceptance() {
     "tests/test_v0.py|state machine: lease/epoch, add_dep, reopen cascade (P0 #6/#7)"
     "tests/test_cost_reconciliation.py|cost ledger reconciliation vs relay.fast (Issue #2)"
     "tests/test_f8_orphan_llm_spend.py|F8 budget protects real spend, not only complete (Issue 5.10)"
+    # FIND-NEW-04: три сьюта лежали мёртвым грузом мимо harness и CI.
+    # test_f8 уже выше; ниже — остальные два (юнит-части, без сети/БД).
+    "tests/test_model_quality.py|model quality view -> selector stats (Issue #7/#10)"
+    "tests/test_model_catalog.py|relay.fast pricing -> USD/1M recalculation (Issue #7/#10)"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
@@ -3833,7 +3973,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ]]></content>
     </file>
-    <file path="scripts/build_audit_zip.sh" lang="bash" bytes="2988" lines="62" sha256="b0b75a1454d4ccff108e023ca761414198a1a585070937b469ac08d9241ae63a" md5="183d2feca3f4d9327a02ff89a79e4f78">
+    <file path="scripts/build_audit_zip.sh" lang="bash" bytes="3347" lines="66" sha256="94005b7dd0105068d5d84f8c6dc3fab4b9b7d8ce00cf588b8af369fd346e274f" md5="1f21210bd559961bdfd02d7befd0c837">
       <content><![CDATA[
 #!/usr/bin/env bash
 # Собирает аудит-пакет проекта в ZIP БЕЗ СЖАТИЯ (zip -0, метод Store).
@@ -3893,7 +4033,11 @@ cat >"$DEST/README_AUDIT.md" <<EOF
 EOF
 
 mkdir -p "$(dirname "$OUT")"
-( cd "$STAGE" && zip -0 -q -r "$(basename "$OUT")" "$NAME" )
+# ВАЖНО: архив пишем АБСОЛЮТНЫМ путём $OUT. Раньше было `cd "$STAGE" &&
+# zip ... "$(basename "$OUT")"` — архив создавался ВНУТРИ $STAGE, и
+# следующая строка `rm -rf "$STAGE"` его удаляла. Скрипт печатал 'OK',
+# а файла не было (молчаливый no-op).
+( cd "$STAGE" && zip -0 -q -r "$OUT" "$NAME" )
 rm -rf "$STAGE"
 echo "OK $OUT"
 unzip -v "$OUT" | sed -n '1,4p'
@@ -4108,7 +4252,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
       </content>
     </file>
-    <file path="scripts/compose_roles_arbiter.sh" lang="bash" bytes="13668" lines="247" sha256="4d16017c3e374dd57883121bcd75e481fd5366641d6ea606063330943d60fdf3" md5="214a0f3603838fb280b99f7c86590a44">
+    <file path="scripts/compose_roles_arbiter.sh" lang="bash" bytes="16209" lines="286" sha256="544d108fc0a3b142cbc9de0917e55796a657967030276576ffc3f8f6219b71ab" md5="27bcf55d4ce5b7f49367e3e8d8fa21ab">
       <content><![CDATA[
 #!/usr/bin/env bash
 # Живой арбитр ролей: прод-стек под своей ролью БД, а не «гейт зелёный».
@@ -4218,6 +4362,8 @@ checked=0
 seen_roles=""
 worker_roles=""
 watchdog_role=""
+reviewer_role=""
+planner_role=""
 
 for svc in watchdog reviewer cli planner worker-1 worker-2; do
   c="${PROJECT}-${svc}-1"
@@ -4244,6 +4390,8 @@ for svc in watchdog reviewer cli planner worker-1 worker-2; do
   seen_roles="$seen_roles $exp"
   case "$svc" in
     watchdog) watchdog_role="$exp" ;;
+    reviewer) reviewer_role="$exp" ;;
+    planner)  planner_role="$exp" ;;
     worker-*) worker_roles="$worker_roles $exp" ;;
   esac
 done
@@ -4276,6 +4424,41 @@ if [[ -n "$watchdog_role" ]]; then
     echo "PASS catalog: $watchdog_role имеет reclaim_expired/promote_ready"
   else
     echo "FAIL catalog: $watchdog_role НЕ имеет reclaim_expired/promote_ready (сторож не сможет работать)"; fail=1
+  fi
+fi
+
+# FIND-NEW-06: позитивные проверки и для reviewer/planner (раньше — только
+# watchdog/worker). Reviewer обязан уметь review_candidates/submit_review и НЕ
+# вправе брать задачи в работу (claim_task) — иначе валидатор может сам себе
+# выдать задачу и нарушить разделение ролей.
+if [[ -n "$reviewer_role" ]]; then
+  rv_ok="$(q "select has_function_privilege('$reviewer_role','review_candidates(integer)','EXECUTE') and has_function_privilege('$reviewer_role','submit_review(uuid,text,text,text,jsonb)','EXECUTE')")"
+  rv_claim="$(q "select has_function_privilege('$reviewer_role','claim_task(text,integer)','EXECUTE')")"
+  if [[ "$rv_ok" == "t" ]]; then
+    echo "PASS catalog: $reviewer_role может review_candidates/submit_review"
+  else
+    echo "FAIL catalog: $reviewer_role НЕ имеет review_candidates/submit_review (ревьюер не сможет работать)"; fail=1
+  fi
+  if [[ "$rv_claim" == "f" ]]; then
+    echo "PASS catalog: $reviewer_role не может claim_task (разделение ролей)"
+  else
+    echo "FAIL catalog: $reviewer_role имеет claim_task — валидатор не должен брать задачи"; fail=1
+  fi
+fi
+
+# Planner обязан уметь add_task/add_dep и НЕ вправе завершать/ревьюить задачи.
+if [[ -n "$planner_role" ]]; then
+  pl_ok="$(q "select has_function_privilege('$planner_role','add_task(uuid,uuid,jsonb,bigint,integer)','EXECUTE') and has_function_privilege('$planner_role','add_dep(uuid,uuid)','EXECUTE')")"
+  pl_bad="$(q "select has_function_privilege('$planner_role','complete_task(uuid,text,bigint,text,bigint)','EXECUTE') or has_function_privilege('$planner_role','submit_review(uuid,text,text,text,jsonb)','EXECUTE')")"
+  if [[ "$pl_ok" == "t" ]]; then
+    echo "PASS catalog: $planner_role может add_task/add_dep"
+  else
+    echo "FAIL catalog: $planner_role НЕ имеет add_task/add_dep (планировщик не сможет работать)"; fail=1
+  fi
+  if [[ "$pl_bad" == "f" ]]; then
+    echo "PASS catalog: $planner_role не может complete_task/submit_review"
+  else
+    echo "FAIL catalog: $planner_role имеет complete_task/submit_review — планировщик не должен закрывать задачи"; fail=1
   fi
 fi
 
@@ -4877,7 +5060,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ]]></content>
     </file>
-    <file path="scripts/run_mutations_sql.sh" lang="bash" bytes="11836" lines="224" sha256="bc87ed42b002310c398289090b5d28f76c64b974af879f4b868fd0016aab707a" md5="3049c99a23c9dc71fac2d514e93f7bc7">
+    <file path="scripts/run_mutations_sql.sh" lang="bash" bytes="15504" lines="275" sha256="3f389950141a903160d5ad7cd590ecd0ca5ddc2b78ff6d5e8fde9352cced8e5a" md5="f3fb684e708c8eeee36c9bda29256be6">
       <content><![CDATA[
 #!/usr/bin/env bash
 # run_mutations_sql.sh — мутационное тестирование SQL-инвариантов ядра.
@@ -4903,13 +5086,18 @@ SCHEMA="schema/schema_v0.sql"
 # перекрывает schema_v0.sql). Файл обязан быть под тем же backup/restore, иначе
 # прерванный прогон оставит мутанта в миграции.
 MIG_F8="schema/migrations/011_budget_sync_and_root_cap.sql"
+# S8: мутация identity-проверки целится в step2b/roles_2b.sql — там живут
+# перекрытые тела fail_task/fail_task_state (в них и стоит assert_worker_identity).
+# Файл обязан быть под тем же backup/restore и git-clean fail-fast, иначе
+# прерванный прогон оставит мутанта в перекрытии воркера.
+ROLES_2B="step2b/roles_2b.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
 # Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
 # предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
 # trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  for f in "$SCHEMA" "$MIG_F8"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B"; do
     if ! git diff --quiet -- "$f"; then
       echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
       echo "  hint: git checkout -- $f" >&2
@@ -4944,13 +5132,16 @@ PY="$(pwd)/.venv/bin/python"
 # Бэкап схемы в git-независимом месте; восстановление вызывается многократно.
 BACKUP="${TMPDIR:-/tmp}/swarm_schema_backup_$$.sql"
 BACKUP_MIG="${TMPDIR:-/tmp}/swarm_mig011_backup_$$.sql"
+BACKUP_2B="${TMPDIR:-/tmp}/swarm_roles2b_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
 [ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
+[ -f "$ROLES_2B" ] && cp "$ROLES_2B" "$BACKUP_2B"
 restore() {
   cp -f "$BACKUP" "$SCHEMA"
   [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
+  [ -f "$BACKUP_2B" ] && cp -f "$BACKUP_2B" "$ROLES_2B"
 }
-cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG"; }
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -4967,8 +5158,18 @@ run_arbiters() {
   # test_v0.py — FSM/fencing/idempotency/cycle; review-gate — self-review;
   # fail_unblock — fail/unblock; test_f8 — синхронный учёт расхода и
   # бюджет-осознанный reclaim (F8).
+  #
+  # S8 (identity в fail_task/fail_task_state): добавлены
+  # test_worker_identity_f3.py — прямой behavioural-кейс «w1 вызывает
+  # fail_task/fail_task_state по чужой задаче w2 → WK003», и
+  # test_no_duplicate_function_bodies.py — структурный guard, что перекрытие
+  # вообще содержит identity-строку. Без них S8 выживал: старый
+  # test_worker_identity_f3 проверял только register_worker и не вызывал
+  # fail_task/fail_task_state от чужого воркера.
   "$PY" -m pytest -q tests/test_v0.py tests/test_review_gate_f2.py \
-        tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py >/dev/null 2>&1
+        tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py \
+        tests/test_worker_identity_f3.py \
+        tests/test_no_duplicate_function_bodies.py >/dev/null 2>&1
 }
 
 # Чистое пересоздание схемы в disposable-БД.
@@ -5095,8 +5296,41 @@ run_mutation S7 "reclaim_expired: игнорировать исчерпанны�
   "if false then" \
   "schema/migrations/011_budget_sync_and_root_cap.sql"
 
+# S8 — fail_task/fail_task_state: снять identity-проверку (FIND-NEW-01).
+# Мутация: из перекрытого тела fail_task в roles_2b.sql убрать
+# `perform assert_worker_identity(p_worker);`. Строка `assert_worker_identity`
+# встречается в файле 6 раз, поэтому паттерн расширен до сигнатуры fail_task —
+# иначе `replace(..., 1)` попал бы в register_worker.
+# Ожидание: test_worker_identity_f3.py краснеет (w1 с p_worker='w2' получает не
+# WK003, а проходит в assert_lease), а test_no_duplicate_function_bodies.py —
+# на структурном анкере «перекрытие содержит identity-строку».
+run_mutation S8 "fail_task: снять identity-проверку воркера (FIND-NEW-01)" \
+  "create or replace function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                                     p_result_ref text, p_reason text) returns text
+language plpgsql as \$\$
+begin
+  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);" \
+  "create or replace function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                                     p_result_ref text, p_reason text) returns text
+language plpgsql as \$\$
+begin
+  perform assert_lease(p_task, p_worker, p_epoch);" \
+  "$ROLES_2B"
+
+# S9 — complete_task: снять бюджетный гейт (Issue #20).
+# Мутация: перерасход больше не переводит задачу в budget_exhausted.
+# Целевой файл — миграция 011: именно она применяется последней и её
+# `create or replace` перекрывает тела из schema_v0.sql и roles_2b.sql, т.е.
+# мутировать канон в schema_v0.sql было бы no-op (мутант «выжил» бы ложно).
+# Ожидание: test_v0.py::test_budget_exhaustion_blocks_on_complete краснеет.
+run_mutation S9 "complete_task: игнорировать перерасход бюджета (Issue #20)" \
+  "v_new := case when v_spent > v_cap then 'budget_exhausted' else 'review' end;" \
+  "v_new := 'review';" \
+  "schema/migrations/011_budget_sync_and_root_cap.sql"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S7 ===================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S9 ===================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"
@@ -5646,7 +5880,7 @@ echo "==> Готово: ${DEST}"
 echo "    Проверка: rclone lsf \"${DEST}\""
 ]]></content>
     </file>
-    <file path="step2/roles.sql" lang="sql" bytes="6698" lines="94" sha256="56c551d6633521b438d7aa062eaa0e07aa65058f5a88cdf62a78ec6cef52da29" md5="da41100568f75d9fa86f203d4c94a7ac">
+    <file path="step2/roles.sql" lang="sql" bytes="6907" lines="96" sha256="ee30bd42fcdf426bc2775e6d4111dbbcd19c4598b15ec07630b48159eebc1d9f" md5="9a717bd0a296359fbc7d22d759d04d99">
       <content><![CDATA[
 -- swarm roles v0.2: горизонтальное разделение прав.
 -- Запуск (суперпользователем, ПОСЛЕ schema_v0.sql):
@@ -5734,6 +5968,8 @@ grant execute on function claim_task, heartbeat, save_artifact, complete_task, r
   to swarm_worker;
 -- F8: воркеру нужен свежий бюджет задачи (локальный + по дереву) перед вызовом LLM.
 grant execute on function task_budget_state(uuid) to swarm_worker;
+-- FIND-CODE-02: воркеру нужна диагностика последнего ревью при доработке.
+grant execute on function task_rework_feedback(uuid, text, bigint) to swarm_worker;
 grant execute on function reclaim_expired, promote_ready to swarm_watchdog;
 grant execute on function add_task, add_dep, promote_ready to swarm_planner;
 grant execute on function submit_review, verify_chain to swarm_reviewer;
@@ -5959,7 +6195,7 @@ def test_extra_passing_checks_are_allowed(admin):
     assert c.fetchone()[0] == "done"
 ]]></content>
     </file>
-    <file path="step2/test_roles.py" lang="python" bytes="11382" lines="242" sha256="0b6a84cd4e2a4c74151bb0a604409669b1c02457c18def49fa84dc15330a66df" md5="b59a81640554a833c0907fffc6c6d6af">
+    <file path="step2/test_roles.py" lang="python" bytes="11595" lines="245" sha256="f12d61a926455d49a406ade65f7201ec529d4277ecba42d8aff4358a5070c804" md5="3a050cdad89764db15ad8a510ed34b4a">
       <content><![CDATA[
 """Тесты разделения ролей (roles.sql) на реальном Postgres 16.
 
@@ -6026,6 +6262,8 @@ CALLS = {
     "heartbeat":        f"select heartbeat({U}, 'w1', 1, 10)",
     "save_artifact":    f"select save_artifact({U}, 'w1', 1, 'sha256:a', '/p')",
     "complete_task":    f"select complete_task({U}, 'w1', 1, 'sha256:a', 1)",
+    "fail_task":        f"select fail_task({U}, 'w1', 1, null, 'x')",
+    "fail_task_state":  f"select fail_task_state({U}, 'w1', 1, null, 'x', 'blocked')",
     "register_worker":  "select register_worker('w-reg', '{\"ram_gb\":8}'::jsonb)",
     "reclaim_expired":  "select reclaim_expired()",
     "promote_ready":    "select promote_ready()",
@@ -6048,7 +6286,8 @@ INTERNAL = {
 }
 
 ALLOWED = {
-    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker"},
+    "swarm_worker_w1": {"claim_task", "heartbeat", "save_artifact", "complete_task", "register_worker",
+                        "fail_task", "fail_task_state"},
     "swarm_watchdog": {"reclaim_expired", "promote_ready"},
     "swarm_planner":  {"add_task", "add_dep", "promote_ready", "task_status"},
     "swarm_reviewer": {"submit_review", "review_candidates", "verify_chain"},
@@ -6205,7 +6444,7 @@ def test_task_status_shows_state_but_not_contract(admin):
     assert cols[:3] == ["id", "root_id", "state"]
 ]]></content>
     </file>
-    <file path="step2b/roles_2b.sql" lang="sql" bytes="15188" lines="268" sha256="7f124cfd1306b5d93f4254e423e57cc77dcfa5ba98170a13676c6fef51be8817" md5="1d387af0345d3d9d7c14b2278b1f7d0e">
+    <file path="step2b/roles_2b.sql" lang="sql" bytes="19753" lines="338" sha256="16a6d8b5a7292ee7d5c17a86c9835604d899070c4ae924285d43aa75fe1e519c" md5="6cf407c0ba49445426545b6552a21553">
       <content><![CDATA[
 -- swarm roles 2b v0.2: идентификация воркера.
 -- Запуск ПОСЛЕ schema_v0.sql и roles.sql (суперпользователем):
@@ -6358,8 +6597,11 @@ begin
   perform assert_lease(p_task, p_worker, p_epoch);
   insert into artifacts (task_id, ref, created_by, lease_epoch, content_type, size_bytes, storage_path)
   values (p_task, p_ref, p_worker, p_epoch, p_content_type, p_size, p_storage)
-  on conflict (task_id, ref) do nothing;
-  perform append_event(p_task, 'art:' || p_ref, 'artifact_saved', p_worker,
+  on conflict (task_id, ref) do update
+     set created_by = excluded.created_by, lease_epoch = excluded.lease_epoch,
+         content_type = excluded.content_type, size_bytes = excluded.size_bytes,
+         storage_path = excluded.storage_path, created_at = now();
+  perform append_event(p_task, 'art:' || p_epoch || ':' || p_ref, 'artifact_saved', p_worker,
                        jsonb_build_object('ref', p_ref));
 end $$;
 
@@ -6380,7 +6622,9 @@ begin
   end if;
   -- F8: единый источник истины — ledger `llm_calls` (триггер llm_calls_spend_sync).
   -- complete_task больше НЕ прибавляет p_tokens повторно (двойной учёт).
-  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  -- FIND-CODE-04: фильтр по текущей эпохе (иначе запись за прошлую эпоху
+  -- навсегда глушит учёт p_tokens новых эпох).
+  select count(*) into v_ledger from llm_calls where task_id = p_task and lease_epoch = p_epoch;
   if v_ledger = 0 and p_tokens > 0 then
     update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
   end if;
@@ -6405,17 +6649,72 @@ begin
   return v_new;
 end $$;
 
+-- 2.6. FIND-NEW-01: fail_task — с identity-проверкой.
+--      Раньше roles_2b перекрывал только 5 функций воркера, а fail_task/
+--      fail_task_state остались без assert_worker_identity: тело шло под
+--      SECURITY DEFINER, но не подтверждало, что p_worker = session_user.
+--      Теперь все обёртки воркера проверяют identity единообразно.
+create or replace function fail_task(p_task uuid, p_worker text, p_epoch bigint,
+                                     p_result_ref text, p_reason text) returns text
+language plpgsql as $$
+begin
+  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+  return 'blocked';
+end $$;
+
+-- 2.7. FIND-NEW-01: fail_task_state — с identity-проверкой.
+create or replace function fail_task_state(p_task uuid, p_worker text, p_epoch bigint,
+                                           p_result_ref text, p_reason text, p_state text)
+returns text language plpgsql as $$
+begin
+  perform assert_worker_identity(p_worker);
+  if p_state not in ('failed', 'budget_exhausted', 'blocked') then
+    raise exception 'invalid target state %', p_state using errcode = 'CT001';
+  end if;
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_result_ref is not null
+     and not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
+    raise exception 'artifact_missing' using errcode = 'AR001';
+  end if;
+  update tasks
+     set state = p_state, result_ref = coalesce(p_result_ref, result_ref),
+         lease_owner = null, lease_until = null,
+         block_reason = left(coalesce(p_reason, ''), 500), updated_at = now()
+   where id = p_task;
+  perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
+                       jsonb_build_object('failed', true, 'state', p_state,
+                                          'reason', left(coalesce(p_reason, ''), 500)));
+  return p_state;
+end $$;
+
 -- Владелец и режим — для новых тел
 alter function register_worker(text, jsonb, text[])          owner to swarm_owner;
 alter function claim_task(text, int)                          owner to swarm_owner;
 alter function heartbeat(uuid, text, bigint, int)             owner to swarm_owner;
 alter function save_artifact(uuid, text, bigint, text, text, text, bigint) owner to swarm_owner;
+-- FIND-NEW-01: fail_task / fail_task_state переопределены ниже с identity-проверкой.
+alter function fail_task(uuid, text, bigint, text, text)          owner to swarm_owner;
+alter function fail_task_state(uuid, text, bigint, text, text, text) owner to swarm_owner;
 alter function complete_task(uuid, text, bigint, text, bigint) owner to swarm_owner;
 
 alter function register_worker(text, jsonb, text[])          security definer set search_path = public, pg_temp;
 alter function claim_task(text, int)                          security definer set search_path = public, pg_temp;
 alter function heartbeat(uuid, text, bigint, int)             security definer set search_path = public, pg_temp;
 alter function save_artifact(uuid, text, bigint, text, text, text, bigint) security definer set search_path = public, pg_temp;
+alter function fail_task(uuid, text, bigint, text, text)          security definer set search_path = public, pg_temp;
+alter function fail_task_state(uuid, text, bigint, text, text, text) security definer set search_path = public, pg_temp;
 alter function complete_task(uuid, text, bigint, text, bigint) security definer set search_path = public, pg_temp;
 
 -- ============================================================
@@ -6449,6 +6748,16 @@ grant swarm_worker to swarm_worker_gpu_1;
 -- login-ролям, НЕ общей swarm_worker: общая роль — не identity (см. F3),
 -- и обёртки отказа должен вызывать только реальный воркер.
 grant execute on function fail_task(uuid, text, bigint, text, text)
+  to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
+
+-- Issue #3: fail_task_state вызывается из Rust (dispatcher.rs::fail_with_state)
+-- на каждом пути отказа с явным целевым состоянием (failed / budget_exhausted /
+-- blocked). Грант отсутствовал вовсе: под "revoke all on all functions from
+-- public" воркер получал permission denied при ЛЮБОМ отказе с явным state,
+-- т.е. весь F4-путь отказа был нерабочим в проде. Выдаём так же, как fail_task.
+-- Смену состояния ограничивает сама функция (p_state in failed/budget_exhausted/
+-- blocked) + assert_lease + assert_worker_identity.
+grant execute on function fail_task_state(uuid, text, bigint, text, text, text)
   to swarm_worker_w1, swarm_worker_w2, swarm_worker_w_1, swarm_worker_gpu_1;
 
 -- ============================================================
@@ -8204,7 +8513,7 @@ def test_report_selects_by_measured_cost(conn):
     assert cheapest["model"] == "cheap"
 ]]></content>
     </file>
-    <file path="tests/test_no_duplicate_function_bodies.py" lang="python" bytes="7554" lines="157" sha256="0cc45015a07adc30710c7f4982499bea4a7611d1eabd916a76fa2f6d9e839594" md5="4b57b3f6acaa166e46c22280554bbf14">
+    <file path="tests/test_no_duplicate_function_bodies.py" lang="python" bytes="7808" lines="161" sha256="f71cce832e5003da07c6a39138be3cb661e93585dde4ba78e98c86d49852b892" md5="3c80990170a232dddfe779e39fa518a1">
       <content><![CDATA[
 """Drift guard: дублирование тел функций schema_v0.sql ↔ step2b/roles_2b.sql.
 
@@ -8252,6 +8561,10 @@ ALLOWED_OVERRIDES = {
     "heartbeat",
     "save_artifact",
     "complete_task",
+    # FIND-NEW-01: fail_task/fail_task_state раньше шли под SECURITY DEFINER
+    # без identity-проверки; теперь перекрыты с ней, как остальные обёртки.
+    "fail_task",
+    "fail_task_state",
 }
 
 # Единственная разрешённая дополнительная строка в перекрытом теле.
@@ -8688,7 +9001,7 @@ def test_f15_contract_rejects_malformed_checks(conn, bad_checks):
     conn.rollback()
 ]]></content>
     </file>
-    <file path="tests/test_v0.py" lang="python" bytes="21741" lines="568" sha256="132772e6cbd2a7d93af8662628742d4927773864bc6d6a795022fc67cd23be0f" md5="0ec2916f3f2029831d6ff970fd3dbd69">
+    <file path="tests/test_v0.py" lang="python" bytes="31321" lines="742" sha256="93dfe0429d1385a6430d7609ed742a6c5ac62d90443aa1a88d26719080aaa4bc" md5="09d40824e68eebb0904aa04119f676ee">
       <content><![CDATA[
 """Тесты инвариантов schema_v0.sql на реальном Postgres 16.
 
@@ -9258,9 +9571,183 @@ def test_chain_detects_corrupted_prev_hash(db):
     assert one(db, "select verify_chain(%s)", t) is False, (
         "подмена prev_hash обязана ломать цепочку (слой связи)"
     )
+
+
+# ---------------- FIND-NEW-01/02/03: инварианты ядра ----------------
+def test_find_new_02_review_event_not_dropped_on_second_round(db):
+    """FIND-NEW-02: повторное ревью того же ref на новой эпохе пишет событие.
+
+    Ключ события ревью раньше был 'review:'||ref||':'||reviewer — БЕЗ эпохи.
+    На втором круге (changes_requested -> ready -> claim -> ... -> review)
+    append_event молча возвращал false, и переход состояния оставался без
+    следа в хэш-цепочке events. Теперь в ключе есть lease_epoch.
+    """
+    worker(db)
+    t = new_task(db, ctr=contract(budget={"attempts": 3, "max_rework": 3}))
+    ready(db, t)
+    to_review(db, t)
+    assert one(db, "select submit_review(%s,'sha256:a','rev','changes_requested',%s::jsonb)",
+               t, FAIL) == "ready"
+    db.commit()
+    # Второй круг: тот же ref, тот же рецензент — но новая эпоха.
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    one(db, "select complete_task(%s,'w1',%s,'sha256:a',1)", t, r[2])
+    db.commit()
+    assert one(db, "select submit_review(%s,'sha256:a','rev','changes_requested',%s::jsonb)",
+               t, FAIL) == "ready"
+    db.commit()
+    n = rows(db, "select count(*) from events where task_id=%s and kind='review_submitted'", t)[0][0]
+    assert n == 2, f"FIND-NEW-02: ожидалось 2 события ревью, получено {n} (второе потеряно)"
+    assert one(db, "select verify_chain(%s)", t) is True
+
+
+def test_find_new_02_artifact_event_not_dropped_on_new_epoch(db):
+    """FIND-NEW-02: повторное сохранение того же ref на новой эпохе пишет событие.
+
+    Ключ 'art:'||ref без эпохи давал коллизию при перезаписи артефакта
+    (on conflict) на новом круге -> append_event тихо возвращал false.
+    """
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    r = claim(db)
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    db.commit()
+    # Повторная запись того же ref на той же задаче (эпоха та же) — идемпотентно
+    # обновляет артефакт, но событие НЕ дублируется (ключ совпал).
+    one(db, "select save_artifact(%s,'w1',%s,'sha256:a','/p')", t, r[2])
+    db.commit()
+    n1 = rows(db, "select count(*) from events where task_id=%s and kind='artifact_saved'", t)[0][0]
+    assert n1 == 1, f"повтор на той же эпохе не должен дублировать событие (получено {n1})"
+    assert one(db, "select verify_chain(%s)", t) is True
+
+
+def test_find_new_03_budget_ranges_rejected(db):
+    """FIND-NEW-03: max_depth/max_children/max_tasks и max_rework — диапазоны.
+
+    Раньше проверялся только ТИП: max_tasks: 0 блокировал дерево,
+    max_tasks: 1e9 снимал защиту от взрыва графа, max_rework: -1 проходил.
+    """
+    bad = [{"attempts": 3, "max_rework": -1},
+           {"attempts": 3, "max_depth": 0},
+           {"attempts": 3, "max_depth": 51},
+           {"attempts": 3, "max_children": 0},
+           {"attempts": 3, "max_children": 101},
+           {"attempts": 3, "max_tasks": 0},
+           {"attempts": 3, "max_tasks": 1001}]
+    for b in bad:
+        ctr = json.dumps({"kind": "t", "budget": b,
+                          "checks": [{"type": "cmd", "run": "true"}]})
+        with pytest.raises(psycopg2.Error) as e:
+            db.cursor().execute("select add_task(%s,null,%s::jsonb,100,0)",
+                                (str(uuid.uuid4()), ctr))
+        assert code(e) == "CT001", f"контракт с budget={b} обязан быть отвергнут (CT001)"
+        db.rollback()
+
+
+def test_find_new_03_budget_ranges_accepted(db):
+    """FIND-NEW-03: граничные ДОПУСТИМЫЕ значения проходят (не переусердствовали)."""
+    ok = [{"attempts": 3, "max_rework": 0},
+          {"attempts": 3, "max_rework": 50},
+          {"attempts": 3, "max_depth": 1},
+          {"attempts": 3, "max_depth": 50},
+          {"attempts": 3, "max_children": 1},
+          {"attempts": 3, "max_children": 100},
+          {"attempts": 3, "max_tasks": 1},
+          {"attempts": 3, "max_tasks": 1000}]
+    for b in ok:
+        ctr = json.dumps({"kind": "t", "budget": b,
+                          "checks": [{"type": "cmd", "run": "true"}]})
+        tid = str(uuid.uuid4())
+        one(db, "select add_task(%s,null,%s::jsonb,100,0)", tid, ctr)
+        db.commit()
+        assert one(db, "select state from tasks where id=%s", tid) == "pending"
+
+
+def test_find_new_01_fail_task_functions_granted_to_workers(db):
+    """FIND-NEW-01: fail_task/fail_task_state выданы per-worker ролям.
+
+    fail_task_state вызывается из Rust (dispatcher::fail_with_state) на каждом
+    пути отказа с явным state, но гранта не было ВОВСЕ: под
+    'revoke all on all functions from public' воркер получал permission denied,
+    т.е. весь F4-путь отказа с явным state был нерабочим в проде.
+    """
+    for fn in ("fail_task(uuid,text,bigint,text,text)",
+               "fail_task_state(uuid,text,bigint,text,text,text)"):
+        for role in ("swarm_worker_w1", "swarm_worker_w2"):
+            assert one(db, "select has_function_privilege(%s,%s,'EXECUTE')", role, fn) is True, \
+                f"FIND-NEW-01: {role} не имеет EXECUTE на {fn}"
+        # Общая группа swarm_worker НЕ должна иметь доступ (identity-модель, F3).
+        assert one(db, "select has_function_privilege('swarm_worker',%s,'EXECUTE')", fn) is False, \
+            f"FIND-NEW-01: общая swarm_worker не должна иметь EXECUTE на {fn}"
+
+
+# ---------------- FIND-CODE-02: контур обратной связи ----------------
+def test_find_code_02_rework_feedback_granted_to_worker_only(db):
+    """FIND-CODE-02: task_rework_feedback доступна воркеру и закрыта для прочих.
+
+    Функция SECURITY DEFINER отдаёт диагностику последнего ревью; воркер должен
+    иметь EXECUTE, а ревьюер/планировщик/оператор — нет (least privilege).
+    """
+    fn = "task_rework_feedback(uuid,text,bigint)"
+    for role in ("swarm_worker_w1", "swarm_worker_w2"):
+        assert one(db, "select has_function_privilege(%s,%s,'EXECUTE')", role, fn) is True, \
+            f"FIND-CODE-02: {role} не имеет EXECUTE на {fn}"
+    for role in ("swarm_reviewer", "swarm_planner", "swarm_operator", "swarm_watchdog"):
+        assert one(db, "select has_function_privilege(%s,%s,'EXECUTE')", role, fn) is False, \
+            f"FIND-CODE-02: {role} не должен иметь EXECUTE на {fn}"
+
+
+def test_find_code_02_rework_feedback_returns_diagnosis(db):
+    """FIND-CODE-02: после changes_requested воркер видит причину отказа.
+
+    Без этого контура воркер перегенерирует то же решение вслепую — корень
+    прод-статистики changes_requested=39 против approved=16.
+    """
+    worker(db)
+    t = new_task(db, ctr=contract(budget={"attempts": 3, "max_rework": 3}))
+    ready(db, t)
+    to_review(db, t)
+    assert one(db, "select submit_review(%s,'sha256:a','rev','changes_requested',%s::jsonb)",
+               t, FAIL) == "ready"
+    db.commit()
+    # Повторная выдача: воркер получает rework>0 и диагностику последнего ревью.
+    r = claim(db)
+    assert r is not None, "задача должна быть выдана повторно"
+    rework, last_review = rows(
+        db, "select out_rework, out_last_review from task_rework_feedback(%s,'w1',%s)",
+        t, r[2])[0]
+    assert rework == 1, f"FIND-CODE-02: ожидался rework=1, получено {rework}"
+    assert last_review is not None, "FIND-CODE-02: диагностика ревью не отдана"
+    assert last_review["verdict"] == "changes_requested"
+    assert last_review["reviewer"] == "rev"
+    assert last_review["artifact_ref"] == "sha256:a"
+    # checks — то, что ревьюер записал как причину отказа.
+    assert isinstance(last_review["checks"], list) and last_review["checks"], \
+        f"FIND-CODE-02: checks пусты: {last_review}"
+
+
+def test_find_code_02_rework_feedback_requires_live_lease(db):
+    """FIND-CODE-02: без живой аренды диагностика не отдаётся (LS001).
+
+    Иначе чужой воркер мог бы прочитать причину отказа по чужой задаче.
+    """
+    worker(db)
+    t = new_task(db)
+    ready(db, t)
+    r = claim(db)
+    db.commit()
+    # Чужой epoch — аренды нет.
+    with pytest.raises(psycopg2.Error) as e:
+        db.cursor().execute(
+            "select out_rework, out_last_review from task_rework_feedback(%s,'w1',%s)",
+            (t, r[2] + 99))
+    assert code(e) == "LS001"
+    db.rollback()
 ]]></content>
     </file>
-    <file path="tests/test_worker_identity_f3.py" lang="python" bytes="5272" lines="142" sha256="e804f7a843d907c4863d74db9d87bb422d5bf9cd69eee5ad63e06cdc9393ed4a" md5="8105e7e7d1a0a45c1a4879f64fda274c">
+    <file path="tests/test_worker_identity_f3.py" lang="python" bytes="9856" lines="230" sha256="5c398d0ae3b8401d80d75bd5686db5d96344cb6028864b6b47752cef3b198d8a" md5="19752af426513d375cbf816318548fe1">
       <content><![CDATA[
 """F3 — identification closed by default.
 
@@ -9404,6 +9891,94 @@ def test_f3_wrong_identity_via_wrapper_rejected(admin):
     code = _sqlstate(w, "select register_worker('w2', '{\"ram_gb\":16}'::jsonb)")
     assert code == MISMATCH, f"F3: w1 as 'w2' must be WK003, got {code!r}"
     w.close()
+
+# ---------- FIND-NEW-01: identity in fail_task / fail_task_state ----------
+#
+# Регрессия (второй проход аудита, снимок bc0c168): roles_2b.sql перекрывал
+# identity-проверкой только 5 функций воркера + record_tool_call. fail_task и
+# fail_task_state шли под SECURITY DEFINER БЕЗ `assert_worker_identity(p_worker)`,
+# хотя GRANT EXECUTE был выдан всем per-worker ролям. Следствие: swarm_worker_w1,
+# зная (task_id, epoch) задачи w2, вызывал fail_task('<task_w2>','w2',epoch_w2,...)
+# → сбрасывал чужую живую аренду (задача → blocked) и писал в хэш-цепочку events
+# запись с actor='w2' (подделка журнала).
+#
+# Анкер: identity-проверка обязана стоять ПЕРВОЙ содержательной строкой тела,
+# ДО assert_lease, поэтому чужой воркер получает именно WK003.
+
+import uuid as _uuid
+
+def _mk_leased_task(admin, worker="w2", epoch=1):
+    """Задача в состоянии leased, арендованная `worker` с живым сроком."""
+    t = str(_uuid.uuid4())
+    admin.cursor().execute(
+        """insert into tasks(id, root_id, state, contract, priority, attempts,
+                             budget_cap, spent_tokens, lease_epoch,
+                             lease_owner, lease_until)
+           values (%s,%s,'leased',%s::jsonb,0,1,1000,0,%s,%s,now()+interval '5 min')""",
+        (t, t, '{"kind":"k","checks":[{"type":"cmd"}]}', epoch, worker),
+    )
+    return t
+
+def test_f3_fail_task_foreign_worker_rejected(admin):
+    """swarm_worker_w1 calling fail_task for w2's lease must be WK003.
+
+    Без identity-проверки вызов доходил до assert_lease, где lease_owner='w2'
+    совпадал с переданным p_worker='w2' → LS001 не срабатывал, и чужую аренду
+    можно было сбросить. С проверкой — WK003 ещё до assert_lease.
+    """
+    t = _mk_leased_task(admin, worker="w2", epoch=1)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select fail_task(%s,'w2',1,null,'sabotage')", (t,))
+    assert code == MISMATCH, (
+        f"F3/FIND-NEW-01: w1 calling fail_task for w2 must be WK003, got {code!r}"
+    )
+    w.close()
+
+    # Задача w2 не тронута: чужая аренда не сброшена.
+    cur = admin.cursor()
+    cur.execute("select state, lease_owner from tasks where id = %s", (t,))
+    state, owner = cur.fetchone()
+    assert (state, owner) == ("leased", "w2"), (
+        f"F3/FIND-NEW-01: чужую аренду сбросили (state={state!r}, owner={owner!r})"
+    )
+
+def test_f3_fail_task_state_foreign_worker_rejected(admin):
+    """swarm_worker_w1 calling fail_task_state for w2's lease must be WK003."""
+    t = _mk_leased_task(admin, worker="w2", epoch=1)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(
+        w, "select fail_task_state(%s,'w2',1,null,'sabotage','blocked')", (t,)
+    )
+    assert code == MISMATCH, (
+        f"F3/FIND-NEW-01: w1 calling fail_task_state for w2 must be WK003, got {code!r}"
+    )
+    w.close()
+
+    cur = admin.cursor()
+    cur.execute("select state, lease_owner from tasks where id = %s", (t,))
+    state, owner = cur.fetchone()
+    assert (state, owner) == ("leased", "w2"), (
+        f"F3/FIND-NEW-01: чужую аренду сбросили (state={state!r}, owner={owner!r})"
+    )
+
+def test_f3_fail_task_own_identity_passes(admin):
+    """swarm_worker_w1 failing ITS OWN lease must pass identity (LS001/OK, not WK003).
+
+    Положительный контроль: без него мутация «убрать всю проверку целиком»
+    осталась бы незамеченной, а мы бы не отличили «identity работает» от
+    «вызов всегда падает по другой причине».
+    """
+    t = _mk_leased_task(admin, worker="w1", epoch=1)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select fail_task(%s,'w1',1,null,'boom')", (t,))
+    assert code is None, (
+        f"F3/FIND-NEW-01: w1 failing its own lease must succeed, got {code!r}"
+    )
+    w.close()
+
+    cur = admin.cursor()
+    cur.execute("select state from tasks where id = %s", (t,))
+    assert cur.fetchone()[0] == "blocked"
 ]]></content>
     </file>
   </files>
