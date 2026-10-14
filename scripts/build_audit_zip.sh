@@ -56,7 +56,11 @@ cat >"$DEST/README_AUDIT.md" <<EOF
 EOF
 
 mkdir -p "$(dirname "$OUT")"
-( cd "$STAGE" && zip -0 -q -r "$(basename "$OUT")" "$NAME" )
+# ВАЖНО: архив пишем АБСОЛЮТНЫМ путём $OUT. Раньше было `cd "$STAGE" &&
+# zip ... "$(basename "$OUT")"` — архив создавался ВНУТРИ $STAGE, и
+# следующая строка `rm -rf "$STAGE"` его удаляла. Скрипт печатал 'OK',
+# а файла не было (молчаливый no-op).
+( cd "$STAGE" && zip -0 -q -r "$OUT" "$NAME" )
 rm -rf "$STAGE"
 echo "OK $OUT"
 unzip -v "$OUT" | sed -n '1,4p'
