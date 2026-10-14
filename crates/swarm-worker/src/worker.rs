@@ -80,6 +80,24 @@ struct HeartbeatGuard {
     handle: Option<thread::JoinHandle<()>>,
 }
 
+/// F9: сон, прерываемый по флагу `stop`. Возвращает `true`, если сон прерван.
+///
+/// Шаг 500 мс: `HeartbeatGuard::drop` ставит флаг и делает `join`, поэтому
+/// завершение задачи не ждёт полный интервал heartbeat (был до `lease_sec/3`).
+/// Тот же приём применён в `swarm-watchdog/src/main.rs`.
+fn sleep_interruptible(stop: &AtomicBool, total: Duration) -> bool {
+    let step = Duration::from_millis(500);
+    let start = Instant::now();
+    while start.elapsed() < total {
+        if stop.load(Ordering::SeqCst) {
+            return true;
+        }
+        let remaining = total.saturating_sub(start.elapsed());
+        thread::sleep(step.min(remaining));
+    }
+    stop.load(Ordering::SeqCst)
+}
+
 /// F5: состояние фонового heartbeat, видимое главному потоку.
 /// Раньше потеря аренды/обрыв соединения только логировались внутри потока:
 /// главный поток продолжал считать, что аренда жива, и тратил LLM-вызов впустую
@@ -173,8 +191,12 @@ pub fn process_lease(
             };
             started.store(true, Ordering::SeqCst);
             while !stop.load(Ordering::SeqCst) {
-                thread::sleep(interval);
-                if stop.load(Ordering::SeqCst) {
+                // F9: прерываемый сон. Раньше был `thread::sleep(interval)` —
+                // после завершения задачи `HeartbeatGuard::drop` делал `join` и
+                // ждал до `lease_sec/3` (при 300 с — до 100 с) впустую.
+                // Шаги по 500 мс дают остановку за ≤500 мс (тот же приём, что в
+                // swarm-watchdog/src/main.rs).
+                if sleep_interruptible(&stop, interval) {
                     break;
                 }
                 let l = Lease {
@@ -616,4 +638,43 @@ pub fn mock_llm_from_file(path: &str) -> Result<Box<dyn LlmClient>> {
 #[allow(dead_code)]
 fn _assert_llm_error_is_send_sync(e: LlmError) -> LlmError {
     e
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::AtomicBool;
+
+    // F9: сон обязан прерываться по флагу, а не досыпать полный интервал.
+    // До фикса был `thread::sleep(interval)`; `HeartbeatGuard::drop` делал
+    // `join` и ждал до `lease_sec/3` (при 300 с — до 100 с) после завершения
+    // задачи. Тест доказывает, что прерывание срабатывает за <1 с.
+    #[test]
+    fn sleep_interruptible_wakes_on_stop() {
+        let stop = Arc::new(AtomicBool::new(false));
+        let s2 = stop.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(100));
+            s2.store(true, Ordering::SeqCst);
+        });
+        let start = Instant::now();
+        // Просим поспать 10 с, но флаг встанет через 100 мс.
+        let interrupted = sleep_interruptible(&stop, Duration::from_secs(10));
+        let elapsed = start.elapsed();
+        assert!(interrupted, "сон должен сообщить о прерывании");
+        assert!(
+            elapsed < Duration::from_secs(1),
+            "прерывание за <1 с, а не за 10 с (прошло {elapsed:?})"
+        );
+    }
+
+    // F9: без флага сон досыпает полностью и возвращает false.
+    #[test]
+    fn sleep_interruptible_returns_false_without_stop() {
+        let stop = AtomicBool::new(false);
+        let start = Instant::now();
+        let interrupted = sleep_interruptible(&stop, Duration::from_millis(300));
+        assert!(!interrupted);
+        assert!(start.elapsed() >= Duration::from_millis(290));
+    }
 }
