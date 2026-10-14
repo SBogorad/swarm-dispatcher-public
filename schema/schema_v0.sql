@@ -21,6 +21,13 @@ create table tasks (
   rework       int not null default 0,          -- циклы после ревью
   budget_cap   bigint not null check (budget_cap > 0),
   spent_tokens bigint not null default 0,
+  -- F8: суммарный бюджет всего дерева задач (root_id). Задаётся на корневой
+  -- задаче (root_id = id) при add_task; у потомков денормализуется триггером
+  -- sync_root_budget() и поддерживается равным корневому значению. NULL —
+  -- лимита по дереву нет (обратная совместимость с задачами без явного
+  -- root-бюджета). Гейты (claim_task, complete_task, reclaim_expired) сверяют
+  -- SUM(spent_tokens) по root_id с этим значением.
+  root_budget_cap bigint check (root_budget_cap is null or root_budget_cap > 0),
   result_ref   text,
   priority     int not null default 0,
   block_reason text,
@@ -33,6 +40,46 @@ create index tasks_claim_idx  on tasks (priority desc, created_at) where state =
 create index tasks_root_idx   on tasks (root_id);
 create index tasks_lease_idx  on tasks (lease_until) where state = 'leased';
 create index tasks_pending_idx on tasks (id) where state = 'pending';
+
+-- F8: денормализация root_budget_cap. Значение живёт на корневой задаче
+-- (root_id = id); у потомков оно должно совпадать, чтобы гейты по дереву
+-- (claim/complete/reclaim) могли одним запросом узнать лимит корня без
+-- рекурсивного обхода. Триггер держит инвариант и при add_task, и при
+-- изменении корневой задачи оператором (unblock_task поднимает budget_cap).
+create function sync_root_budget() returns trigger language plpgsql as $$
+declare v_root bigint;
+begin
+  if new.root_id = new.id then
+    -- Сама корневая задача — источник истины.
+    return new;
+  end if;
+  select t.root_budget_cap into v_root from tasks t where t.id = new.root_id;
+  -- Корень ещё не вставлен? FK tasks.root_id отложен (deferrable initially
+  -- deferred), поэтому в одной транзакции add_task(root) + add_task(child)
+  -- порядок вставок может быть любым. Если корня ещё нет — оставляем NULL,
+  -- последующий insert корня пересчитает потомков (см. ветку ниже).
+  new.root_budget_cap := v_root;
+  return new;
+end $$;
+
+create trigger tasks_sync_root_budget
+  before insert or update of root_id, root_budget_cap on tasks
+  for each row execute function sync_root_budget();
+
+-- Обратная сторона: когда у корня задают/меняют root_budget_cap, разносим
+-- значение по всем потомкам (иначе дерево осталось бы с устаревшим лимитом).
+create function propagate_root_budget() returns trigger language plpgsql as $$
+begin
+  if new.root_id = new.id and new.root_budget_cap is distinct from old.root_budget_cap then
+    update tasks set root_budget_cap = new.root_budget_cap
+     where root_id = new.id and id <> new.id;
+  end if;
+  return null;
+end $$;
+
+create trigger tasks_propagate_root_budget
+  after update of root_budget_cap on tasks
+  for each row execute function propagate_root_budget();
 
 create table artifacts (
   task_id      uuid not null references tasks(id),
@@ -222,21 +269,33 @@ end $$;
 
 -- ---------- граф ----------
 create function add_task(p_id uuid, p_root uuid, p_contract jsonb,
-                         p_budget_cap bigint, p_priority int default 0)
+                         p_budget_cap bigint, p_priority int default 0,
+                         p_root_budget_cap bigint default null)
 returns void language plpgsql as $$
-declare v_root uuid := coalesce(p_root, p_id); v_max numeric; v_cnt int;
+declare v_root uuid := coalesce(p_root, p_id); v_max numeric; v_cnt int; v_rbc bigint;
 begin
   perform validate_contract(p_contract);
   perform lock_root(v_root);
+  if p_root_budget_cap is not null and p_root_budget_cap <= 0 then
+    raise exception 'root_budget_cap must be positive' using errcode = 'CT001';
+  end if;
   if v_root <> p_id then
     select c_num(contract, '{budget,max_tasks}', 200) into v_max from tasks where id = v_root;
     if not found then raise exception 'root_not_found' using errcode = 'GR006'; end if;
     select count(*) into v_cnt from tasks where root_id = v_root;
     if v_cnt >= v_max then raise exception 'task_limit_exceeded' using errcode = 'GR004'; end if;
   end if;
-  insert into tasks (id, root_id, contract, budget_cap, priority)
-  values (p_id, v_root, p_contract, p_budget_cap, p_priority);
-  perform append_event(p_id, 'created', 'created', 'planner', jsonb_build_object('root', v_root));
+  -- F8: у корня root_budget_cap задаётся явно (или наследуется от уже
+  -- существующего корня при вставке потомка); у потомка — копия с корня.
+  if v_root = p_id then
+    v_rbc := p_root_budget_cap;
+  else
+    select root_budget_cap into v_rbc from tasks where id = v_root;
+  end if;
+  insert into tasks (id, root_id, contract, budget_cap, priority, root_budget_cap)
+  values (p_id, v_root, p_contract, p_budget_cap, p_priority, v_rbc);
+  perform append_event(p_id, 'created', 'created', 'planner',
+                       jsonb_build_object('root', v_root, 'root_budget_cap', v_rbc));
 end $$;
 
 create function add_dep(p_task uuid, p_dep uuid) returns void language plpgsql as $$
@@ -316,7 +375,15 @@ begin
   select t.id into v_id
   from tasks t join workers w on w.id = p_worker
   where t.state = 'ready'
+    -- F8: ДВОЙНОЙ бюджетный гейт.
+    --   1) локальный: задача не исчерпала собственный budget_cap;
+    --   2) по дереву: сумма spent_tokens по root_id меньше root_budget_cap
+    --      (если он задан). Так расход «соседей» по дереву останавливает
+    --      выдачу, даже когда у самой задачи локальный бюджет ещё есть.
     and t.spent_tokens < t.budget_cap
+    and (t.root_budget_cap is null
+         or (select coalesce(sum(s.spent_tokens), 0) from tasks s where s.root_id = t.root_id)
+            < t.root_budget_cap)
     and t.attempts < c_num(t.contract, '{budget,attempts}', 3)
     and c_num(w.capabilities, '{ram_gb}', 0) >= c_num(t.contract, '{needs,min_ram_gb}', 0)
     and c_num(w.capabilities, '{models,coder_class}', 0) >= c_num(t.contract, '{needs,coder_class}', 0)
@@ -339,6 +406,30 @@ begin
                        jsonb_build_object('epoch', v_epoch));
   return query select t.id, t.contract, t.lease_epoch, t.budget_cap, t.spent_tokens
                from tasks t where t.id = v_id;
+end $$;
+
+-- F8: актуальное состояние бюджета задачи для воркера.
+--
+-- `Lease.spent_tokens` — снимок на момент claim и не видит расход, сделанный
+-- ПОСЛЕ выдачи (в т.ч. другим воркером по тому же дереву). Перед вызовом LLM
+-- воркер читает свежие значения (локальный лимит + суммарный по дереву), чтобы
+-- остановиться до траты денег. SECURITY DEFINER: роли воркера прямой SELECT к
+-- tasks закрыт.
+create function task_budget_state(p_task uuid)
+returns table (out_spent bigint, out_budget bigint,
+               out_root_spent bigint, out_root_budget bigint)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare v_root uuid;
+begin
+  select root_id into v_root from tasks where id = p_task;
+  if v_root is null then
+    raise exception 'task_not_found' using errcode = 'GR000';
+  end if;
+  return query
+    select t.spent_tokens, t.budget_cap,
+           (select coalesce(sum(s.spent_tokens), 0)::bigint from tasks s where s.root_id = v_root),
+           t.root_budget_cap
+      from tasks t where t.id = p_task;
 end $$;
 
 -- Продлевает только действующую аренду; истёкшую «оживить» нельзя.
@@ -381,7 +472,8 @@ end $$;
 create function complete_task(p_task uuid, p_worker text, p_epoch bigint,
                               p_result_ref text, p_tokens bigint default 0)
 returns text language plpgsql as $$
-declare v_new text; v_spent bigint; v_cap bigint;
+declare v_new text; v_spent bigint; v_cap bigint; v_root_cap bigint;
+        v_root_spent bigint; v_ledger bigint;
 begin
   perform assert_lease(p_task, p_worker, p_epoch);
   if p_tokens < 0 then
@@ -390,10 +482,29 @@ begin
   if not exists (select 1 from artifacts where task_id = p_task and ref = p_result_ref) then
     raise exception 'artifact_missing' using errcode = 'AR001';
   end if;
-  select spent_tokens + p_tokens, budget_cap into v_spent, v_cap from tasks where id = p_task;
+  -- F8: единый источник истины по расходу — ledger `llm_calls` (триггер
+  -- `llm_calls_spend_sync`). complete_task больше НЕ прибавляет p_tokens
+  -- повторно, иначе расход считался бы дважды. Совместимость: если по
+  -- задаче ещё нет ни одной строки ledger, а p_tokens > 0 (старый контракт
+  -- вызова, напр. прямые тесты), учитываем p_tokens ровно один раз здесь.
+  select count(*) into v_ledger from llm_calls where task_id = p_task;
+  if v_ledger = 0 and p_tokens > 0 then
+    update tasks set spent_tokens = spent_tokens + p_tokens where id = p_task;
+  end if;
+  select spent_tokens, budget_cap, root_budget_cap
+    into v_spent, v_cap, v_root_cap from tasks where id = p_task;
   v_new := case when v_spent > v_cap then 'budget_exhausted' else 'review' end;
+  -- F8: гейт по дереву. Даже когда локальный бюджет цел, превышение
+  -- суммарного root-бюджета отправляет задачу в budget_exhausted.
+  if v_new <> 'budget_exhausted' and v_root_cap is not null then
+    select coalesce(sum(s.spent_tokens), 0) into v_root_spent
+      from tasks s where s.root_id = (select root_id from tasks where id = p_task);
+    if v_root_spent > v_root_cap then
+      v_new := 'budget_exhausted';
+    end if;
+  end if;
   update tasks
-     set state = v_new, result_ref = p_result_ref, spent_tokens = v_spent,
+     set state = v_new, result_ref = p_result_ref,
          lease_owner = null, lease_until = null, updated_at = now(),
          block_reason = case when v_new = 'budget_exhausted' then 'budget_exhausted' end
    where id = p_task;
@@ -515,19 +626,38 @@ end $$;
 -- ---------- сторож и операторские действия ----------
 -- attempts растёт только здесь; epoch+1 отсекает зомби-воркера немедленно.
 create function reclaim_expired() returns int language plpgsql as $$
-declare r record; v_n int := 0; v_next text; v_epoch bigint;
+declare r record; v_n int := 0; v_next text; v_epoch bigint; v_root_spent bigint;
 begin
   for r in
-    select id, attempts, contract from tasks
+    select id, attempts, contract, spent_tokens, budget_cap, root_id, root_budget_cap
+      from tasks
     where state = 'leased' and lease_until < now()
     order by id for update skip locked
   loop
-    v_next := case when r.attempts + 1 >= c_num(r.contract, '{budget,attempts}', 3)
-                   then 'blocked' else 'ready' end;
+    -- F8: если воркер успел оплатить LLM-вызов, но упал до complete,
+    -- расход уже лежит в spent_tokens (триггер ledger). Возвращать такую
+    -- задачу в ready бессмысленно — она тут же исчерпает бюджет заново.
+    -- Переводим сразу в budget_exhausted (локальный лимит или по дереву).
+    if r.spent_tokens >= r.budget_cap then
+      v_next := 'budget_exhausted';
+    elsif r.root_budget_cap is not null then
+      select coalesce(sum(s.spent_tokens), 0) into v_root_spent
+        from tasks s where s.root_id = r.root_id;
+      if v_root_spent >= r.root_budget_cap then
+        v_next := 'budget_exhausted';
+      else
+        v_next := case when r.attempts + 1 >= c_num(r.contract, '{budget,attempts}', 3)
+                       then 'blocked' else 'ready' end;
+      end if;
+    else
+      v_next := case when r.attempts + 1 >= c_num(r.contract, '{budget,attempts}', 3)
+                     then 'blocked' else 'ready' end;
+    end if;
     update tasks
        set state = v_next, attempts = attempts + 1, lease_epoch = lease_epoch + 1,
            lease_owner = null, lease_until = null, updated_at = now(),
-           block_reason = case when v_next = 'blocked' then 'max_attempts' end
+           block_reason = case when v_next = 'blocked' then 'max_attempts'
+                               when v_next = 'budget_exhausted' then 'budget_exhausted' end
      where id = r.id returning lease_epoch into v_epoch;
     perform append_event(r.id, 'reclaim:' || r.id || ':' || v_epoch, 'reclaimed', 'watchdog',
                          jsonb_build_object('new_state', v_next));

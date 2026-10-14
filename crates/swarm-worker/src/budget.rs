@@ -124,6 +124,8 @@ pub enum BudgetBlock {
     GlobalCap { spent_usd: f64, cap_usd: f64 },
     /// Задача исчерпала свой токен-бюджет.
     TaskCap { spent_tokens: i64, cap_tokens: i64 },
+    /// F8: дерево (root_id) исчерпало суммарный бюджет root_budget_cap.
+    RootCap { root_spent: i64, root_cap: i64 },
     /// Провайдер отверг ключ (401/403) — повторять бессмысленно.
     AuthFailure { status: u16 },
 }
@@ -140,6 +142,12 @@ impl BudgetBlock {
                 cap_tokens,
             } => format!(
                 "budget_exhausted: task cap exceeded ({spent_tokens} >= {cap_tokens} tokens)"
+            ),
+            BudgetBlock::RootCap {
+                root_spent,
+                root_cap,
+            } => format!(
+                "budget_exhausted: root tree cap exceeded ({root_spent} >= {root_cap} tokens)"
             ),
             BudgetBlock::AuthFailure { status } => {
                 format!("auth_failed: LLM provider rejected credentials (HTTP {status})")
@@ -186,6 +194,10 @@ pub fn should_disable(consecutive_errors: u32, max_consecutive_errors: u32) -> b
 
 /// Проверить все предохранители перед вызовом LLM.
 ///
+/// F8: кроме локального токен-бюджета задачи проверяется суммарный бюджет
+/// дерева (`root_spent`/`root_budget`): `root_budget = None` означает, что
+/// лимита по дереву нет. Блокируем строго на границе (`>=`), как гейты в SQL.
+///
 /// Возвращает `Err(BudgetBlock)` — вызывающий обязан НЕ звать LLM и
 /// заблокировать задачу.
 pub fn check_before_call(
@@ -193,12 +205,22 @@ pub fn check_before_call(
     spent_usd: f64,
     spent_tokens: i64,
     budget_cap: i64,
+    root_spent: i64,
+    root_budget: Option<i64>,
 ) -> Result<(), BudgetBlock> {
     if !task_budget_ok(spent_tokens, budget_cap) {
         return Err(BudgetBlock::TaskCap {
             spent_tokens,
             cap_tokens: budget_cap,
         });
+    }
+    if let Some(root_cap) = root_budget {
+        if !task_budget_ok(root_spent, root_cap) {
+            return Err(BudgetBlock::RootCap {
+                root_spent,
+                root_cap,
+            });
+        }
     }
     if !global_budget_ok(spent_usd, policy.max_total_cost_usd) {
         return Err(BudgetBlock::GlobalCap {
@@ -270,15 +292,22 @@ mod tests {
             max_consecutive_errors: 5,
         };
         // Всё в порядке.
-        assert_eq!(check_before_call(&p, 0.0, 0, 100), Ok(()));
+        assert_eq!(check_before_call(&p, 0.0, 0, 100, 0, None), Ok(()));
         // Исчерпан токен-бюджет задачи — это первое, что проверяем.
         assert!(matches!(
-            check_before_call(&p, 0.0, 100, 100),
+            check_before_call(&p, 0.0, 100, 100, 0, None),
             Err(BudgetBlock::TaskCap { .. })
         ));
+        // F8: исчерпан бюджет дерева (локальный цел).
+        assert!(matches!(
+            check_before_call(&p, 0.0, 0, 100, 500, Some(500)),
+            Err(BudgetBlock::RootCap { .. })
+        ));
+        // F8: лимита по дереву нет (None) — не блокирует.
+        assert_eq!(check_before_call(&p, 0.0, 0, 100, 10_000, None), Ok(()));
         // Глобальный лимит.
         assert!(matches!(
-            check_before_call(&p, 9.0, 0, 100),
+            check_before_call(&p, 9.0, 0, 100, 0, None),
             Err(BudgetBlock::GlobalCap { .. })
         ));
     }

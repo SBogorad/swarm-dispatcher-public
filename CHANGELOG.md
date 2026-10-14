@@ -15,6 +15,27 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Fixed (F8 — бюджет не ограничивал реальные расходы, KNOWN_LIMITATIONS §5.10)
+
+- **Синхронный учёт расхода.** Триггер `AFTER INSERT ON llm_calls`
+  (`llm_calls_spend_sync`) атомарно увеличивает `tasks.spent_tokens`. Раньше
+  расход рос только в `complete_task`: воркер, оплативший вызов LLM и упавший
+  до `complete`, оставлял расход видимым в ledger и невидимым в бюджете.
+- **Единый источник истины.** `complete_task` больше не прибавляет `p_tokens`
+  повторно (иначе двойной счёт). Совместимость: если строк ledger по задаче
+  нет, `p_tokens` учитывается ровно один раз (старый контракт вызова, тесты).
+- **Двойной бюджетный гейт.** Колонка `tasks.root_budget_cap` (суммарный
+  бюджет дерева) + проверка `SUM(spent_tokens) WHERE root_id = X <
+  root_budget_cap` в `claim_task`, `complete_task` и в воркере перед вызовом
+  LLM (`task_budget_state`).
+- **Бюджет-осознанный реклейм.** `reclaim_expired` при исчерпанном бюджете
+  (локальном или по дереву) переводит задачу сразу в `budget_exhausted`, а не
+  в `ready` — цикл повторных оборотов больше не тратит деньги мимо бюджета.
+- **Миграция** `schema/migrations/011_budget_sync_and_root_cap.sql`;
+  `schema/schema_v0.sql`, `step2b/roles_2b.sql`, `step2/roles.sql` приведены в
+  соответствие. Арбитр — `tests/test_f8_orphan_llm_spend.py` (краснеет на
+  старой логике, зеленеет на фиксе).
+
 ### Added (Issue #1: архитектурные проверки ast-grep)
 
 - **`ast-grep` вместо регулярных выражений.** Три правила в `.ast-grep/rules/`,

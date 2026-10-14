@@ -18,17 +18,23 @@ set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 SCHEMA="schema/schema_v0.sql"
+# F8: мутации S6/S7 целятся в тело триггера/reclaim в миграции 011 (она
+# перекрывает schema_v0.sql). Файл обязан быть под тем же backup/restore, иначе
+# прерванный прогон оставит мутанта в миграции.
+MIG_F8="schema/migrations/011_budget_sync_and_root_cap.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
-# Fail-fast: схема должна быть в git-чистом состоянии. Если предыдущий прогон был
-# прерван (SIGKILL/OOM) и не успел восстановить файл, trap — best-effort; не
-# запускаем мутации на уже-мутированной схеме (иначе baseline/CAUGHT неверны).
+# Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
+# предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
+# trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  if ! git diff --quiet -- "$SCHEMA"; then
-    echo "BLOCKED: $SCHEMA has uncommitted changes (leftover mutation?); restore it first" >&2
-    echo "  hint: git checkout -- $SCHEMA" >&2
-    exit 2
-  fi
+  for f in "$SCHEMA" "$MIG_F8"; do
+    if ! git diff --quiet -- "$f"; then
+      echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
+      echo "  hint: git checkout -- $f" >&2
+      exit 2
+    fi
+  done
 fi
 
 # Разбор DSN в psql-совместимый набор переменных.
@@ -56,9 +62,14 @@ PY="$(pwd)/.venv/bin/python"
 
 # Бэкап схемы в git-независимом месте; восстановление вызывается многократно.
 BACKUP="${TMPDIR:-/tmp}/swarm_schema_backup_$$.sql"
+BACKUP_MIG="${TMPDIR:-/tmp}/swarm_mig011_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
-restore() { cp -f "$BACKUP" "$SCHEMA"; }
-cleanup() { restore; rm -f "$BACKUP"; }
+[ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
+restore() {
+  cp -f "$BACKUP" "$SCHEMA"
+  [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
+}
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -73,21 +84,43 @@ export SWARM_PW_W1=${SWARM_PW_W1:-c2_w1} SWARM_PW_W2=${SWARM_PW_W2:-c2_w2}
 run_arbiters() {
   # Набор арбитров покрывает именно те инварианты, которые мутируем:
   # test_v0.py — FSM/fencing/idempotency/cycle; review-gate — self-review;
-  # fail_unblock — fail/unblock. Всё это — функции схемы (не RBAC).
+  # fail_unblock — fail/unblock; test_f8 — синхронный учёт расхода и
+  # бюджет-осознанный reclaim (F8).
   "$PY" -m pytest -q tests/test_v0.py tests/test_review_gate_f2.py \
-        tests/test_fail_unblock_f4.py >/dev/null 2>&1
+        tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py >/dev/null 2>&1
 }
 
 # Чистое пересоздание схемы в disposable-БД.
 #
-# SQL-мутации проверяют ФУНКЦИИ СХЕМЫ (assert_lease/submit_review/add_dep/
-# append_event/verify_chain), а не RBAC — поэтому роли не нужны. Достаточно
-# пересоздать public и налить schema. `task_status` (из step2/roles.sql) не входит
-# в набор арбитров ниже, поэтому зависимость от psql-переменных ролей убрана.
+# SQL-мутации проверяют ФУНКЦИИ СХЕМЫ, но после F8 тела функций стали
+# SECURITY DEFINER от имени swarm_owner (миграция 011) и вызывают
+# assert_worker_identity (roles_2b). Поэтому reset_db наливает ПОЛНУЮ
+# прод-цепочку (как acceptance-harness): schema_v0 → roles → roles_2b →
+# патчи → миграции. Это даёт правильных владельцев и права для SECURITY
+# DEFINER; арбитры при этом ходят суперпользователем (PGDSN).
+#
+# ⚠️ roles.sql/roles_2b.sql делают `alter role ... password` (кластер-глобально),
+# поэтому запускать ТОЛЬКО на изолированном контейнере (CI mut_pg / scratch_pg).
 reset_db() {
   psql "$TEST_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 \
     -c 'drop schema public cascade; create schema public;' >/dev/null 2>&1 || return 1
   psql "$TEST_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 -f "$SCHEMA" >/dev/null 2>&1 || return 1
+  psql "$TEST_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 \
+    -v worker_pw=c2_worker -v watchdog_pw=c2_watchdog -v planner_pw=c2_planner \
+    -v reviewer_pw=c2_reviewer -v operator_pw=c2_operator -v cli_pw=c2_cli \
+    -f step2/roles.sql >/dev/null 2>&1 || return 1
+  psql "$TEST_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 \
+    -v w1_pw=c2_w1 -v w2_pw=c2_w2 -v w_1_pw=c2_w_1 -v gpu_1_pw=c2_gpu_1 \
+    -f step2b/roles_2b.sql >/dev/null 2>&1 || return 1
+  local p
+  for p in step2/roles_patch_planner_status.sql step2/roles_patch_tool_call_audit.sql; do
+    [ -f "$p" ] && { psql "$TEST_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 -f "$p" >/dev/null 2>&1 || return 1; }
+  done
+  local mig
+  for mig in schema/migrations/*.sql; do
+    [ -e "$mig" ] || continue
+    psql "$TEST_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 -f "$mig" >/dev/null 2>&1 || return 1
+  done
   return 0
 }
 
@@ -106,10 +139,10 @@ echo "pre-conditions OK: db=$TEST_DATABASE_URL baseline=green"
 # Чистое пересоздание схемы в disposable-БД уже определено выше (reset_db).
 
 run_mutation() {
-  local id="$1" desc="$2" old_str="$3" new_str="$4"
+  local id="$1" desc="$2" old_str="$3" new_str="$4" file="${5:-$SCHEMA}"
   restore               # чистое исходное состояние схемы
   # Замена через python (надёжно с любыми символами, в т.ч. '|' и кавычками).
-  if ! python3 - "$SCHEMA" "$old_str" "$new_str" <<'PY'
+  if ! python3 - "$file" "$old_str" "$new_str" <<'PY'
 import sys
 path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
 s = open(path, encoding="utf-8").read()
@@ -119,7 +152,7 @@ s = s.replace(old, new, 1)
 open(path, "w", encoding="utf-8").write(s)
 PY
   then
-    RESULTS+=("$id  INVALID   $desc  (паттерн мутации не найден в схеме)")
+    RESULTS+=("$id  INVALID   $desc  (паттерн мутации не найден в $file)")
     restore; return
   fi
   # Чистое пересоздание схемы с мутантом.
@@ -162,8 +195,27 @@ run_mutation S5 "verify_chain: не проверять связь prev_hash" \
   "if e.prev_hash is distinct from v_prev then return false; end if;" \
   "if false then return false; end if;"
 
+# S6 — llm_calls_spend_sync: снять синхронный учёт расхода (F8).
+# Мутация: триггер ledger перестаёт увеличивать tasks.spent_tokens.
+# Ожидание: test_f8_orphan_llm_spend.py краснеет (spent_tokens = 0 при
+# потраченном вызове) — иначе бюджет снова не ограничивает реальный расход.
+# Целевой файл — миграция 011 (там живёт тело триггера).
+run_mutation S6 "llm_calls_spend_sync: не учитывать расход из ledger (F8)" \
+  "set spent_tokens = spent_tokens + coalesce(new.prompt_tokens, 0)" \
+  "set spent_tokens = spent_tokens + 0 * coalesce(new.prompt_tokens, 0)" \
+  "schema/migrations/011_budget_sync_and_root_cap.sql"
+
+# S7 — reclaim_expired: снять бюджет-осознанный реклейм (F8).
+# Мутация: оплаченная и оборванная аренда возвращается в ready, а не в
+# budget_exhausted. Ожидание: test_f8_orphan_llm_spend.py краснеет.
+# Целевой файл — миграция 011 (она перекрывает тело из schema_v0.sql).
+run_mutation S7 "reclaim_expired: игнорировать исчерпанный бюджет (F8)" \
+  "if r.spent_tokens >= r.budget_cap then" \
+  "if false then" \
+  "schema/migrations/011_budget_sync_and_root_cap.sql"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S5 ===================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S7 ===================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"
