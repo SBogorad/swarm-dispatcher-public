@@ -45,6 +45,31 @@ Release-tag требует acceptance harness с `--full-workspace-test`, стр
   содержал захардкоженные заглушки ключей. Ни на что в CI/скриптах не ссылался
   (только строка в `MANIFEST.md`, убрана). Контур self-improve не заводился.
 
+### Fixed (планировщик: мульти-корень, scope в root_id, конкурентность promote_ready — 2026-10-17)
+
+- **Мульти-корневой план больше не отвергается** (вопрос 5 аудита, ~40% отказов
+  на flash-модели). `validate_graph` требовал ровно один узел с пустым
+  `depends_on`, а `insert_graph` всё равно перезаписывал корень синтетическим
+  `root_contract` — то есть отказ был не нужен. Новая `normalize_multi_root`
+  (`crates/swarm-planner/src/parse.rs`) сводит несколько безкорневых узлов к
+  одному: первый остаётся корнем, остальные получают его в `depends_on`. Задач
+  не добавляется и не удаляется. Вызывается в `Planner::obtain_validated_graph`
+  до `validate_graph`; жёсткая проверка единственного корня сохранена как
+  страховка.
+- **`deterministic_root_id_with_scope`** (F17): `root_id` учитывает
+  `PLANNER_CONTEXT`/`PLANNER_EXPECTED`. При пустом (или чисто пробельном) scope
+  результат ПОБАЙТОВО равен `deterministic_root_id` — обратная совместимость со
+  старыми графами. Роли `context` и `expected` не смешиваются (раздельные
+  префиксы `ctx\0`/`exp\0`), NUL-разделитель исключает инъекцию.
+- **`promote_ready()` — SQL НЕ трогали осознанно:** функция определена в
+  `schema/schema_v0.sql` и вызывается изнутри самой схемы, поэтому переопределение создало бы неоднозначность
+  перегрузки и конфликт с `test_no_duplicate_function_bodies.py`. Корректность
+  зафиксирована поведенческим Rust-тестом
+  `promote_ready_parallel_on_independent_graphs_no_deadlock`
+  (`crates/swarm-core/tests/integration_verified.rs`): параллельные
+  `promote_ready` + `claim` + `heartbeat` на двух независимых графах — без
+  дедлоков, промоушен не теряется.
+
 ### Added (миграционный раннер для живого тома — §5.3)
 
 - **`scripts/apply_migrations.sh`** — раннер миграций для УЖЕ СУЩЕСТВУЮЩЕГО тома

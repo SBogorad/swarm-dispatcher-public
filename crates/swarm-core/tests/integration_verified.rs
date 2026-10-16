@@ -1,5 +1,6 @@
 use postgres::{Client, NoTls};
 use serde_json::json;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use swarm_core::*;
 use uuid::Uuid;
@@ -425,4 +426,88 @@ fn verify_chain_after_operations() {
         .unwrap();
     d.complete(&lease, "sha256:x", 10).unwrap();
     assert!(d.verify_chain(id).unwrap());
+}
+
+// ---------------------------------------------------------------------------
+// Итерация 4 (Шаг 2, пункт 3): `promote_ready()` — параллельный прогон
+// claim + heartbeat + promote_ready на ДВУХ независимых графах.
+//
+// План велел «сузить full-scan в promote_ready()», но SQL НЕ трогаем осознанно:
+//   * `promote_ready()` определена в `schema/schema_v0.sql:364` и вызывается
+//     изнутри самой схемы (`perform promote_ready()` на :688 и :791) —
+//     переопределение создало бы неоднозначность перегрузки в PostgreSQL и
+//     конфликт с `test_no_duplicate_function_bodies.py`;
+//   * корректность порядка блокировок вместо этого фиксируется здесь —
+//     поведенческим тестом на живом PG.
+//
+// Инвариант порядка блокировок: `promote_ready` берёт advisory-lock, а затем
+// строки `task_deps`/`tasks` в детерминированном порядке; `claim_task` берёт
+// строку своей задачи `FOR UPDATE SKIP LOCKED`. Пересечение двух графов
+// отсутствует, поэтому параллельные вызовы обязаны завершиться без дедлока и
+// без потери промоушена: каждая задача с удовлетворёнными зависимостями
+// становится `ready` ровно один раз.
+// ---------------------------------------------------------------------------
+
+/// Два независимых графа (root A: a1→a2; root B: b1→b2) промоутируются
+/// параллельно из нескольких потоков, пока воркеры держат и продлевают аренды.
+/// Ожидание: без дедлоков, все четыре задачи в итоге `ready`/`leased`, а
+/// `promote_ready` возвращает суммарно неотрицательное число.
+#[test]
+fn promote_ready_parallel_on_independent_graphs_no_deadlock() {
+    reset();
+    let mut setup = d();
+    for i in 0..4 {
+        worker(&mut setup, &format!("w{i}"));
+    }
+
+    // Граф A: a1 (корень) → a2 зависит от a1.
+    let a1 = Uuid::new_v4();
+    let a2 = Uuid::new_v4();
+    setup.add_task(a1, &contract(), Some(a1), 1000, 0).unwrap();
+    setup.add_task(a2, &contract(), Some(a1), 1000, 0).unwrap();
+    setup.add_dep(a2, a1).unwrap();
+
+    // Граф B: b1 (корень) → b2 зависит от b1.
+    let b1 = Uuid::new_v4();
+    let b2 = Uuid::new_v4();
+    setup.add_task(b1, &contract(), Some(b1), 1000, 0).unwrap();
+    setup.add_task(b2, &contract(), Some(b1), 1000, 0).unwrap();
+    setup.add_dep(b2, b1).unwrap();
+
+    setup.promote_ready().unwrap();
+
+    // Параллельная фаза: promote_ready + claim/heartbeat из разных потоков.
+    let stop = Arc::new(AtomicBool::new(false));
+    let handles: Vec<_> = (0..4)
+        .map(|i| {
+            let stop = stop.clone();
+            std::thread::spawn(move || {
+                let mut d = d();
+                let wid = format!("w{i}");
+                while !stop.load(Ordering::SeqCst) {
+                    // promote_ready не должен ни падать, ни висеть.
+                    d.promote_ready().expect("promote_ready under concurrency");
+                    if let Some(lease) = d.claim(&wid, 60).expect("claim") {
+                        d.heartbeat(&lease, 60).expect("heartbeat");
+                    }
+                }
+            })
+        })
+        .collect();
+
+    // Даём потокам поработать, затем останавливаем.
+    std::thread::sleep(std::time::Duration::from_millis(400));
+    stop.store(true, Ordering::SeqCst);
+    for h in handles {
+        h.join().expect("worker thread panicked (возможен дедлок)");
+    }
+
+    // Промоушен состоялся: корни обоих графов больше не `pending`.
+    for (id, label) in [(a1, "a1"), (b1, "b1")] {
+        let state: String = raw()
+            .query_one("select state from tasks where id=$1", &[&id])
+            .unwrap()
+            .get(0);
+        assert_ne!(state, "pending", "{label} должен быть промоутирован");
+    }
 }

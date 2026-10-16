@@ -12,7 +12,8 @@ pub mod prompt;
 pub use error::{PlannerError, Result};
 pub use llm::{LlmClient, LlmConfig};
 pub use parse::{
-    deterministic_root_id, parse_response, validate_graph, Limits, PlannedGraph, PlannedTask,
+    deterministic_root_id, deterministic_root_id_with_scope, normalize_multi_root, parse_response,
+    validate_graph, Limits, PlannedGraph, PlannedTask,
 };
 pub use prompt::{system_prompt, user_prompt};
 
@@ -141,7 +142,11 @@ impl Planner {
 
     /// Полный цикл для текста задачи. Идемпотентен по root_id.
     pub fn plan(&self, dispatcher: &mut SwarmDispatcher, task_text: &str) -> Result<PlanOutcome> {
-        let root_id = deterministic_root_id(task_text);
+        let root_id = deterministic_root_id_with_scope(
+            task_text,
+            self.context.as_deref(),
+            self.expected.as_deref(),
+        );
 
         // §7 шаг 3: если граф уже есть — пропуск.
         //
@@ -199,10 +204,17 @@ impl Planner {
         for attempt in 0..=self.cfg.limits.max_tasks.min(self.max_retries()) {
             let _ = attempt;
             match self.llm.complete(&sys, &user) {
-                Ok(raw) => match parse_response(&raw).and_then(|g| {
-                    validate_graph(&g, &self.cfg.limits)?;
-                    Ok(g)
-                }) {
+                Ok(raw) => match parse_response(&raw)
+                    .map(|mut g| {
+                        // Итерация 4: мульти-корневой ответ LLM нормализуем к
+                        // единому корню, а не откатываемся на rule-based.
+                        normalize_multi_root(&mut g);
+                        g
+                    })
+                    .and_then(|g| {
+                        validate_graph(&g, &self.cfg.limits)?;
+                        Ok(g)
+                    }) {
                     Ok(g) => return Ok(g),
                     Err(e) => {
                         last_err = Some(e);
