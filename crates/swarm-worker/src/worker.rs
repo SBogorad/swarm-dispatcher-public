@@ -17,7 +17,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 use swarm_core::{Lease, SwarmDispatcher};
 use swarm_llm::{LlmClient, LlmError, LlmRequest};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 /// Конфигурация обработки одной задачи.
 pub struct WorkerConfig {
@@ -358,6 +358,11 @@ pub fn process_lease(
     if !parents.is_empty() {
         info!(task_id = %lease.task_id, count = parents.len(), "handoff: parent artifacts loaded");
     }
+    // Итерация 3 (Вопрос 3 аудита Gemini Argon): метаданных недостаточно роли
+    // `code.verify` — ей нужен проверяемый текст. Читаем превью родительских
+    // артефактов с общего тома best-effort: нет файла или не сошёлся sha256 →
+    // `None`, и секция отдаёт только метаданные (как раньше).
+    let previews = load_parent_previews(cfg, &parents);
     let call_started_at = chrono::Utc::now();
     let call_started = Instant::now();
     let result = call_llm_with_retries(
@@ -367,6 +372,7 @@ pub fn process_lease(
         lease.rework,
         lease.last_review.as_ref(),
         &parents,
+        &previews,
     );
     let call_duration_ms = call_started.elapsed().as_millis() as i64;
     let call_completed_at = chrono::Utc::now();
@@ -677,6 +683,70 @@ fn is_lease_lost(e: &WorkerError) -> bool {
 ///
 /// Итерация 3: `parents` — артефакты зависимостей (DAG handoff); пустой
 /// список сохраняет прежнее поведение промпта.
+/// Потолок превью родительского артефакта (байты UTF-8).
+///
+/// 4 КБ — компромисс: роли `code.verify`/`code.audit` виден проверяемый
+/// текст, но промпт не раздувается до десятков килобайт на каждого родителя.
+/// Тело читается best-effort и режется по границе символа.
+const PARENT_PREVIEW_MAX_BYTES: usize = 4096;
+
+/// Итерация 3 (Вопрос 3 аудита Gemini Argon): превью содержимого родителей.
+///
+/// Возвращает срез той же длины, что `parents`: `Some(text)` — если файл
+/// артефакта есть на общем томе и его sha256 сошёлся, иначе `None`.
+///
+/// Почему это здесь, а не в SQL-контракте `013`: тянуть тела артефактов через
+/// Postgres — лишний трафик и раздувание плана. У воркера том уже примонтирован,
+/// и метаданные из RPC дают точный указатель, куда смотреть.
+///
+/// Почему проверяем sha256: имя файла — хэш содержимого, но файл мог быть
+/// подменён/повреждён. Непроверенное превью отдавать модели нельзя.
+fn load_parent_previews(
+    cfg: &WorkerConfig,
+    parents: &[swarm_core::ParentArtifactRef],
+) -> Vec<Option<String>> {
+    parents
+        .iter()
+        .map(|p| {
+            let path = artifacts::artifact_path(&cfg.artifacts_dir, &p.artifact_ref);
+            if let Err(e) = artifacts::verify_artifact(&path, &p.artifact_ref) {
+                // Нет файла или хэш не сошёлся — не ошибка задачи: секция
+                // handoff деградирует до метаданных (поведение до этого PR).
+                debug!(
+                    parent = %p.parent_task_id,
+                    path = %path.display(),
+                    error = %e,
+                    "handoff: parent artifact preview unavailable"
+                );
+                return None;
+            }
+            match std::fs::read(&path) {
+                Ok(bytes) => {
+                    let mut end = bytes.len().min(PARENT_PREVIEW_MAX_BYTES);
+                    while end > 0 && std::str::from_utf8(&bytes[..end]).is_err() {
+                        end -= 1;
+                    }
+                    let text = String::from_utf8_lossy(&bytes[..end]).into_owned();
+                    if bytes.len() > end {
+                        Some(format!("{text}\n… (превью обрезано)"))
+                    } else {
+                        Some(text)
+                    }
+                }
+                Err(e) => {
+                    debug!(
+                        parent = %p.parent_task_id,
+                        path = %path.display(),
+                        error = %e,
+                        "handoff: parent artifact preview read failed"
+                    );
+                    None
+                }
+            }
+        })
+        .collect()
+}
+
 fn call_llm_with_retries(
     llm: &dyn LlmClient,
     contract: &serde_json::Value,
@@ -684,9 +754,10 @@ fn call_llm_with_retries(
     rework: i32,
     last_review: Option<&serde_json::Value>,
     parents: &[swarm_core::ParentArtifactRef],
+    previews: &[Option<String>],
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
-    let user = prompt::user_prompt_full(contract, rework, last_review, parents);
+    let user = prompt::user_prompt_with_previews(contract, rework, last_review, parents, previews);
     let selected_model = select_model(cfg, contract);
 
     let req = LlmRequest {

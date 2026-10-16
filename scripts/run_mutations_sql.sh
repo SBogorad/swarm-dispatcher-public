@@ -27,13 +27,20 @@ MIG_F8="schema/migrations/011_budget_sync_and_root_cap.sql"
 # Файл обязан быть под тем же backup/restore и git-clean fail-fast, иначе
 # прерванный прогон оставит мутанта в перекрытии воркера.
 ROLES_2B="step2b/roles_2b.sql"
+# S10/S11: мутации handoff-фильтра и аренды целятся в миграцию 013. Она обязана
+# быть под тем же backup/restore и git-clean fail-fast, иначе мутант переживает
+# прогон: S10 снимает `assert_lease`, S11 — фильтр `result_ref`, и оба остаются
+# в файле (проверено прогоном на disposable-БД 2026-10-16: после 11/11 CAUGHT
+# рабочее дерево было грязным). На чистом CI это маскировалось свежим
+# checkout, но локальный прогон оставлял мутанта в рабочей копии.
+MIG_013="schema/migrations/013_task_parent_artifacts.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
 # Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
 # предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
 # trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013"; do
     if ! git diff --quiet -- "$f"; then
       echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
       echo "  hint: git checkout -- $f" >&2
@@ -69,15 +76,18 @@ PY="$(pwd)/.venv/bin/python"
 BACKUP="${TMPDIR:-/tmp}/swarm_schema_backup_$$.sql"
 BACKUP_MIG="${TMPDIR:-/tmp}/swarm_mig011_backup_$$.sql"
 BACKUP_2B="${TMPDIR:-/tmp}/swarm_roles2b_backup_$$.sql"
+BACKUP_013="${TMPDIR:-/tmp}/swarm_mig013_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
 [ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
 [ -f "$ROLES_2B" ] && cp "$ROLES_2B" "$BACKUP_2B"
+[ -f "$MIG_013" ] && cp "$MIG_013" "$BACKUP_013"
 restore() {
   cp -f "$BACKUP" "$SCHEMA"
   [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
   [ -f "$BACKUP_2B" ] && cp -f "$BACKUP_2B" "$ROLES_2B"
+  [ -f "$BACKUP_013" ] && cp -f "$BACKUP_013" "$MIG_013"
 }
-cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B"; }
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -282,11 +292,37 @@ run_mutation S10 "task_parent_artifacts: снять проверку живой 
   "null;" \
   "schema/migrations/013_task_parent_artifacts.sql"
 
+# S11 — task_parent_artifacts (Вопрос 4 аудита): фильтр финального артефакта.
+# Мутация: убрать `and a.ref = pt.result_ref`. Тогда дочерняя задача получает
+# ВСЕ артефакты родителя, включая черновики, отвергнутые на ревью (реворк):
+# граф решает свою часть по мусору. Ожидание: краснеет
+# test_iteration3_only_final_result_ref_returned и
+# test_iteration3_done_without_result_ref_returns_nothing.
+run_mutation S11 "task_parent_artifacts: вернуть отвергнутые черновики родителя (handoff без result_ref)" \
+  "and a.ref = pt.result_ref" \
+  "" \
+  "schema/migrations/013_task_parent_artifacts.sql"
+
 echo
 echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S10 ==================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"
 echo
+
+# Регресс-страж: restore() обязан вернуть ВСЕ мутируемые файлы. Если после
+# прогона файл грязный, мутант утёк в рабочее дерево — это дефект скрипта, а не
+# «шум». Падаем явно, чтобы мутанта не закоммитили (так и случилось 2026-10-16:
+# S10/S11 мутировали 013, а restore() его не покрывал).
+if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
+  dirty=0
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013"; do
+    if ! git diff --quiet -- "$f"; then
+      echo "FAIL: $f остался изменённым после прогона — restore() не покрывает файл" >&2
+      dirty=1
+    fi
+  done
+  [ "$dirty" -eq 0 ] || exit 2
+fi
 
 [ "$survived" -eq 0 ]
