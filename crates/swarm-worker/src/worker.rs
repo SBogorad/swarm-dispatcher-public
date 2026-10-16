@@ -432,6 +432,26 @@ pub fn process_lease(
                 return Ok(blocked_or_review(st, ref_, reason));
             }
 
+            // F-NEW-C: структурный отказ модели `{"error": "missing_input"}`
+            // — это дефект КОНТРАКТА, а не исполнителя. Реворк не может его
+            // исправить (контракт от повтора не меняется), поэтому раньше задача
+            // крутила max_rework бессмысленных попыток, сжигая токены.
+            // Переводим сразу в `blocked` с явной причиной — без реворков.
+            if let Some(spec_err) = contract_error_marker(&resp.text) {
+                let reason = format!("contract_error: {spec_err}");
+                warn!(task_id = %lease.task_id, %reason, "LLM вернул отказ по контракту — без реворков");
+                let ref_ = fail_artifact(cfg, lease, &reason)?;
+                d.save_artifact(
+                    lease,
+                    &ref_,
+                    &path_str(cfg, &ref_),
+                    Some("text/plain"),
+                    None,
+                )?;
+                let st = d.fail_with_state(lease, Some(&ref_), &reason, "blocked")?;
+                return Ok(blocked_or_review(st, ref_, &reason));
+            }
+
             let (ref_, path, size) =
                 artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
             let storage_path = match ArtifactStore::from_env()? {
@@ -541,6 +561,33 @@ pub fn process_lease(
 
     drop(heartbeat);
     Ok(outcome)
+}
+
+// F-NEW-C: распознать структурный отказ модели по контракту.
+//
+// Модель обязана вернуть строго JSON `{"error": "missing_input", ...}`,
+// когда постановки задачи нет ни в контракте, ни в описании. Такой отказ
+// указывает на дефект контракта/планировщика, а не на ошибку исполнения,
+// поэтому его нельзя «исправлять» реворком с тем же контрактом.
+//
+// Возвращает details отказа, если ответ является таким маркером.
+pub fn contract_error_marker(text: &str) -> Option<String> {
+    let v: serde_json::Value = serde_json::from_str(text.trim()).ok()?;
+    let err = v.get("error")?.as_str()?;
+    // Расширяемо: любые *_input-ошибки входа трактуются как дефект контракта.
+    if err == "missing_input" || err.ends_with("_input") {
+        let details = v
+            .get("details")
+            .and_then(|d| d.as_str())
+            .unwrap_or("")
+            .to_string();
+        return Some(if details.is_empty() {
+            err.to_string()
+        } else {
+            format!("{err}: {details}")
+        });
+    }
+    None
 }
 
 fn blocked_or_review(state: String, artifact_ref: String, reason: &str) -> Outcome {
@@ -725,5 +772,30 @@ mod tests {
         let interrupted = sleep_interruptible(&stop, Duration::from_millis(300));
         assert!(!interrupted);
         assert!(start.elapsed() >= Duration::from_millis(290));
+    }
+
+    // F-NEW-C: структурный отказ модели распознаётся как дефект контракта.
+    #[test]
+    fn contract_error_marker_detects_missing_input() {
+        let t = r#"{"error": "missing_input", "details": "нет постановки"}"#;
+        let m = contract_error_marker(t).expect("должен распознать missing_input");
+        assert!(m.contains("missing_input"));
+        assert!(m.contains("нет постановки"));
+    }
+
+    #[test]
+    fn contract_error_marker_tolerates_whitespace() {
+        let t = "  {\n  \"error\": \"missing_input\"\n}  ";
+        let m = contract_error_marker(t).expect("должен распознать с пробелами");
+        assert_eq!(m, "missing_input");
+    }
+
+    // Обычный результат (не маркер ошибки) не должен считаться дефектом контракта.
+    #[test]
+    fn contract_error_marker_ignores_normal_artifact() {
+        assert!(contract_error_marker("def foo(): pass").is_none());
+        assert!(contract_error_marker(r#"{"result": "готово"}"#).is_none());
+        // иной JSON-error не трогаем
+        assert!(contract_error_marker(r#"{"error": "timeout"}"#).is_none());
     }
 }

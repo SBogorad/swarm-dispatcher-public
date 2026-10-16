@@ -65,6 +65,7 @@ fn contract() -> TaskContract {
     TaskContract {
         kind: "t".into(),
         description: None,
+        goal: None,
         checks: vec![serde_json::json!({"type":"cmd","run":"true"})],
         needs: Needs::default(),
         budget: Budget::default(),

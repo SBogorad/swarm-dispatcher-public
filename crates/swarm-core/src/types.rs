@@ -50,6 +50,13 @@ pub struct TaskContract {
     /// в промпте воркера (`<untrusted>`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// F-NEW-A: машиночитаемая постановка задачи. В отличие от свободного
+    /// `description`, это структурированное поле цели: планировщик заполняет
+    /// его для корневой задачи, чтобы контракт `kind = "root"` не выглядел
+    /// пустой обёрткой без задания. Пробрасывается воркеру в промпт (как и
+    /// `description` — через `<untrusted>`), поэтому санируется тем же путём.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub goal: Option<String>,
     /// Непустой массив check-ов. Интерпретируется воркером, схема проверяет только форму.
     pub checks: Vec<serde_json::Value>,
     #[serde(default)]
@@ -230,6 +237,7 @@ mod tests {
         let c = TaskContract {
             kind: "test".into(),
             description: None,
+            goal: None,
             checks: vec![serde_json::json!({"type": "cmd", "run": "true"})],
             needs: Needs::default(),
             budget: Budget::default(),
@@ -242,6 +250,7 @@ mod tests {
         let c = TaskContract {
             kind: "test".into(),
             description: None,
+            goal: None,
             checks: vec![],
             needs: Needs::default(),
             budget: Budget::default(),
@@ -268,6 +277,7 @@ mod tests {
         let c = TaskContract {
             kind: "x".into(),
             description: None,
+            goal: None,
             checks: vec![serde_json::json!({"type": "cmd"})],
             needs: Needs::default(),
             budget: Budget {

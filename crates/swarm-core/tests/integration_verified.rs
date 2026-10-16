@@ -58,6 +58,7 @@ fn contract() -> TaskContract {
     TaskContract {
         kind: "t".into(),
         description: None,
+        goal: None,
         checks: vec![json!({"type":"cmd","run":"true"})],
         needs: Needs::default(),
         budget: Budget::default(),

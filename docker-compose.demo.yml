@@ -24,10 +24,33 @@ services:
       POSTGRES_USER: swarm
       POSTGRES_PASSWORD: ${DEMO_DB_PASSWORD:-swarm}
       POSTGRES_DB: swarm
+      # Пароли сервисных ролей для initdb-скриптов ролей (демо — тестовые).
+      SWARM_PW_WORKER: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_WATCHDOG: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_PLANNER: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_REVIEWER: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_OPERATOR: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_CLI: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_W1: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_W2: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_W_1: ${DEMO_SWARM_PW:-swarm}
+      SWARM_PW_GPU_1: ${DEMO_SWARM_PW:-swarm}
     volumes:
       - demo_pg:/var/lib/postgresql/data
       - ./schema/schema_v0.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./demo/schema_extras.sql:/docker-entrypoint-initdb.d/02_extras.sql:ro
+      # F-NEW-05: те же шаги, что и в docker-compose.yml. Демо-контур раньше
+      # не применял роли и миграции -> на свежей БД отсутствовала llm_calls,
+      # и budget guard падал в fail-closed ('database error').
+      - ./step2/roles.sql:/sql/roles.sql:ro
+      - ./scripts/02-roles.sh:/docker-entrypoint-initdb.d/03-roles.sh:ro
+      - ./step2b/roles_2b.sql:/sql/roles_2b.sql:ro
+      - ./scripts/03-roles-2b.sh:/docker-entrypoint-initdb.d/04-roles-2b.sh:ro
+      - ./step2/roles_patch_planner_status.sql:/sql/roles_patch_planner_status.sql:ro
+      - ./step2/roles_patch_tool_call_audit.sql:/sql/roles_patch_tool_call_audit.sql:ro
+      - ./scripts/03-role-patches.sh:/docker-entrypoint-initdb.d/05-role-patches.sh:ro
+      - ./schema/migrations:/sql/migrations:ro
+      - ./scripts/05-migrations.sh:/docker-entrypoint-initdb.d/06-migrations.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U swarm -d swarm"]
       interval: 3s

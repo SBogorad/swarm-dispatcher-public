@@ -163,6 +163,7 @@ fn dispatcher_transaction_rolls_back_on_cycle() {
     let c = TaskContract {
         kind: "t".into(),
         description: None,
+        goal: None,
         checks: vec![json!({"type": "cmd", "run": "true"})],
         needs: Needs::default(),
         budget: Budget::default(),
