@@ -69,6 +69,23 @@ if [[ -z "$BASE" ]]; then
   exit 2
 fi
 
+# Нулевой SHA — маркер «нет базы». GitHub при первом пуше ветки передаёт
+# `github.event.before = 0000000000000000000000000000000000000000` (`pull_request.base.sha`
+# на push-событии пуст), и harness сравнивал ПОЛНУЮ историю репозитория вместо
+# свежего диффа. Гейт краснел на pre-existing whitespace в файлах, которых ветка
+# не касалась (push-прогон 38831042846: `git diff --check` на всей истории).
+# Заменяем маркер на общий предок с целевой веткой — это и есть настоящая база.
+if [[ "$BASE" =~ ^0+$ ]]; then
+  RESOLVED_BASE="$(git -C "$WORKTREE" merge-base origin/master "$BRANCH" 2>/dev/null || true)"
+  if [[ -z "$RESOLVED_BASE" ]]; then
+    echo "FAIL --base is all-zeros and merge-base origin/master $BRANCH is unresolved" >&2
+    usage >&2
+    exit 2
+  fi
+  echo "note: --base was all-zeros; resolved to merge-base origin/master $BRANCH = $RESOLVED_BASE"
+  BASE="$RESOLVED_BASE"
+fi
+
 WORKTREE="$(cd "$WORKTREE" && pwd)"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/harness-$(date -u +%Y%m%dT%H%M%SZ)-$$.log"
