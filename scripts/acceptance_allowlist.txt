@@ -89,6 +89,13 @@ scripts/run_mutations_sql.sh
 #    инварианта каталога; дефект стал виден только когда harness начал
 #    применять миграции. Миграция 003 переводит владельцев на swarm_owner.
 docker-compose.yml
+# F-NEW-05: демо-контур синхронизирован с боевым — подключены роли и
+# миграции в initdb (иначе budget guard падал в fail-closed на свежей БД).
+docker-compose.demo.yml
+scripts/02-roles.sh
+scripts/03-roles-2b.sh
+scripts/03-role-patches.sh
+scripts/05-migrations.sh
 schema/migrations/*
 
 # Issue #26: сервис-ревьюер закрывает review -> done.

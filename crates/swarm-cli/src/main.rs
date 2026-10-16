@@ -144,6 +144,7 @@ fn contract(kind: &str) -> TaskContract {
     TaskContract {
         kind: kind.to_string(),
         description: None,
+        goal: None,
         checks: vec![serde_json::json!({"type": "cmd", "run": "true"})],
         needs: Needs::default(),
         budget: Budget::default(),

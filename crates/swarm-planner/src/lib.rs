@@ -66,6 +66,10 @@ pub fn root_contract(description: &str, limits: &Limits) -> TaskContract {
         kind: "root".into(),
         // §2.1: текст задачи доезжает до воркера.
         description: opt_description(description),
+        // F-NEW-A: машиночитаемая цель. Без неё контракт `kind = "root"`
+        // выглядел для модели пустой обёрткой, и корневая задача уходила в
+        // `missing_input` (описание лежало только в <untrusted>).
+        goal: opt_description(description),
         checks: vec![json!({"type": "cmd", "run": "true"})],
         needs: Needs::default(),
         budget: Budget {
@@ -93,6 +97,8 @@ pub fn subtask_contract(t: &PlannedTask) -> TaskContract {
         },
         // §2.2: description подзадачи из LLM-ответа.
         description: opt_description(&t.description),
+        // F-NEW-A: подзадача без goal — поле остаётся None (skip_serializing).
+        goal: None,
         checks: t.checks.clone(),
         needs,
         budget,
