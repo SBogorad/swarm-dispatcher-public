@@ -342,6 +342,22 @@ pub fn process_lease(
     // Issue #2: время измеряется реально (`Instant` вокруг вызова), а не
     // фабрикуется. Раньше в ledger писалось `duration_ms = 1000` и
     // `started_at = now - 1s` («примерно») — это делало метрики недостоверными.
+    //
+    // Итерация 3 (DAG handoff): вход от родительских задач. Запрашиваем
+    // артефакты зависимостей ровно держателем живой аренды. Ошибка RPC не
+    // фатальна: контракт без handoff — деградация, а не срыв задачи (ветка
+    // `FailedPrecondition` в основной системе не деградирует молча, но здесь
+    // это отдельный SELECT, его потеря не должна ронять воркер).
+    let parents = match d.task_parent_artifacts(lease.task_id, &lease.worker_id, lease.epoch) {
+        Ok(p) => p,
+        Err(e) => {
+            warn!(task_id = %lease.task_id, error = %e, "handoff: parent artifacts unavailable");
+            Vec::new()
+        }
+    };
+    if !parents.is_empty() {
+        info!(task_id = %lease.task_id, count = parents.len(), "handoff: parent artifacts loaded");
+    }
     let call_started_at = chrono::Utc::now();
     let call_started = Instant::now();
     let result = call_llm_with_retries(
@@ -350,6 +366,7 @@ pub fn process_lease(
         cfg,
         lease.rework,
         lease.last_review.as_ref(),
+        &parents,
     );
     let call_duration_ms = call_started.elapsed().as_millis() as i64;
     let call_completed_at = chrono::Utc::now();
@@ -657,15 +674,19 @@ fn is_lease_lost(e: &WorkerError) -> bool {
 /// FIND-CODE-02: `rework` и `last_review` — контур обратной связи. При
 /// `rework > 0` в промпт попадает диагностика последнего отказа ревьюера,
 /// иначе воркер перегенерирует то же решение вслепую.
+///
+/// Итерация 3: `parents` — артефакты зависимостей (DAG handoff); пустой
+/// список сохраняет прежнее поведение промпта.
 fn call_llm_with_retries(
     llm: &dyn LlmClient,
     contract: &serde_json::Value,
     cfg: &WorkerConfig,
     rework: i32,
     last_review: Option<&serde_json::Value>,
+    parents: &[swarm_core::ParentArtifactRef],
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
-    let user = prompt::user_prompt_with_rework(contract, rework, last_review);
+    let user = prompt::user_prompt_full(contract, rework, last_review, parents);
     let selected_model = select_model(cfg, contract);
 
     let req = LlmRequest {

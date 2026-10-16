@@ -93,6 +93,62 @@ pub fn is_allowed_check_type(t: &str) -> bool {
     ALLOWED_CHECK_TYPES.iter().any(|a| *a == t)
 }
 
+/// Итерация 3 (`wayfinder` / `to-tickets`): канонический каталог видов задач.
+///
+/// Совпадает с каталогом из системного промпта планировщика и с каталогом
+/// плейбуков воркера ([`swarm_worker::playbooks::playbook_for_kind`]):
+/// вид задачи выбирает протокол исполнения, поэтому реестр закрыт.
+pub const CANONICAL_KINDS: &[&str] = &[
+    "code.investigate",
+    "code.architect",
+    "code.bugfix",
+    "code.feature",
+    "code.refactor",
+    "code.perf",
+    "code.verify",
+    "root",
+];
+
+/// Legacy-набор `kind`, который обязан продолжать приниматься.
+///
+/// F7 и фикстуры (`planner_ok.json`, `002_ok.json`) исторически используют
+/// короткие формы; отвергать их — сломать обратную совместимость.
+pub const LEGACY_KINDS: &[&str] = &[
+    "code",
+    "test",
+    "doc",
+    "analysis",
+    "audit",
+    "design",
+    "bugfix",
+    "feature",
+    "refactor",
+    "investigate",
+    "perf",
+    "task",
+];
+
+/// Итерация 3: допустим ли `kind` — канонический или legacy (регистр/trim).
+pub fn is_canonical_or_legacy_kind(kind: &str) -> bool {
+    let k = kind.trim().to_ascii_lowercase();
+    CANONICAL_KINDS.contains(&k.as_str()) || LEGACY_KINDS.contains(&k.as_str())
+}
+
+/// Маркеры незавершённой работы, недопустимые в команде проверки.
+///
+/// `checks[].run` — исполняемая команда; заглушка в ней означает, что задача
+/// спланирована как «сделаю потом» и не может быть проверена (по мотивам
+/// `check-plan.mjs` из `pstack`).
+pub const CHECK_STUB_MARKERS: &[&str] = &["TODO", "FIXME", "<INSERT_", "unimplemented!", "todo!"];
+
+/// Итерация 3: найти маркер-заглушку в команде проверки.
+pub fn check_stub_marker(run: &str) -> Option<&'static str> {
+    CHECK_STUB_MARKERS
+        .iter()
+        .find(|m| run.contains(**m))
+        .copied()
+}
+
 /// sha256-хекс текста задачи.
 pub fn sha256_hex(text: &str) -> String {
     let mut h = Sha256::new();
@@ -215,6 +271,27 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
                     t.id, ty, ALLOWED_CHECK_TYPES
                 )));
             }
+
+            // Итерация 3 (`check-plan`): команда проверки не должна быть
+            // заглушкой — иначе задачу невозможно верифицировать, и она
+            // уедет в `blocked`, сжигая попытки.
+            if let Some(run) = c.get("run").and_then(|v| v.as_str()) {
+                if let Some(marker) = check_stub_marker(run) {
+                    return Err(PlannerError::Validation(format!(
+                        "task {} check run contains stub marker {:?}: {:?}",
+                        t.id, marker, run
+                    )));
+                }
+            }
+        }
+
+        // Итерация 3: реестр видов задач (канонический каталог + legacy).
+        // Пустой `kind` допустим и трактуется как `task` в `subtask_contract`.
+        if !t.kind.trim().is_empty() && !is_canonical_or_legacy_kind(&t.kind) {
+            return Err(PlannerError::Validation(format!(
+                "task {} has unknown kind {:?} (canonical: {:?}; legacy allowed)",
+                t.id, t.kind, CANONICAL_KINDS
+            )));
         }
     }
 
@@ -566,5 +643,75 @@ mod tests {
             serde_json::json!({"attempts":3})
         )]));
         assert!(validate_graph(&gr, &Limits::default()).is_err());
+    }
+
+    // Итерация 3 (`check-plan`): заглушка в команде проверки — невалидный план.
+    #[test]
+    fn iteration3_rejects_stub_marker_in_check_run() {
+        for run in [
+            "cargo test # TODO",
+            "echo FIXME",
+            "echo <INSERT_CMD>",
+            "cargo run -- unimplemented!",
+        ] {
+            let gr = g(serde_json::json!([task_with(
+                "t1",
+                serde_json::json!([{"type":"cmd","run": run}]),
+                serde_json::json!({}),
+                serde_json::json!({"attempts":3})
+            )]));
+            assert!(
+                validate_graph(&gr, &Limits::default()).is_err(),
+                "заглушка {run:?} прошла валидацию"
+            );
+        }
+    }
+
+    #[test]
+    fn iteration3_accepts_clean_checks() {
+        let gr = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"type":"cmd","run":"cargo test --locked"}]),
+            serde_json::json!({}),
+            serde_json::json!({"attempts":3})
+        )]));
+        assert!(validate_graph(&gr, &Limits::default()).is_ok());
+    }
+
+    // Итерация 3: реестр видов задач (канон + legacy), старые фикстуры целы.
+    #[test]
+    fn iteration3_kind_registry() {
+        for k in CANONICAL_KINDS.iter().chain(LEGACY_KINDS.iter()) {
+            let gr = g(serde_json::json!([task_with(
+                "t1",
+                serde_json::json!([{"type":"cmd","run":"true"}]),
+                serde_json::json!({}),
+                serde_json::json!({"attempts":3})
+            )
+            .as_object_mut()
+            .map(|o| {
+                o.insert("kind".into(), serde_json::json!(k));
+                o.clone()
+            })
+            .unwrap()]));
+            assert!(
+                validate_graph(&gr, &Limits::default()).is_ok(),
+                "kind {k} отвергнут"
+            );
+        }
+        // Неизвестный kind — отклоняем.
+        let bad = g(serde_json::json!([task_with(
+            "t1",
+            serde_json::json!([{"type":"cmd","run":"true"}]),
+            serde_json::json!({}),
+            serde_json::json!({"attempts":3})
+        )
+        .as_object_mut()
+        .map(|o| {
+            o.insert("kind".into(), serde_json::json!("orm.query"));
+            o.clone()
+        })
+        .unwrap()]));
+        assert!(validate_graph(&bad, &Limits::default()).is_err());
     }
 }

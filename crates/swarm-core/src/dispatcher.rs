@@ -1,5 +1,5 @@
 use crate::errors::DispatcherError;
-use crate::types::{Lease, TaskContract, TaskRow, TaskStatusRow, Verdict};
+use crate::types::{Lease, ParentArtifactRef, TaskContract, TaskRow, TaskStatusRow, Verdict};
 use postgres::{Client, NoTls};
 use uuid::Uuid;
 
@@ -181,6 +181,37 @@ impl SwarmDispatcher {
             rework,
             last_review,
         }))
+    }
+
+    /// Итерация 3 (DAG handoff): артефакты родительских задач.
+    ///
+    /// Дочерняя задача в графе видит выход своих зависимостей, не имея
+    /// прямого `SELECT` к `tasks`/`artifacts`: RPC `task_parent_artifacts`
+    /// — SECURITY DEFINER и проверяет identity воркера и ЖИВУЮ аренду
+    /// именно этой задачи.
+    pub fn task_parent_artifacts(
+        &mut self,
+        task_id: Uuid,
+        worker_id: &str,
+        epoch: i64,
+    ) -> Result<Vec<ParentArtifactRef>, DispatcherError> {
+        let rows = self
+            .client
+            .query(
+                "SELECT parent_task_id, parent_kind, artifact_ref, artifact_sha256 \
+                 FROM task_parent_artifacts($1, $2, $3)",
+                &[&task_id, &worker_id, &epoch],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(rows
+            .iter()
+            .map(|r| ParentArtifactRef {
+                parent_task_id: r.get(0),
+                parent_kind: r.get(1),
+                artifact_ref: r.get(2),
+                artifact_sha256: r.get(3),
+            })
+            .collect())
     }
 
     /// FIND-CODE-02: диагностика последнего ревью для возвращённой задачи.
