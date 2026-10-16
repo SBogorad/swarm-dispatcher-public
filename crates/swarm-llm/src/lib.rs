@@ -157,6 +157,13 @@ struct OpenAiRequest<'a> {
 #[derive(Deserialize)]
 struct OpenAiChoice {
     message: OpenAiMessage,
+    /// Причина остановки генерации: `stop`, `length`, `content_filter`, …
+    ///
+    /// Нужна, чтобы отличить «модель ответила» от «модель думала и
+    /// оборвалась». Без неё диагноз пустого ответа неотличим от прочих
+    /// (живой прогон 2026-10-16: `finish_reason=length`, `content=null`).
+    #[serde(default)]
+    finish_reason: Option<String>,
 }
 #[derive(Deserialize)]
 struct OpenAiMessage {
@@ -169,24 +176,63 @@ struct OpenAiMessage {
     /// «response is not valid json», хотя JSON был валиден — врал не парсер.
     #[serde(default)]
     content: Option<String>,
-    /// Ход размышления reasoning-моделей (DeepSeek и аналоги).
-    /// Служит запасным источником текста, если `content` пуст.
+    /// Черновик рассуждений reasoning-моделей (DeepSeek и аналоги).
+    ///
+    /// Это НЕ ответ и он никогда не подставляется вместо `content` — см.
+    /// [`OpenAiMessage::content_text`]. Поле разбирается только для того,
+    /// чтобы объяснить пустой ответ в тексте ошибки.
     #[serde(default)]
     reasoning_content: Option<String>,
 }
 
 impl OpenAiMessage {
-    /// Текст ответа: `content`, при его отсутствии — `reasoning_content`.
+    /// Непустой `content` либо `None`. `reasoning_content` не подставляется.
     ///
-    /// Непустое `content` ВСЕГДА в приоритете: подменять рабочий ответ
-    /// «сырыми мыслями» нельзя — потребитель (планировщик) парсит JSON, и
-    /// рассуждения сломали бы разбор. Фолбэк нужен лишь там, где `content`
-    /// пуст, то есть весь бюджет ушёл на reasoning.
-    fn into_text(self) -> Option<String> {
-        let has_text = |s: &str| !s.trim().is_empty();
-        let take = |o: Option<String>| o.filter(|s| has_text(s));
-        take(self.content).or_else(|| take(self.reasoning_content))
+    /// Раньше здесь был фолбэк на `reasoning_content` (PR #59). Он оказался
+    /// опаснее исходного дефекта: при обрыве по `max_tokens` модель отдаёт
+    /// незавершённый черновик мыслей, и он уходил потребителю как готовый
+    /// ответ. Воркер сохранял его артефактом, а ревьюер (`min_bytes=80`,
+    /// без маркеров `todo!()`) ставил `Approved` — оборванное рассуждение
+    /// попадало в `done` как полноценный результат (тихий ложный успех).
+    ///
+    /// Правильная семантика: `content` — ответ, `reasoning_content` — черновик.
+    /// Пустой `content` означает, что ответа нет; это ошибка, а не данные.
+    fn content_text(&self) -> Option<&str> {
+        self.content.as_deref().filter(|s| !s.trim().is_empty())
     }
+}
+
+/// Разбор ответа OpenAI-совместимого провайдера в текст либо честную ошибку.
+///
+/// Вынесено из `openai_chat`, чтобы поведение «ответа нет» покрывалось
+/// unit-тестами без поднятия HTTP-сервера.
+fn extract_openai_text(choice: OpenAiChoice, raw: &str) -> Result<String, LlmError> {
+    let OpenAiChoice {
+        message,
+        finish_reason,
+    } = choice;
+    if let Some(text) = message.content_text() {
+        return Ok(text.to_owned());
+    }
+    let fr = finish_reason.as_deref().unwrap_or("unknown");
+    let has_reasoning = message
+        .reasoning_content
+        .as_deref()
+        .is_some_and(|s| !s.trim().is_empty());
+    // Подсказка оператору: что именно чинить. `length` — не хватило лимита,
+    // и если при этом есть reasoning_content, бюджет ушёл на размышление.
+    let hint = match (fr, has_reasoning) {
+        ("length", true) => {
+            "; reasoning_content present — budget spent on reasoning, raise max_tokens"
+        }
+        ("length", false) => "; raise max_tokens",
+        ("content_filter", _) => "; response filtered by the provider",
+        _ => "",
+    };
+    Err(LlmError::EmptyContent(format!(
+        "empty content (finish_reason={fr}{hint}); raw={}",
+        truncate(raw, 200)
+    )))
 }
 #[derive(Deserialize)]
 struct OpenAiUsage {
@@ -368,25 +414,17 @@ impl HttpLlmClient {
             prompt_tokens: 0,
             completion_tokens: 0,
         });
-        parsed
-            .choices
-            .into_iter()
-            .next()
-            .and_then(|c| {
-                let text = c.message.into_text()?;
-                Some(LlmResponse {
-                    text,
-                    tokens_in: usage.prompt_tokens,
-                    tokens_out: usage.completion_tokens,
-                    model: parsed.model.unwrap_or_else(|| self.cfg.model.clone()),
-                })
-            })
-            .ok_or_else(|| {
-                LlmError::EmptyContent(format!(
-                    "choices[0].message has no content and no reasoning_content; finish_reason unknown; raw={}",
-                    truncate(&text, 200)
-                ))
-            })
+        let model = parsed.model.unwrap_or_else(|| self.cfg.model.clone());
+        let choice = parsed.choices.into_iter().next().ok_or_else(|| {
+            LlmError::EmptyContent(format!("no choices; raw={}", truncate(&text, 200)))
+        })?;
+        let reply = extract_openai_text(choice, &text)?;
+        Ok(LlmResponse {
+            text: reply,
+            tokens_in: usage.prompt_tokens,
+            tokens_out: usage.completion_tokens,
+            model,
+        })
     }
 
     fn anthropic_chat(&self, req: &LlmRequest, max_tokens: u32) -> Result<LlmResponse, LlmError> {
@@ -603,72 +641,107 @@ mod tests {
         assert!(matches!(err, Err(LlmError::Config(_))));
     }
 
-    // --- reasoning_content: content=null (живой прогон 2026-10-16) ---
+    // --- reasoning_content / finish_reason (живой прогон 2026-10-16, аудит Gemini Argon) ---
+    //
+    // Предыдущая версия (PR #59) подставляла `reasoning_content` вместо пустого
+    // `content`. Аудит вскрыл, что это даёт тихий ложный успех: оборванный
+    // черновик мыслей уходит артефактом и одобряется ревьюером. Тесты ниже
+    // фиксируют ОБРАТНОЕ: `reasoning_content` — не ответ.
 
     #[test]
-    fn openai_message_deserializes_content_null_with_reasoning() {
+    fn content_null_with_reasoning_is_error_not_fallback() {
         // Реальный ответ deepseek-v4.1-flash при обрыве по max_tokens:
-        // content=null, весь текст — в reasoning_content.
-        let raw = r#"{"content":null,"reasoning_content":"The task: design a REST API..."}"#;
-        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
-        assert!(m.content.is_none());
-        assert!(m.reasoning_content.is_some());
-        let text = m.into_text().unwrap();
-        assert!(text.contains("design a REST API"));
+        // content=null, весь текст — в reasoning_content, finish_reason=length.
+        // Ожидание: EmptyContent, а НЕ подстановка черновика.
+        let raw = r#"{"message":{"role":"assistant","content":null,"reasoning_content":"The task: design a REST API..."},"finish_reason":"length"}"#;
+        let c: OpenAiChoice = serde_json::from_str(raw).unwrap();
+        let err = extract_openai_text(c, raw).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            matches!(err, LlmError::EmptyContent(_)),
+            "оборванный reasoning — ошибка, не ответ: {err:?}"
+        );
+        assert!(
+            msg.contains("finish_reason=length"),
+            "диагноз называет причину: {msg}"
+        );
+        assert!(
+            msg.contains("budget spent on reasoning"),
+            "подсказка про бюджет размышления: {msg}"
+        );
     }
 
     #[test]
-    fn openai_message_deserializes_content_present() {
-        // Нормальный ответ: content заполнен, reasoning_content может быть.
-        let raw = r#"{"content":"hello","reasoning_content":"thinking..."}"#;
-        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
-        // content в приоритете — reasoning не подменяет рабочий ответ.
-        let text = m.into_text().unwrap();
-        assert_eq!(text, "hello");
+    fn content_present_wins_over_reasoning() {
+        // Нормальный ответ: content заполнен, reasoning_content тоже есть.
+        // Черновик НИКОГДА не подменяет рабочий ответ.
+        let raw = r#"{"message":{"role":"assistant","content":"hello","reasoning_content":"thinking..."},"finish_reason":"stop"}"#;
+        let c: OpenAiChoice = serde_json::from_str(raw).unwrap();
+        assert_eq!(extract_openai_text(c, raw).unwrap(), "hello");
     }
 
     #[test]
-    fn openai_message_deserializes_content_empty_falls_back_to_reasoning() {
-        // content="" (пустая строка) — тоже fallback на reasoning.
-        let raw = r#"{"content":"","reasoning_content":"fallback text"}"#;
-        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
-        let text = m.into_text().unwrap();
-        assert_eq!(text, "fallback text");
+    fn blank_content_is_error_even_with_reasoning() {
+        // content="   " (пробелы) — тоже отсутствие ответа, а не повод
+        // подставить reasoning.
+        let raw = r#"{"message":{"content":"   ","reasoning_content":"fallback text"},"finish_reason":"length"}"#;
+        let c: OpenAiChoice = serde_json::from_str(raw).unwrap();
+        assert!(matches!(
+            extract_openai_text(c, raw),
+            Err(LlmError::EmptyContent(_))
+        ));
     }
 
     #[test]
-    fn openai_message_both_empty_returns_none() {
-        // content=null, reasoning_content=null → нет текста → EmptyContent.
-        let raw = r#"{"content":null,"reasoning_content":null}"#;
-        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
-        assert!(m.into_text().is_none());
+    fn both_empty_is_error_without_reasoning_hint() {
+        // content=null, reasoning_content=null → нет текста, нет и подсказки
+        // про бюджет размышления.
+        let raw =
+            r#"{"message":{"content":null,"reasoning_content":null},"finish_reason":"length"}"#;
+        let c: OpenAiChoice = serde_json::from_str(raw).unwrap();
+        let err = extract_openai_text(c, raw).unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("finish_reason=length"));
+        assert!(!msg.contains("budget spent on reasoning"));
     }
 
     #[test]
-    fn openai_message_missing_fields_defaults_to_none() {
-        // Поля вообще отсутствуют (старый провайдер без reasoning_content).
-        let raw = r#"{}"#;
-        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
-        assert!(m.into_text().is_none());
+    fn missing_fields_default_to_none_and_error() {
+        // Старый провайдер без reasoning_content и без finish_reason.
+        let raw = r#"{"message":{}}"#;
+        let c: OpenAiChoice = serde_json::from_str(raw).unwrap();
+        let err = extract_openai_text(c, raw).unwrap_err();
+        assert!(err.to_string().contains("finish_reason=unknown"));
     }
 
     #[test]
-    fn openai_response_with_null_content_parses_without_invalid_json() {
-        // Полный ответ провайдера с content=null — до фикса падал с
-        // «response is not valid json: invalid type: null, expected a string».
-        // Сейчас десериализация проходит, а пустой ответ даёт EmptyContent.
+    fn content_filter_reason_is_reported() {
+        let raw = r#"{"message":{"content":null},"finish_reason":"content_filter"}"#;
+        let c: OpenAiChoice = serde_json::from_str(raw).unwrap();
+        let msg = extract_openai_text(c, raw).unwrap_err().to_string();
+        assert!(msg.contains("filtered by the provider"), "{msg}");
+    }
+
+    #[test]
+    fn full_provider_response_with_null_content_parses() {
+        // До PR #59 такой ответ падал с «response is not valid json:
+        // invalid type: null, expected a string». Десериализация должна
+        // проходить, а отсутствие ответа — давать EmptyContent.
         let raw = r#"{"id":"abc","model":"deepseek-v4.1-flash","object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":null,"reasoning_content":"thinking only"},"finish_reason":"length"}],"usage":{"prompt_tokens":10,"completion_tokens":400,"total_tokens":410}}"#;
         let parsed: OpenAiResponse = serde_json::from_str(raw).unwrap();
         let c = parsed.choices.into_iter().next().unwrap();
-        let text = c.message.into_text().unwrap();
-        assert_eq!(text, "thinking only");
+        assert!(matches!(
+            extract_openai_text(c, raw),
+            Err(LlmError::EmptyContent(_))
+        ));
     }
 
     #[test]
     fn empty_content_error_is_not_transient_but_is_length_truncated() {
         // EmptyContent — не транзиентная (повтор с тем же лимитом даст тот же
-        // обрыв), но is_length_truncated=true → воркер может ретраить с
-        // большим лимитом.
+        // обрыв), но is_length_truncated=true → воркер МОЖЕТ ретраить с
+        // большим лимитом. Сейчас эскалацию никто не вызывает (аудит Gemini
+        // Argon, вопрос 2), но контракт остаётся честным.
         let e = LlmError::EmptyContent("test".into());
         assert!(!e.is_transient());
         assert!(e.is_length_truncated());
