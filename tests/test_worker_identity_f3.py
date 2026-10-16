@@ -228,3 +228,145 @@ def test_f3_fail_task_own_identity_passes(admin):
     cur = admin.cursor()
     cur.execute("select state from tasks where id = %s", (t,))
     assert cur.fetchone()[0] == "blocked"
+
+
+# ---------- FIND-NEW-02: identity в перекрывающих миграциях (ночная смена 2026-10-17) ----------
+#
+# Миграции применяются ПОСЛЕ step2b/roles_2b.sql, поэтому их `create or replace`
+# перекрывает тела воркерских обёрток — и обязано воспроизвести
+# `assert_worker_identity`. В миграции 011 это сделано (claim_task,
+# complete_task, комментарий там же это и требует), но:
+#
+#   * миграция 012 (`task_rework_feedback`) проверяла только `assert_lease`, а
+#     тот доверяет ПЕРЕДАННОМУ p_worker. Значит swarm_worker_w1, зная
+#     (task_id, epoch) живой аренды w2, читал диагностику ревью чужой задачи:
+#     rework, verdict, reviewer, artifact_ref, checks. Доказано на живом PG
+#     перед фиксом; закрыто миграцией 014. Тот же класс, что FIND-NEW-01
+#     (fail_task/fail_task_state), но в другом RPC.
+#   * у остальных обёрток (claim_task, heartbeat, save_artifact, complete_task)
+#     identity была, но поведенческого арбитра «чужой воркер» не существовало:
+#     снятие identity-строки ПЕРЕЖИВАЛО весь набор арбитров (зонд на
+#     disposable-БД: SURVIVED для claim_task и complete_task в 011). Тесты ниже
+#     закрывают этот слепой зон и делают мутации S12–S14 ловимыми.
+#
+# Позитивные контроли обязательны: без них мутация «убрать проверку целиком»
+# неотличима от «вызов всегда падает по другой причине».
+
+def _foreign_lease(admin, worker="w2", epo=1, rework=0):
+    """Задача в leased, арендованная `worker` с живой арендой (локальный хелпер)."""
+    t = str(_uuid.uuid4())
+    admin.cursor().execute(
+        """insert into tasks(id, root_id, state, contract, priority, attempts,
+                             budget_cap, spent_tokens, lease_epoch,
+                             lease_owner, lease_until, rework)
+           values (%s,%s,'leased',%s::jsonb,0,1,1000,0,%s,%s,now()+interval '5 min',%s)""",
+        (t, t, '{"kind":"k","checks":[{"type":"cmd"}]}', epo, worker, rework),
+    )
+    return t
+
+def _add_artifact(admin, task_id, ref="sha256:deadbeef", worker="w2", epo=1):
+    admin.cursor().execute(
+        """insert into artifacts(task_id, ref, created_by, lease_epoch, storage_path)
+           values (%s,%s,%s,%s,'file:///tmp/f3')
+           on conflict (task_id, ref) do nothing""",
+        (task_id, ref, worker, epo),
+    )
+    return ref
+
+def _refs(admin, task_id):
+    cur = admin.cursor()
+    cur.execute("select ref from artifacts where task_id = %s order by ref", (task_id,))
+    return [r[0] for r in cur.fetchall()]
+
+def _until(admin, task_id):
+    cur = admin.cursor()
+    cur.execute("select lease_until from tasks where id = %s", (task_id,))
+    return cur.fetchone()[0]
+
+def _state_owner(admin, task_id):
+    cur = admin.cursor()
+    cur.execute("select state, lease_owner from tasks where id = %s", (task_id,))
+    return cur.fetchone()
+
+def test_f3_claim_task_foreign_worker_rejected(admin):
+    """w1, вызывающий claim_task('w2'), обязан получить WK003, а не чужую личность."""
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select claim_task('w2', 60)")
+    w.close()
+    assert code == MISMATCH, f"F3/FIND-NEW-02: w1 claiming as 'w2' must be WK003, got {code!r}"
+
+def test_f3_claim_task_own_identity_passes(admin):
+    """Положительный контроль: claim_task('w1') под swarm_worker_w1 — не WK003."""
+    admin.cursor().execute(
+        "insert into workers(id, capabilities) values ('w1','{\"ram_gb\":16}'::jsonb)"
+        " on conflict (id) do nothing"
+    )
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select claim_task('w1', 60)")
+    w.close()
+    assert code != MISMATCH, f"F3/FIND-NEW-02: w1 claiming as 'w1' must pass identity, got {code!r}"
+
+def test_f3_complete_task_foreign_worker_rejected(admin):
+    """Вопрос 10 аудита: воркер B не может завершить задачу воркера A."""
+    t = _foreign_lease(admin, "w2")
+    ref = _add_artifact(admin, t)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select complete_task(%s,'w2',1,%s,0)", (t, ref))
+    w.close()
+    assert code == MISMATCH, f"F3/FIND-NEW-02: w1 completing w2's task must be WK003, got {code!r}"
+    assert _state_owner(admin, t) == ("leased", "w2"), (
+        f"F3/FIND-NEW-02: чужую задачу тронули: {_state_owner(admin, t)!r}"
+    )
+
+def test_f3_save_artifact_foreign_worker_rejected(admin):
+    """w1 не может записать артефакт в чужую аренду."""
+    t = _foreign_lease(admin, "w2")
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(
+        w, "select save_artifact(%s,'w2',1,'sha256:forged','file:///tmp/forged')", (t,)
+    )
+    w.close()
+    assert code == MISMATCH, f"F3/FIND-NEW-02: w1 writing into w2's lease must be WK003, got {code!r}"
+    assert _refs(admin, t) == [], "F3/FIND-NEW-02: чужой артефакт записан"
+
+def test_f3_heartbeat_foreign_worker_rejected(admin):
+    """w1 не может продлить чужую аренду."""
+    t = _foreign_lease(admin, "w2")
+    before = _until(admin, t)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select heartbeat(%s,'w2',1,600)", (t,))
+    w.close()
+    assert code == MISMATCH, f"F3/FIND-NEW-02: w1 extending w2's lease must be WK003, got {code!r}"
+    assert _until(admin, t) == before, "F3/FIND-NEW-02: чужую аренду продлили"
+
+def test_f3_heartbeat_own_identity_passes(admin):
+    """Положительный контроль: w2 продлевает СВОЮ аренду → true."""
+    t = _foreign_lease(admin, "w2")
+    before = _until(admin, t)
+    w = connect("swarm_worker_w2", os.environ.get("W4_W2_PW", ""))
+    code = _sqlstate(w, "select heartbeat(%s,'w2',1,600)", (t,))
+    w.close()
+    assert code is None, f"F3/FIND-NEW-02: own heartbeat must pass, got {code!r}"
+    assert _until(admin, t) > before, "F3/FIND-NEW-02: своя аренда не продлена"
+
+def test_f3_task_rework_feedback_foreign_worker_rejected(admin):
+    """w1 не читает диагностику ревью чужой задачи (дефект миграции 012)."""
+    t = _foreign_lease(admin, "w2", rework=2)
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    code = _sqlstate(w, "select * from task_rework_feedback(%s,'w2',1)", (t,))
+    w.close()
+    assert code == MISMATCH, (
+        f"F3/FIND-NEW-02: w1 reading w2's rework diagnostics must be WK003, got {code!r}"
+    )
+
+def test_f3_task_rework_feedback_own_identity_passes(admin):
+    """Положительный контроль: w2 читает СВОЮ диагностику (rework=2)."""
+    t = _foreign_lease(admin, "w2", rework=2)
+    w = connect("swarm_worker_w2", os.environ.get("W4_W2_PW", ""))
+    cur = w.cursor()
+    try:
+        cur.execute("select * from task_rework_feedback(%s,'w2',1)", (t,))
+        row = cur.fetchone()
+    finally:
+        w.close()
+    assert row is not None and row[0] == 2, f"F3/FIND-NEW-02: ожидался rework=2, получено {row!r}"

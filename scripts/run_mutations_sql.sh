@@ -34,13 +34,20 @@ ROLES_2B="step2b/roles_2b.sql"
 # рабочее дерево было грязным). На чистом CI это маскировалось свежим
 # checkout, но локальный прогон оставлял мутанта в рабочей копии.
 MIG_013="schema/migrations/013_task_parent_artifacts.sql"
+# S12/S13/S14 (FIND-NEW-02): мутации identity в ПЕРЕКРЫВАЮЩИХ миграциях.
+# 011 (MIG_F8) пересоздаёт claim_task/complete_task, 014 — task_rework_feedback.
+# Эти файлы обязаны быть под тем же backup/restore и git-clean fail-fast: снятие
+# identity-строки в перекрытии — именно тот дефект, который арбитры НЕ ловили
+# (проверено зондом на disposable-БД: claim_task и complete_task в 011 дали
+# SURVIVED), и который уронил бы защиту тихо.
+MIG_014="schema/migrations/014_identity_in_override_migrations.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
 # Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
 # предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
 # trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014"; do
     if ! git diff --quiet -- "$f"; then
       echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
       echo "  hint: git checkout -- $f" >&2
@@ -77,17 +84,20 @@ BACKUP="${TMPDIR:-/tmp}/swarm_schema_backup_$$.sql"
 BACKUP_MIG="${TMPDIR:-/tmp}/swarm_mig011_backup_$$.sql"
 BACKUP_2B="${TMPDIR:-/tmp}/swarm_roles2b_backup_$$.sql"
 BACKUP_013="${TMPDIR:-/tmp}/swarm_mig013_backup_$$.sql"
+BACKUP_014="${TMPDIR:-/tmp}/swarm_mig014_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
 [ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
 [ -f "$ROLES_2B" ] && cp "$ROLES_2B" "$BACKUP_2B"
 [ -f "$MIG_013" ] && cp "$MIG_013" "$BACKUP_013"
+[ -f "$MIG_014" ] && cp "$MIG_014" "$BACKUP_014"
 restore() {
   cp -f "$BACKUP" "$SCHEMA"
   [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
   [ -f "$BACKUP_2B" ] && cp -f "$BACKUP_2B" "$ROLES_2B"
   [ -f "$BACKUP_013" ] && cp -f "$BACKUP_013" "$MIG_013"
+  [ -f "$BACKUP_014" ] && cp -f "$BACKUP_014" "$MIG_014"
 }
-cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013"; }
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013" "$BACKUP_014"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -121,7 +131,8 @@ run_arbiters() {
         tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py \
         tests/test_worker_identity_f3.py \
         tests/test_no_duplicate_function_bodies.py \
-        tests/test_dag_handoff_iteration3.py >/dev/null 2>&1
+        tests/test_dag_handoff_iteration3.py \
+        tests/test_migration_identity_preserved.py >/dev/null 2>&1
 }
 
 # Чистое пересоздание схемы в disposable-БД.
@@ -303,8 +314,43 @@ run_mutation S11 "task_parent_artifacts: вернуть отвергнутые �
   "" \
   "schema/migrations/013_task_parent_artifacts.sql"
 
+# S12 — complete_task в перекрывающей миграции 011: снять identity.
+# Мутация: из тела complete_task в 011 убрать `perform assert_worker_identity`.
+# Это ФИНАЛЬНОЕ определение (011 применяется последней), поэтому снятие строки
+# снимает защиту в живом контуре. До этой ночи мутант ВЫЖИВАЛ: ни один арбитр
+# не вызывал complete_task от чужого воркера (проверено зондом на disposable-БД).
+# Ожидание: краснеет test_worker_identity_f3.py
+# (test_f3_complete_task_foreign_worker_rejected) и/или статический страж.
+run_mutation S12 "complete_task (011): снять identity в перекрытии (FIND-NEW-02)" \
+  "  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then" \
+  "  perform assert_lease(p_task, p_worker, p_epoch);
+  if p_tokens < 0 then" \
+  "$MIG_F8"
+
+# S13 — claim_task в перекрывающей миграции 011: снять identity.
+# Ожидание: краснеет test_f3_claim_task_foreign_worker_rejected (или страж).
+run_mutation S13 "claim_task (011): снять identity в перекрытии (FIND-NEW-02)" \
+  "  perform assert_worker_identity(p_worker);
+  update workers set last_seen = now() where id = p_worker;" \
+  "  update workers set last_seen = now() where id = p_worker;" \
+  "$MIG_F8"
+
+# S14 — task_rework_feedback в перекрывающей миграции 014: снять identity.
+# Целевой файл — именно 014: она применяется последней и перекрывает 012,
+# поэтому мутация в 012 была бы no-op («мутант выжил» ложно).
+# Ожидание: краснеет test_f3_task_rework_feedback_foreign_worker_rejected.
+run_mutation S14 "task_rework_feedback (014): снять identity в перекрытии (FIND-NEW-02)" \
+  "  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);
+  select t.rework into v_rework" \
+  "  perform assert_lease(p_task, p_worker, p_epoch);
+  select t.rework into v_rework" \
+  "$MIG_014"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S10 ==================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S14 ==================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"
@@ -316,7 +362,7 @@ echo
 # S10/S11 мутировали 013, а restore() его не покрывал).
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
   dirty=0
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014"; do
     if ! git diff --quiet -- "$f"; then
       echo "FAIL: $f остался изменённым после прогона — restore() не покрывает файл" >&2
       dirty=1

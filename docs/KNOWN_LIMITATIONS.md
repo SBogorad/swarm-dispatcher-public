@@ -395,6 +395,45 @@
   `format!("llm_error: {e}")` (`crates/swarm-worker/src/worker.rs:566`) — но уже
   обрезанным до 400 байт.
 
+#### FIND-NEW-02 (ночная смена 2026-10-17): identity в ПЕРЕКРЫВАЮЩИХ миграциях — ЗАКРЫТО (миграция 014)
+
+Класс дефекта: миграции применяются ПОСЛЕ `step2b/roles_2b.sql` и пересоздают
+тела воркерских обёрток через `create or replace`. Значит каждая такая миграция
+обязана воспроизвести `assert_worker_identity(p_worker)` — иначе перекрытие
+ТИХО снимает защиту. Комментарий в миграции 011 это и требует; проверки не было.
+
+Найдено два проявления:
+
+1. **Недоделанное перекрытие (реальная утечка).** Миграция
+   `012_claim_task_rework_feedback.sql` пересоздала `task_rework_feedback` с
+   `assert_lease`, но БЕЗ identity. `assert_lease(p_task, p_worker, p_epoch)`
+   сверяет `lease_owner` с ПЕРЕДАННЫМ `p_worker`, а не с `session_user`, поэтому
+   `swarm_worker_w1`, зная `(task_id, epoch)` живой аренды `w2`, читал
+   диагностику ревью чужой задачи. Доказано на живом PG до фикса:
+   `out_rework=2, verdict=changes_requested, reviewer=rev1,
+   artifact_ref=sha256:deadbeef, checks=[...]`. Для сравнения `complete_task` по
+   чужой аренде отдаёт `WK003` — там identity есть и стоит первой строкой.
+   Тот же класс, что FIND-NEW-01 (`fail_task`/`fail_task_state`, закрыт в #52).
+   **Фикс:** `schema/migrations/014_identity_in_override_migrations.sql` —
+   пересоздание функции с identity первой содержательной строкой.
+
+2. **Слепой зон арбитров (тихая потеря защиты).** Снятие identity-строки из
+   ФИНАЛЬНЫХ тел `claim_task` и `complete_task` (миграция 011) переживало ВЕСЬ
+   набор арбитров. Проверено зондом на disposable-БД: `SURVIVED` для обеих
+   мутаций. То есть «CI зелёный» не означало, что защита на месте — ровно тот
+   класс, что уже дважды кусал (S8 для `fail_task`, S10 для handoff).
+   **Фикс:** поведенческие арбитры `claim_task`/`complete_task`/`save_artifact`/
+   `heartbeat`/`task_rework_feedback` «чужой воркер → `WK003`» + позитивные
+   контроли (`tests/test_worker_identity_f3.py`), мутации S12–S14
+   (`scripts/run_mutations_sql.sh`) и статический страж
+   `tests/test_migration_identity_preserved.py` (правила: identity выживает
+   перекрытие; обёртка воркера с арендой обязана её иметь; identity идёт ДО
+   `assert_lease`). Страж подключён в `scripts/acceptance_harness.sh`.
+
+Остаточное ограничение (по-прежнему открыто, §5.3): миграции накатываются
+только на пустом томе, поэтому 014 не догоняет уже существующие тома
+автоматически. На демо/прод-томе нужен прогон `05-migrations.sh` вручную.
+
 #### INFO (by-design, код не усложняем): ранний `budget_exhausted` после реклейма эпохи с расходом
 
 Редкий пограничный случай, зафиксирован по решению владельца (аудит 1e71428, п. 5).
