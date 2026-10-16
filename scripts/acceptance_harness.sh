@@ -691,6 +691,10 @@ review_gate_acceptance() {
     # test_f8 уже выше; ниже — остальные два (юнит-части, без сети/БД).
     "tests/test_model_quality.py|model quality view -> selector stats (Issue #7/#10)"
     "tests/test_model_catalog.py|relay.fast pricing -> USD/1M recalculation (Issue #7/#10)"
+    # Ночная смена (2026-10-17, §5.3): реестр применённых миграций и раннер для
+    # ЖИВОГО тома. Без этого шага раннер остался бы непроверенным кодом (класс
+    # «проверки, которой нет»), а миграции на живой том накатывались бы вручную.
+    "tests/test_migration_ledger_runner.py|миграционный реестр: initdb-путь и живой том (§5.3)"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
