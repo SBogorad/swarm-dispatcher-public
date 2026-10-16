@@ -18,6 +18,9 @@ pub struct PlannedTask {
     pub kind: String,
     #[serde(default)]
     pub description: String,
+    /// Итерация 2: опциональная машиночитаемая цель подзадачи.
+    #[serde(default)]
+    pub goal: String,
     #[serde(default)]
     pub checks: Vec<serde_json::Value>,
     #[serde(default)]

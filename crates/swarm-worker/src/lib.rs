@@ -15,6 +15,7 @@ pub mod error;
 pub mod llm_cost;
 pub mod model_selector;
 pub mod parse_step;
+pub mod playbooks;
 pub mod poll;
 pub mod prompt;
 pub mod retry;
@@ -32,6 +33,7 @@ pub use error::{Result, WorkerError};
 pub use model_selector::{
     select_model, ModelCandidate, ModelCatalog, ModelSelector, ModelStat, Selection, SelectionBasis,
 };
+pub use playbooks::{playbook_for_kind, CORE_PRINCIPLES};
 pub use poll::PollPolicy;
 pub use retry::RetryPolicy;
 pub use sandbox::{shell_tools_enabled, ExecOutput, Sandbox, SandboxConfig};

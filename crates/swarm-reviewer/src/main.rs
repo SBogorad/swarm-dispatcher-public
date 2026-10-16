@@ -197,6 +197,20 @@ fn looks_like_error(text: &str) -> bool {
 }
 
 /// Реальная проверка артефакта. Возвращает `(вердикт, причины)`.
+///
+/// Итерация 2: двухшаговый фильтр по мотивам `interrogate/references/rubric.md`
+/// и `deslop`.
+///
+/// Шаг А: структурный отказ контракта (`missing_input` / `contract_error` /
+/// `unachievable_contract`) — это дефект ПОСТАНОВКИ, а не исполнителя.
+/// Реворк его не исправит (контракт от повтора не меняется), поэтому такой
+/// артефакт получает `Rejected` → задача сразу уходит в `blocked`, без
+/// сжигания `max_rework`. Прочие `{"error": ...}` остаются
+/// `ChangesRequested` — обратная совместимость.
+///
+/// Шаг Б: маркеры недоделанной работы (`todo!()`, `unimplemented!()`, ...)
+/// дают `ChangesRequested` с префиксом `[RUBRIC:UNSLOP]`; `detail` доедет до
+/// воркера через `task_rework_feedback`.
 fn verify(contract: &Value, text: Option<&str>, min_bytes: usize) -> (Verdict, Vec<String>) {
     let Some(text) = text else {
         return (Verdict::ChangesRequested, vec!["артефакт не найден".into()]);
@@ -210,11 +224,30 @@ fn verify(contract: &Value, text: Option<&str>, min_bytes: usize) -> (Verdict, V
             .ok()
             .and_then(|v| v.get("error").and_then(|e| e.as_str()).map(String::from))
             .unwrap_or_default();
+        // Шаг А: структурный отказ контракта → Rejected (сразу blocked).
+        if is_contract_error(&detail) {
+            return (
+                Verdict::Rejected,
+                vec![format!(
+                    "[RUBRIC:CONTRACT] контракт неисполним: {}",
+                    truncate(&detail, 120)
+                )],
+            );
+        }
         return (
             Verdict::ChangesRequested,
             vec![format!(
                 "исполнитель вернул ошибку: {}",
                 truncate(&detail, 120)
+            )],
+        );
+    }
+    // Шаг Б: рубрикатор анти-слопа.
+    if let Some(marker) = unfinished_stub_marker(body) {
+        return (
+            Verdict::ChangesRequested,
+            vec![format!(
+                "[RUBRIC:UNSLOP] artifact contains unfinished stub marker: {marker}"
             )],
         );
     }
@@ -229,6 +262,26 @@ fn verify(contract: &Value, text: Option<&str>, min_bytes: usize) -> (Verdict, V
         );
     }
     (Verdict::Approved, Vec::new())
+}
+
+/// Структурный отказ контракта — дефект постановки, а не исполнения.
+fn is_contract_error(error: &str) -> bool {
+    let e = error.trim().to_ascii_lowercase();
+    e == "missing_input" || e == "contract_error" || e == "unachievable_contract"
+}
+
+/// Маркеры недоделанной работы в артефакте (`deslop` / `no-comments`).
+///
+/// Возвращает найденный маркер для отчёта ревьюера.
+fn unfinished_stub_marker(body: &str) -> Option<&'static str> {
+    const MARKERS: [&str; 5] = [
+        "unimplemented!()",
+        "todo!()",
+        "TODO: implement",
+        "FIXME: implement",
+        "<INSERT_CODE_HERE>",
+    ];
+    MARKERS.iter().find(|m| body.contains(**m)).copied()
 }
 
 /// Набор проверок по требованиям контракта с фактическим статусом.
@@ -299,6 +352,73 @@ mod tests {
         let (v, r) = verify(&c, Some(body), 1);
         assert_eq!(v, Verdict::ChangesRequested);
         assert!(r[0].contains("ошибку"));
+    }
+
+    // Итерация 2, шаг А: структурный отказ контракта → Rejected (сразу blocked),
+    // а не ChangesRequested — реворк с тем же контрактом бессмысленен.
+    #[test]
+    fn contract_error_is_rejected() {
+        let c = contract_with(json!([]));
+        for err in ["missing_input", "contract_error", "unachievable_contract"] {
+            let body = format!(r#"{{"error":"{err}","details":"нет постановки"}}"#);
+            let (v, r) = verify(&c, Some(&body), 1);
+            assert_eq!(v, Verdict::Rejected, "{err} должен давать Rejected");
+            assert!(
+                r[0].contains("[RUBRIC:CONTRACT]"),
+                "нет метки рубрики: {r:?}"
+            );
+        }
+    }
+
+    // Транзиентные ошибки остаются ChangesRequested (обратная совместимость).
+    #[test]
+    fn transient_error_is_not_rejected() {
+        let c = contract_with(json!([]));
+        let body = r#"{"error":"timeout"}"#;
+        let (v, _) = verify(&c, Some(body), 1);
+        assert_eq!(v, Verdict::ChangesRequested);
+    }
+
+    // Итерация 2, шаг Б: маркеры недоделанной работы → ChangesRequested с меткой.
+    #[test]
+    fn stub_markers_are_changes_requested() {
+        let c = contract_with(json!([]));
+        let body = format!(
+            "fn f() {{ todo!() }}\n{}",
+            "// padding to exceed min_bytes threshold".repeat(3)
+        );
+        let (v, r) = verify(&c, Some(&body), 80);
+        assert_eq!(v, Verdict::ChangesRequested);
+        assert!(r[0].contains("[RUBRIC:UNSLOP]"), "нет метки рубрики: {r:?}");
+        assert!(r[0].contains("todo!()"), "маркер не назван: {r:?}");
+    }
+
+    #[test]
+    fn each_stub_marker_is_detected() {
+        let c = contract_with(json!([]));
+        for marker in [
+            "unimplemented!()",
+            "todo!()",
+            "TODO: implement",
+            "FIXME: implement",
+            "<INSERT_CODE_HERE>",
+        ] {
+            let body = format!("{marker}\n{}", "x".repeat(200));
+            let (v, r) = verify(&c, Some(&body), 80);
+            assert_eq!(v, Verdict::ChangesRequested, "{marker} не пойман");
+            assert!(r[0].contains("[RUBRIC:UNSLOP]"), "нет метки для {marker}");
+        }
+    }
+
+    // Чистый валидный артефакт без маркеров → Approved.
+    #[test]
+    fn clean_artifact_is_approved_with_rubric() {
+        let c = contract_with(json!([]));
+        let body = "fn add(a: i32, b: i32) -> i32 { a + b }\n\n#[test]\nfn t() { assert_eq!(add(1, 2), 3); }".to_string();
+        assert!(body.len() >= 80);
+        let (v, r) = verify(&c, Some(&body), 80);
+        assert_eq!(v, Verdict::Approved);
+        assert!(r.is_empty(), "нет причин у одобренного: {r:?}");
     }
 
     #[test]
