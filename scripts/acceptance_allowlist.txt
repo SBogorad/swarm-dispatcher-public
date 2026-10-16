@@ -145,6 +145,10 @@ tests/test_no_duplicate_function_bodies.py
 # в docs/KNOWN_LIMITATIONS.md + шаг в harness. Статический тест, БД не требует.
 tests/test_known_limitations_refs.py
 
+# PR #4 (демо-изоляция): статический guard — демо-воркеры под своими ролями БД,
+# а не под суперпользователем swarm. Плюс шаг в harness.
+tests/test_demo_worker_roles.py
+
 # Класс #24/#26 (гейт зелёный ≠ прод жив): живой арбитр ролей. Файл проверяет
 # реальные контейнеры (DSN-роль + права в каталоге), self-test — в harness.
 scripts/compose_roles_arbiter.sh

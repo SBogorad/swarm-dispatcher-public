@@ -770,6 +770,10 @@ if [[ -x "$_dg_py" ]]; then
   # уехавшие строки. Тест статический, БД не требует — тот же venv.
   run_worktree_step "KNOWN_LIMITATIONS doc-ref drift guard" \
     .venv/bin/python -m pytest -q tests/test_known_limitations_refs.py
+  # PR #4: демо-воркеры обязаны быть под своими ролями БД (не под суперпользователем
+  # swarm), иначе assert_worker_identity в демо обходится. Статический разбор compose.
+  run_worktree_step "demo worker role isolation guard" \
+    .venv/bin/python -m pytest -q tests/test_demo_worker_roles.py
 else
   status BLOCKED "drift guard blocked: .venv with pytest+psycopg2 unavailable"
 fi
