@@ -765,6 +765,11 @@ fi
 if [[ -x "$_dg_py" ]]; then
   run_worktree_step "duplicate function-body drift guard (schema_v0 vs roles_2b)" \
     .venv/bin/python -m pytest -q tests/test_no_duplicate_function_bodies.py
+  # Техдолг (2026-10-16, PR #3): drift guard против гниения ссылок `file:line`
+  # в docs/KNOWN_LIMITATIONS.md. При аудите нашлись ссылки на удалённые файлы и
+  # уехавшие строки. Тест статический, БД не требует — тот же venv.
+  run_worktree_step "KNOWN_LIMITATIONS doc-ref drift guard" \
+    .venv/bin/python -m pytest -q tests/test_known_limitations_refs.py
 else
   status BLOCKED "drift guard blocked: .venv with pytest+psycopg2 unavailable"
 fi
