@@ -15,6 +15,36 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Fixed (гигиена ядра: clippy + мёртвый compose — ночная смена 2026-10-17)
+
+- **`cargo clippy --workspace --locked --all-targets -- -D warnings` — зелёный.**
+  Раньше падал в 9 местах (clippy в CI-гейт не входит, поэтому не замечалось):
+  `derivable_impls` на `RunLimits` (`crates/swarm-worker/src/budget.rs`),
+  `doc_lazy_continuation` (`crates/swarm-reviewer/src/main.rs`), `type_complexity`
+  (`crates/swarm-core/src/errors.rs`), `bool_assert_comparison`
+  (`crates/swarm-worker/src/model_selector.rs`), три `field_reassign_with_default`
+  (`crates/swarm-worker/src/sandbox.rs`) и два `ptr_arg` (`&PathBuf` → `&Path` в тестах
+  `crates/swarm-worker/tests/worker_heartbeat_f5.rs` /
+  `crates/swarm-worker/tests/worker_integration.rs`). Поведение не менялось —
+  только форма.
+
+- **`scripts/secret_scan.sh` — ложная блокировка коммита без `.env*`.** Сканер
+  (pre-commit/pre-push хук) при отсутствии `.env*` в репозитории — свежий
+  worktree/клон — рапортовал утечку и блокировал ЛЮБОЙ коммит. Причина:
+  `mapfile` на пустом выводе сборщика даёт массив из одного пустого элемента,
+  а `grep -F -- ""` совпадает с любой строкой диффа (`sha8=e3b0c442` — sha256
+  пустой строки). Пустые значения отфильтрованы; в `--self-test` добавлен
+  регресс-кейс «нет `.env*`, непустой дифф → не LEAK» (без фикса падает).
+  Шаг `secret scanner self-test` подключён в `acceptance_harness.sh` (fail-closed).
+
+### Removed
+
+- **`docker-compose.self-improve.yml`** — сломанный с момента добавления: монтировал
+  несуществующий файл схемы в корне репозитория (актуальная схема —
+  `schema/schema_v0.sql`), собирал несуществующий `demo/Dockerfile.reviewer` и
+  содержал захардкоженные заглушки ключей. Ни на что в CI/скриптах не ссылался
+  (только строка в `MANIFEST.md`, убрана). Контур self-improve не заводился.
+
 ### Added (миграционный раннер для живого тома — §5.3)
 
 - **`scripts/apply_migrations.sh`** — раннер миграций для УЖЕ СУЩЕСТВУЮЩЕГО тома

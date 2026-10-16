@@ -797,8 +797,10 @@ mod tests {
 
     #[test]
     fn run_args_use_configured_image_and_name() {
-        let mut cfg = SandboxConfig::default();
-        cfg.image = "custom:1".into();
+        let cfg = SandboxConfig {
+            image: "custom:1".into(),
+            ..Default::default()
+        };
         let args = Sandbox::build_run_args(&cfg, "my-name");
         assert!(args.contains(&"custom:1".to_string()));
         assert!(args.contains(&"my-name".to_string()));
@@ -936,8 +938,10 @@ mod f12_tests {
     // F12г: имя контейнера включает префикс воркера (изоляция cleanup).
     #[test]
     fn f12_container_name_carries_worker_prefix() {
-        let mut cfg = SandboxConfig::default();
-        cfg.name_prefix = "swarm-sandbox-w1".into();
+        let cfg = SandboxConfig {
+            name_prefix: "swarm-sandbox-w1".into(),
+            ..Default::default()
+        };
         let args = Sandbox::build_run_args(&cfg, "swarm-sandbox-w1-abc123");
         assert!(
             args.contains(&"swarm-sandbox-w1-abc123".to_string()),
@@ -949,8 +953,10 @@ mod f12_tests {
     // единственная точка, где имя собирается из префикса воркера.
     #[test]
     fn f12_name_derives_from_prefix_and_task() {
-        let mut cfg = SandboxConfig::default();
-        cfg.name_prefix = "swarm-sandbox-w7".into();
+        let cfg = SandboxConfig {
+            name_prefix: "swarm-sandbox-w7".into(),
+            ..Default::default()
+        };
         // Проверяем формулу имени без запуска docker (как в start()).
         let name = format!("{}-{}", cfg.name_prefix, "deadbeef");
         assert_eq!(name, "swarm-sandbox-w7-deadbeef");

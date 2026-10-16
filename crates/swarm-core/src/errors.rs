@@ -150,7 +150,9 @@ mod tests {
     fn sqlstate_known_codes_map() {
         // Проверяем именно маппинг SQLSTATE → вариант, а не текст сообщения.
         use DispatcherError::*;
-        let cases: [(&str, fn(&DispatcherError) -> bool); 18] = [
+        /// Пара «код SQLSTATE → предикат, что ошибка смаппилась в нужный вариант».
+        type Case = (&'static str, fn(&DispatcherError) -> bool);
+        let cases: [Case; 18] = [
             ("LS001", |e| matches!(e, LeaseLost)),
             ("AR001", |e| matches!(e, ArtifactMissing)),
             ("CT001", |e| matches!(e, ContractInvalid)),

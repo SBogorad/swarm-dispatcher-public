@@ -343,6 +343,28 @@ shell_checks() {
   fi
 }
 
+# Страж сканера секретов (регресс 2026-10-17).
+#
+# `scripts/secret_scan.sh` стоит в pre-commit/pre-push хуках и блокирует коммит
+# при утечке. Дефект: при отсутствии `.env*` (свежий worktree/клон) `mapfile`
+# давал массив из одного пустого элемента, а `grep -F -- ""` совпадал с любой
+# строкой диффа — скан рапортовал ложную утечку (sha8=e3b0c442 — sha256 пустой
+# строки) и блокировал ЛЮБОЙ коммит. Шаг гейта доказывает, что self-test
+# сканера краснеет на фейк-секрете И молчит без `.env*`.
+# Fail-closed: self-test не прошёл → FAIL.
+secret_scan_self_test() {
+  local out rc
+  out="$(bash "$WORKTREE/scripts/secret_scan.sh" --self-test 2>&1)"
+  rc=$?
+  if ((rc != 0)); then
+    printf '%s\n' "$out"
+    status FAIL "secret scanner self-test failed (ложная утечка или пропуск фейка)" "$rc" \
+      "scripts/secret_scan.sh --self-test"
+    return 0
+  fi
+  status PASS "secret scanner self-test (фейк ловится, без .env* молчит)"
+}
+
 # rustfmt guard (техдолг, ночная смена 2026-10-15).
 #
 # `cargo fmt --check` был КРАСНЫМ на master, потому что его не запускал ни CI
@@ -754,6 +776,9 @@ review_gate_acceptance() {
 run_step "diff allowlist ($BASE..$BRANCH)" check_diff_scope
 run_step "git diff --check" git -C "$WORKTREE" diff --check "$BASE..$BRANCH"
 run_step "shell syntax checks" shell_checks
+# Страж сканера секретов (2026-10-17): доказываем, что pre-commit-хук ловит
+# фейк-секрет и НЕ даёт ложную блокировку без `.env*`. Дешёвый шаг без БД.
+run_step "secret scanner self-test" secret_scan_self_test
 # rustfmt guard (техдолг 2026-10-15): держим `cargo fmt --check` зелёным на HEAD.
 # Дешёвый шаг без БД/Docker — сразу после синтаксиса, до дорогой сборки.
 if command -v cargo >/dev/null 2>&1; then

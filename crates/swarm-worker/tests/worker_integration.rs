@@ -5,7 +5,7 @@
 //!     cargo test -p swarm-worker --test worker_integration -- --test-threads=1
 
 use std::collections::VecDeque;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
@@ -75,9 +75,9 @@ fn tmpdir(tag: &str) -> PathBuf {
     d
 }
 
-fn cfg(dir: &PathBuf) -> WorkerConfig {
+fn cfg(dir: &Path) -> WorkerConfig {
     WorkerConfig {
-        artifacts_dir: dir.clone(),
+        artifacts_dir: dir.to_path_buf(),
         lease_sec: 60,
         max_tokens: 4096,
         llm_timeout_sec: 30,

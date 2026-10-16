@@ -283,7 +283,7 @@ mod tests {
         let c = cat();
         assert_eq!(c.models.len(), 4);
         assert_eq!(c.models[0].name, "cheap");
-        assert!(c.models[3].enabled == false);
+        assert!(!c.models[3].enabled);
     }
 
     #[test]

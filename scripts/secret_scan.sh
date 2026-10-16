@@ -26,19 +26,35 @@ if [[ "${1:-}" == "--self-test" ]]; then
   printf 'SOME_API_KEY=%s\n' "$fake" >"$tmp/.env"
   out="$(cd "$tmp" && SECRET_ENV_DIR="$tmp" bash "$REPO_ROOT/scripts/secret_scan.sh" --cached 2>&1 || true)"
   rm -rf "$tmp"
-  if printf '%s' "$out" | grep -q "LEAK"; then
-    echo "PASS self-test: скан краснеет на фейк-секрете"
-    exit 0
+  if ! printf '%s' "$out" | grep -q "LEAK"; then
+    echo "FAIL self-test: скан НЕ поймал фейк-секрет"
+    exit 1
   fi
-  echo "FAIL self-test: скан НЕ поймал фейк-секрет"
-  exit 1
+
+  # Регресс (2026-10-17): нет ни одного `.env*`, но дифф НЕпустой — скан
+  # обязан молчать. Раньше `mapfile` давал один пустой элемент и
+  # `grep -F -- ""` матчил любую строку → ложная блокировка коммита
+  # (sha8=e3b0c442). Это ломало любой свежий worktree/клон.
+  tmp2="$(mktemp -d)"
+  ( cd "$tmp2" && git init -q && git config user.email t@t && git config user.name t \
+    && printf 'let x = 1;\n' > code.rs && git add code.rs )
+  out2="$(cd "$tmp2" && SECRET_ENV_DIR="$tmp2" bash "$REPO_ROOT/scripts/secret_scan.sh" --cached 2>&1 || true)"
+  rm -rf "$tmp2"
+  if printf '%s' "$out2" | grep -q "LEAK"; then
+    echo "FAIL self-test: ложная утечка без .env* на непустом диффе (регресс)"
+    echo "$out2"
+    exit 1
+  fi
+
+  echo "PASS self-test: скан краснеет на фейк-секрете и молчит без .env*"
+  exit 0
 fi
 
 RANGE="${1:?нужен git-range (напр. origin/master..HEAD) или --cached}"
 ENV_DIR="${SECRET_ENV_DIR:-$REPO_ROOT}"
 
 # Собираем реальные значения секретов из .env*.
-mapfile -t SECRETS < <(python3 - "$ENV_DIR" <<'PY'
+mapfile -t SECRETS_RAW < <(python3 - "$ENV_DIR" <<'PY'
 import re, sys, glob, os
 root = sys.argv[1]
 key_re = re.compile(r'(PW|PASSWORD|API_KEY|TOKEN|SECRET|DSN|DATABASE_URL)', re.I)
@@ -68,9 +84,17 @@ for path in glob.glob(os.path.join(root, '.env*')):
         m2 = re.search(r'password=([^\s]+)', v)
         if m2 and len(m2.group(1)) >= 8:
             vals.add(m2.group(1))
-print('\n'.join(sorted(vals)))
+print('\n'.join(sorted(v for v in vals if v)))
 PY
 )
+# `mapfile` на ПУСТОМ выводе сборщика даёт массив из одного пустого элемента,
+# а `grep -F -- ""` совпадает с любой строкой. Без фильтрации скан, не найдя
+# ни одного `.env*` (свежий worktree/клон), рапортовал ложную утечку
+# (sha8=e3b0c442 — sha256 пустой строки) и блокировал коммит. Убираем пустые.
+SECRETS=()
+for v in "${SECRETS_RAW[@]}"; do
+  [[ -n "$v" ]] && SECRETS+=("$v")
+done
 
 if [[ ${#SECRETS[@]} -eq 0 ]]; then
   echo "WARN: не найдено ни одного реального значения секрета в .env* (скан пропущен)"
@@ -85,6 +109,10 @@ fi
 
 hits=0
 for v in "${SECRETS[@]}"; do
+  # Пустое значение — артефакт `mapfile` на пустом выводе сборщика (нет ни
+  # одного `.env*`). Без этого `grep -F -- ""` совпадает с любой строкой
+  # диффа и даёт ложную блокировку коммита. Пропускаем явно.
+  [[ -z "$v" ]] && continue
   # Только добавленные строки (+), чтобы удаление секрета не считалось утечкой.
   if printf '%s\n' "$DIFF" | grep -F -- "$v" >/dev/null 2>&1; then
     sha8="$(printf '%s' "$v" | sha256sum | cut -c1-8)"
