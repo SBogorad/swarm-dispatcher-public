@@ -97,12 +97,12 @@ swarm-dispatcher/
 
 | Когда… | Куда писать |
 |--------|-------------|
-| Принято архитектурное решение | `docs/ARCHITECTURE_DECISIONS.md` (новый ADR) |
+| Принято архитектурное решение | `docs/optional/ARCHITECTURE_DECISIONS.md` (новый ADR) |
 | Изменилось поведение системы | `CHANGELOG.md` + обновление `docs/PROJECT_STATE.md` |
 | Появился новый компонент | `docs/ARCHITECTURE.md` (диаграмма) + `crates/` (код) |
-| Найден дефект | `docs/AUDIT_HISTORY.md` (если исторический) или новый issue |
+| Найден дефект | `docs/optional/AUDIT_HISTORY.md` (если исторический) или новый issue |
 | Независимая верификация | `docs/VERIFICATION_LOG.md` |
-| Изменение плана | `docs/ROADMAP.md` + `CHANGELOG.md` |
+| Изменение плана | `docs/optional/ROADMAP.md` + `CHANGELOG.md` |
 | Новое ТЗ | `docs/TZ_vX.Y_<name>.md` |
 | Устаревший документ | `docs/history/` + запись в `docs/history/README.md` |
 
@@ -124,7 +124,7 @@ swarm-dispatcher/
 
 1. Открыть `MANIFEST.md` — список всех документов.
 2. Открыть `docs/PROJECT_STATE.md` — где мы сейчас.
-3. Открыть `docs/NEXT_STEPS.md` — что делать.
+3. Открыть `docs/optional/NEXT_STEPS.md` — что делать.
 4. Открыть последнее ТЗ — что делать конкретно.
 5. Продолжить с того же места.
 
@@ -143,8 +143,8 @@ swarm-dispatcher/
 
 | Файл | Что внутри |
 |------|-----------|
-| `docs/ROADMAP.md` | v0.1 → v1.0, фазы, оценки, критерии |
-| `docs/NEXT_STEPS.md` | что делать в ближайшие дни |
+| `docs/optional/ROADMAP.md` | v0.1 → v1.0, фазы, оценки, критерии |
+| `docs/optional/NEXT_STEPS.md` | что делать в ближайшие дни |
 | `docs/KNOWN_LIMITATIONS.md` | что НЕ работает сейчас |
 
 **Правило:** каждая «идея на будущее» попадает **в ROADMAP или
@@ -212,8 +212,8 @@ KNOWN_LIMITATIONS**, а не остаётся в голове или в чате
 Исходный документ — 14 итераций архитектурной ревизии. Содержит
 сравнительный анализ платформ, модель угроз, формальную модель состояний.
 Многие решения пересмотрены: Redis → Postgres, Python → Rust, 100 страниц
-→ 25. Актуальные версии — в `docs/PLATFORM_COMPARISON.md` и
-`docs/THREAT_MODEL.md`.
+→ 25. Актуальные версии — в `docs/optional/PLATFORM_COMPARISON.md` и
+`docs/optional/THREAT_MODEL.md`.
 ```
 
 Это сохраняет контекст: почему решение было таким, почему изменилось.

@@ -140,10 +140,10 @@ END $$;
 - 100+ страниц сжаты до 25.
 
 **Что использовать вместо:**
-- `docs/PLATFORM_COMPARISON.md` — обзор платформ.
-- `docs/THREAT_MODEL.md` — модель угроз.
+- `docs/optional/PLATFORM_COMPARISON.md` — обзор платформ.
+- `docs/optional/THREAT_MODEL.md` — модель угроз.
 - `docs/ARCHITECTURE.md` — текущая архитектура.
-- `docs/ARCHITECTURE_DECISIONS.md` — ADR.
+- `docs/optional/ARCHITECTURE_DECISIONS.md` — ADR.
 
 ---
 

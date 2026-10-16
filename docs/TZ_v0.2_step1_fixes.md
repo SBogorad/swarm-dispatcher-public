@@ -14,7 +14,7 @@
 - `schema/schema_v0.sql` — не менять.
 - `step2/roles.sql`, `step2/test_roles.py` — не менять (проверены).
 - `tests/test_v0.py` — 26 тестов, не менять.
-- `crates/swarm-core/tests/integration.rs` — существующие тесты, только
+- `crates/swarm-core/tests/integration_verified.rs` — существующие тесты, только
   добавлять (см. §8).
 - Любой проходящий тест — не менять.
 

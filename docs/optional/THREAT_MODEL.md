@@ -281,7 +281,7 @@ docs/
 
 ```
 
-Во втором варианте добавьте короткий `history/README.md`:
+Во втором варианте добавьте короткий `docs/history/README.md`:
 ```markdown
 # Архив audited-документа
 

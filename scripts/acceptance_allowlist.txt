@@ -187,3 +187,22 @@ scripts/build_audit_zip.sh
 crates/swarm-worker/src/prompt.rs
 crates/swarm-worker/src/worker.rs
 scripts/acceptance_harness.sh
+
+# Ночная смена (2026-10-17, Q3): дрейф ссылок во всём живом корпусе документов.
+# Полный скан нашёл 59 битых `path[:line]`; 34 — реальные дефекты (документы
+# переехали в docs/optional/, а ссылки остались; integration.rs переименован в
+# integration_verified.rs; путь монтирования вместо репозиторного), 25 —
+# законные (исторические записи CHANGELOG, удалённый прототип v0.1, план
+# ROADMAP, чужой репозиторий в research) и внесены в ALLOW нового стража.
+# Скоуп гейта — код/инфраструктура; этот текст сюда не относится (как
+# docs/research/* в #40 и docs/AGENTS.md в ночной смене 2026-10-14).
+MANIFEST.md
+RESUME.md
+docs/optional/*
+docs/history/README.md
+docs/TZ_v0.2_step1_fixes.md
+docs/TZ_v0.3.1_planner_description.md
+docs/VERIFICATION_LOG.md
+
+# Новый страж дрейфа: статический тест по docs/** + шаг в harness.
+tests/test_docs_link_drift.py

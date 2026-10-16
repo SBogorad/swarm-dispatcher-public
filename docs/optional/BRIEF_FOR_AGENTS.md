@@ -148,7 +148,7 @@
 7. **v0.5** — Git-интеграция (после `done`).
 8. **v1.0** — нагрузочный тест + публикация.
 
-### Полный план — `docs/ROADMAP.md`.
+### Полный план — `docs/optional/ROADMAP.md`.
 
 ---
 
@@ -178,7 +178,7 @@
 ## 7. Коды ошибок
 
 Основные: `LS001` (LeaseLost), `GR001` (CycleDetected), `RV002` (SelfReview),
-`WK002` (WorkerUnknown). Полная таблица — `docs/ERRORS.md`.
+`WK002` (WorkerUnknown). Полная таблица — `docs/optional/ERRORS.md`.
 
 Маппинг **только по `pgcode`**, не по тексту.
 
@@ -214,8 +214,8 @@
 
 1. `docs/ARCHITECTURE.md` — диаграммы.
 2. `docs/METHODOLOGY.md` — принципы.
-3. `docs/ARCHITECTURE_DECISIONS.md` — ADR.
-4. `docs/AUDIT_HISTORY.md` — история дефектов.
+3. `docs/optional/ARCHITECTURE_DECISIONS.md` — ADR.
+4. `docs/optional/AUDIT_HISTORY.md` — история дефектов.
 5. Останови и спроси.
 
 ---
