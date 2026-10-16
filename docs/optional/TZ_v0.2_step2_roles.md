@@ -57,12 +57,12 @@
 ROLES_DB=swarm ROLES_HOST=127.0.0.1 ROLES_PORT=5432 ADMIN_PW=<пароль суперпользователя> \
 SWARM_PW_WORKER=... SWARM_PW_WATCHDOG=... SWARM_PW_PLANNER=... \
 SWARM_PW_REVIEWER=... SWARM_PW_OPERATOR=... SWARM_PW_CLI=... \
-pytest -q tests/test_roles.py
+pytest -q step2/test_roles.py
 ```
 Тесты чистят таблицы (`truncate`), поэтому гонять только на тестовой базе.
 
 ## 4. Критерии готовности
-1. `pytest -q tests/test_roles.py` → в отчёте список имён тестов и итог `30 passed`. Ни одного skipped.
+1. `pytest -q step2/test_roles.py` → в отчёте список имён тестов и итог `30 passed`. Ни одного skipped.
 2. `pytest -q tests/test_v0.py` на базе **с** применёнными ролями → `26 passed`.
 3. `cargo test --workspace --locked` → итог с числом passed, регрессий нет; список имён тестов.
 4. Ручные проверки (команда и полный вывод в отчёте):

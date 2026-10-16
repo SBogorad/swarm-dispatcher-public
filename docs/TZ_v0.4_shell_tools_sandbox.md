@@ -192,7 +192,7 @@ values (..., 'tool_call', worker_id, jsonb_build_object(
 5. timeout_kills_command — sleep 100 при timeout 1 → WK005.
 6. output_limit_truncates — команда с 20 MB output → truncated.
 
-8.2. Integration (tests/worker_sandbox.rs)
+8.2. Integration (crates/swarm-worker/tests/worker_sandbox.rs)
 
 Mock LLM, реальный Docker, реальный Postgres.
 

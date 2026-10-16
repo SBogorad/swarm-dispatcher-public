@@ -191,7 +191,7 @@ fs::rename(&tmp, &final_path)?;   // atomic на POSIX
 4. sha256_matches — пересчёт совпадает.
 5. sha256_mismatch_fails — при подмене файла — ошибка.
 
-8.2. Integration (tests/worker_integration.rs)
+8.2. Integration (crates/swarm-worker/tests/worker_integration.rs)
 
 Mock LLM, реальный Postgres.
 

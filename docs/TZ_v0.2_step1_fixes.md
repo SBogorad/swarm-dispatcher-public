@@ -311,7 +311,7 @@ TZ_v0.2_step2_planner.md, RUST_FINDINGS.md.
 
 1. Требования: Rust 1.85+, cargo build --locked.
 2. Команды: docker compose run --rm --no-deps cli swarm-cli seed.
-3. Ссылка на docs/NATIVE_SETUP.md.
+3. Ссылка на docs/optional/NATIVE_SETUP.md.
 4. Ссылка на docs/KNOWN_LIMITATIONS.md вместо дублирования.
 5. Таблица ролей (короткая — 5 строк).
 
@@ -332,7 +332,7 @@ TZ_v0.2_step2_planner.md, RUST_FINDINGS.md.
 5. with_transaction_commits_whole_graph_atomically — атомарный коммит.
 
 Остальные 3 теста из integration_verified.rs — в
-tests/alt/integration_alt.rs как альтернативные формулировки
+crates/swarm-core/tests/alt/integration_alt.rs как альтернативные формулировки
 (full_cycle, sqlstate_mapping, zombie_is_fenced).
 
 8.2. Мутационное тестирование (в отчёт)

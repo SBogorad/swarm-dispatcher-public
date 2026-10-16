@@ -206,3 +206,14 @@ docs/VERIFICATION_LOG.md
 
 # Новый страж дрейфа: статический тест по docs/** + шаг в harness.
 tests/test_docs_link_drift.py
+
+# Ночная смена (2026-10-17, Q3.2): второй класс ссылок — без бэктиков, от корня
+# репо. Страж расширен после того, как скан нашёл гниль именно в нём: README.md
+# (точка входа) отправлял читателя в docs/ROADMAP.md, docs/ERRORS.md,
+# docs/BRIEF_FOR_AGENTS.md, docs/NATIVE_SETUP.md (всё уехало в docs/optional/),
+# а также в docs/PLAIN_EXPLANATION.md, которого не было никогда.
+README.md
+docs/TZ_v0.2_step1_fixes.md
+docs/TZ_v0.2_step2_planner.md
+docs/TZ_v0.3_llm_worker.md
+docs/TZ_v0.4_shell_tools_sandbox.md

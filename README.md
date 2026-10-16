@@ -84,7 +84,7 @@ schema/schema_v0.sql
 Быстрый старт (без Docker)
 
 ```bash
-# 1. Установить Postgres в user-space (см. docs/NATIVE_SETUP.md)
+# 1. Установить Postgres в user-space (см. docs/optional/NATIVE_SETUP.md)
 # 2. Собрать
 cargo build --release
 
@@ -102,7 +102,7 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
 ~/.local/bin/swarm-test cli status
 ```
 
-Подробнее — docs/NATIVE_SETUP.md.
+Подробнее — docs/optional/NATIVE_SETUP.md.
 
 ---
 
@@ -154,7 +154,7 @@ WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
 · Planner / LLM-декомпозиция (v0.2).
 · Веб-доска (v0.4).
 
-Полный список — docs/ROADMAP.md и docs/KNOWN_LIMITATIONS.md.
+Полный список — docs/optional/ROADMAP.md и docs/KNOWN_LIMITATIONS.md.
 
 ---
 
@@ -213,7 +213,7 @@ GR000–GR009 Ошибки графа (цикл, глубина, лимиты)
 RV001–RV003 Ошибки ревью (устаревшее, self-review, checks)
 WK001–WK002 Ошибки воркера (невалидный, не зарегистрирован)
 
-Полная таблица — docs/ERRORS.md.
+Полная таблица — docs/optional/ERRORS.md.
 
 ### Контракт рецензента (ломающее изменение)
 
@@ -245,13 +245,11 @@ WK001–WK002 Ошибки воркера (невалидный, не зарег
 
 Дальше
 
-План развития — docs/ROADMAP.md. Ближайший шаг — v0.2: правки v0.1
+План развития — docs/optional/ROADMAP.md. Ближайший шаг — v0.2: правки v0.1
 
 · Planner. Текущее ТЗ — docs/TZ_v0.2_step1_fixes.md.
 
-Для ИИ-агентов: docs/BRIEF_FOR_AGENTS.md — что делать и как.
-
-Для человека: docs/PLAIN_EXPLANATION.md — простыми словами.
+Для ИИ-агентов: docs/optional/BRIEF_FOR_AGENTS.md — что делать и как.
 
 Для новых участников: MANIFEST.md → docs/PROJECT_STATE.md →
 docs/METHODOLOGY.md.

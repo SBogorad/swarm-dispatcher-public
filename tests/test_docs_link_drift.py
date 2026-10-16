@@ -28,6 +28,22 @@ v0.1, план ROADMAP (файлов ещё нет по определению),
 среза и переписыванию не подлежат. Исключение — `docs/history/README.md`: это
 индекс архива, он живёт и обязан указывать на существующие документы.
 
+Два класса ссылок:
+
+* **В бэктиках** — `` `path/to/file.ext[:NNN]` `` — проверяются всегда.
+* **Без бэктиков** — только если первый компонент пути совпадает с элементом
+  корня репозитория (`docs/…`, `tests/…`, `crates/…`, `schema/…`). Такая
+  ссылка однозначна: это путь от корня репо. А вот `worker/src/worker.rs` или
+  `llm/src/lib.rs` — прозаичное сокращение внутри описания конкретного крейта;
+  проверять его нельзя, давно и честно задокументированная причина — ложные
+  срабатывания в drift guard хуже пропусков (см. docstring
+  `tests/test_known_limitations_refs.py`). Второй класс появился после того, как
+  скан нашёл гниль именно в нём: `README.md` (точка входа!) отправлял читателя
+  в `docs/ROADMAP.md`, `docs/ERRORS.md`, `docs/BRIEF_FOR_AGENTS.md`,
+  `docs/NATIVE_SETUP.md` — всё это уехало в `docs/optional/`, — а также в
+  `docs/PLAIN_EXPLANATION.md`, которого не было никогда (проверено по всей
+  истории: `git log --all -- docs/PLAIN_EXPLANATION.md` пуст).
+
 Тест НЕ требует БД: чистый текстовый анализ.
 
 Запуск:
@@ -47,6 +63,26 @@ REPO = Path(__file__).resolve().parents[1]
 REF_RE = re.compile(
     r"`((?!/)[A-Za-z0-9_./-]+/[A-Za-z0-9_.-]+\.(?:rs|sql|sh|py|toml|yml|yaml|md|json|txt))(?::(\d+))?`"
 )
+
+# Ссылки БЕЗ бэктиков. Проверяются только пути от корня репозитория: первый
+# компонент должен совпадать с элементом корня (`docs/`, `tests/`, `crates/`, …).
+# Список берётся из файловой системы, а не хардкодится, — иначе он сам станет
+# источником дрейфа. Не-корневые пути (`worker/src/worker.rs`) — прозаичные
+# сокращения, см. docstring.
+BARE_RE = re.compile(
+    r"(?<![`/\w.-])((?:[A-Za-z0-9_-]+/)+[A-Za-z0-9_.-]+\.(?:rs|sql|sh|py|toml|yml|yaml|md|json|txt))(?::(\d+))?(?![`\w])"
+)
+
+
+def _top_level() -> set[str]:
+    return {p.name for p in REPO.iterdir() if p.is_dir() and not p.name.startswith(".")}
+
+
+TOP_LEVEL = _top_level()
+
+# Законные битые ссылки БЕЗ бэктиков, первый компонент которых — корневой.
+# Ключ — (документ, путь из ссылки), значение — причина.
+ALLOW_BARE: dict[tuple[str, str], str] = {}
 
 # Замороженные срезы: аудит-пакеты и архив. Ссылки внутри них — свидетельства
 # состояния кода на дату среза, а не обещания; править их значит подделывать
@@ -116,22 +152,41 @@ def _refs(doc: Path) -> set[tuple[str, str | None]]:
     return {(m.group(1), m.group(2)) for m in REF_RE.finditer(text)}
 
 
+def _bare_refs(doc: Path) -> set[tuple[str, str | None]]:
+    """Ссылки без бэктиков, у которых первый компонент — элемент корня репо."""
+    text = doc.read_text(encoding="utf-8", errors="replace")
+    out = set()
+    for m in BARE_RE.finditer(text):
+        path = m.group(1)
+        if path.split("/", 1)[0] in TOP_LEVEL:
+            out.add((path, m.group(2)))
+    return out
+
+
 def _line_count(path: Path) -> int:
     return sum(1 for _ in path.open(encoding="utf-8", errors="replace"))
 
 
 def _broken() -> list[tuple[str, str, str | None, str]]:
-    """Все битые ссылки живых документов: (документ, путь, строка, причина)."""
+    """Все битые ссылки живых документов: (документ, путь, строка, причина).
+
+    Бэктик-ссылки и бесбэктик-ссылки от корня — один общий список: обе обещают
+    читателю существующий файл.
+    """
     broken: list[tuple[str, str, str | None, str]] = []
     for doc in _live_docs():
         rel_doc = doc.relative_to(REPO).as_posix()
-        for path, line in sorted(_refs(doc), key=lambda t: (t[0], t[1] or "")):
+        refs = _refs(doc) | _bare_refs(doc)
+        for path, line in sorted(refs, key=lambda t: (t[0], t[1] or "")):
             target = REPO / path
             if not target.is_file():
                 broken.append((rel_doc, path, line, "файла нет"))
             elif line is not None and int(line) > _line_count(target):
                 broken.append((rel_doc, path, line, f"в файле только {_line_count(target)} строк"))
     return broken
+
+
+ALL_ALLOWED = {**ALLOW, **ALLOW_BARE}
 
 
 def test_scope_is_not_empty():
@@ -144,14 +199,16 @@ def test_scope_is_not_empty():
     assert len(docs) >= 30, f"подозрительно мало живых документов: {len(docs)}"
     refs = sum(len(_refs(d)) for d in docs)
     assert refs >= 150, f"подозрительно мало ссылок: {refs}"
+    bare = sum(len(_bare_refs(d)) for d in docs)
+    assert bare >= 40, f"подозрительно мало ссылок без бэктиков: {bare}"
 
 
 def test_no_broken_refs_in_live_docs():
-    """Каждая `path[:line]` из живого документа существует и попадает в диапазон."""
+    """Каждая ссылка (в бэктиках или от корня) существует и попадает в диапазон."""
     unallowed = [
         f"{doc}: `{path}{':' + line if line else ''}` — {why}"
         for doc, path, line, why in _broken()
-        if (doc, path) not in ALLOW
+        if (doc, path) not in ALL_ALLOWED
     ]
     assert not unallowed, "гнилые ссылки в живых документах:\n  " + "\n  ".join(unallowed)
 
@@ -163,11 +220,13 @@ def test_allowlist_entries_are_still_needed():
     прикрывает будущую регрессию.
     """
     broken = {(doc, path) for doc, path, _line, _why in _broken()}
-    refs_in_docs = {
-        (doc.relative_to(REPO).as_posix(), path) for doc in _live_docs() for path, _line in _refs(doc)
-    }
+    refs_in_docs = set()
+    for doc in _live_docs():
+        rel = doc.relative_to(REPO).as_posix()
+        for path, _line in _refs(doc) | _bare_refs(doc):
+            refs_in_docs.add((rel, path))
     stale = []
-    for key in sorted(ALLOW):
+    for key in sorted(ALL_ALLOWED):
         if key not in refs_in_docs:
             stale.append(f"{key[0]}: ссылка `{key[1]}` исчезла из документа")
         elif key not in broken:
@@ -175,7 +234,7 @@ def test_allowlist_entries_are_still_needed():
     assert not stale, "устаревшие записи ALLOW:\n  " + "\n  ".join(stale)
 
 
-@pytest.mark.parametrize("key", sorted(ALLOW))
+@pytest.mark.parametrize("key", sorted(ALL_ALLOWED))
 def test_allow_entry_has_reason(key: tuple[str, str]):
     """У каждой записи ALLOW есть непустая причина, объясняющая, почему битая ссылка законна."""
-    assert ALLOW[key].strip(), f"{key} без причины"
+    assert ALL_ALLOWED[key].strip(), f"{key} без причины"
