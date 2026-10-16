@@ -15,6 +15,29 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Fixed (безопасность — identity воркера в перекрывающих миграциях, FIND-NEW-02)
+
+- **Утечка диагностики ревью чужой задачи** (ночная смена 2026-10-17).
+  `task_rework_feedback` (миграция 012) проверяла только `assert_lease`, а тот
+  сверяет аренду с ПЕРЕДАННЫМ `p_worker`, не с `session_user`. Значит
+  `swarm_worker_w1`, зная `(task_id, epoch)` живой аренды `w2`, читал `rework`,
+  `verdict`, `reviewer`, `artifact_ref` и `checks` чужой задачи (доказано на
+  живом PG). Тот же класс, что FIND-NEW-01 (`fail_task`/`fail_task_state`).
+  Фикс — миграция `schema/migrations/014_identity_in_override_migrations.sql`
+  (identity первой содержательной строкой, до `assert_lease`).
+- **Слепой зон арбитров:** снятие identity-строки из финальных тел `claim_task`
+  и `complete_task` (миграция 011) переживало весь набор арбитров — зонд на
+  disposable-БД дал `SURVIVED` для обеих мутаций. Добавлены поведенческие
+  арбитры «чужой воркер → `WK003`» и позитивные контроли для `claim_task`,
+  `complete_task`, `save_artifact`, `heartbeat`, `task_rework_feedback`
+  (`tests/test_worker_identity_f3.py`).
+- **Новый статический страж** `tests/test_migration_identity_preserved.py`:
+  identity выживает перекрытие; обёртка воркера с арендой обязана её иметь;
+  identity стоит ДО `assert_lease`. Подключён в `scripts/acceptance_harness.sh`.
+- **Мутации S12–S14** (`scripts/run_mutations_sql.sh`): снятие identity в
+  перекрывающих миграциях 011 (`claim_task`, `complete_task`) и 014
+  (`task_rework_feedback`) — каждая обязана валить арбитры.
+
 ### Fixed (документация — дрейф ссылок и карта репозитория)
 
 - **Реестр ограничений приведён к коду** (PR #63). `docs/KNOWN_LIMITATIONS.md`

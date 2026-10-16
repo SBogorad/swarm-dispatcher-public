@@ -782,6 +782,15 @@ if [[ -x "$_dg_py" ]]; then
   # вне скоупа, живой индекс docs/history/README.md — внутри.
   run_worktree_step "docs link drift guard (live docs)" \
     .venv/bin/python -m pytest -q tests/test_docs_link_drift.py
+  # FIND-NEW-02 (ночная смена 2026-10-17): identity-проверка не должна теряться
+  # при перекрытии функций миграциями. Миграции применяются ПОСЛЕ roles_2b.sql
+  # и пересоздают тела (`create or replace`): 011 — claim_task/complete_task,
+  # 012/014 — task_rework_feedback. Снятие identity-строки в перекрытии
+  # ПЕРЕЖИВАЛО весь набор арбитров (зонд на disposable-БД: SURVIVED для
+  # claim_task и complete_task), а 012 её вовсе не воспроизвела → чужой воркер
+  # читал диагностику ревью чужой задачи. Страж статический, БД не требует.
+  run_worktree_step "migration identity-override drift guard" \
+    .venv/bin/python -m pytest -q tests/test_migration_identity_preserved.py
 else
   status BLOCKED "drift guard blocked: .venv with pytest+psycopg2 unavailable"
 fi
