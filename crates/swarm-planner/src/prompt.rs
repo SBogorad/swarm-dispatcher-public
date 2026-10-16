@@ -16,6 +16,7 @@ pub fn system_prompt(limits: &Limits) -> String {
     {{
       "id": "t1",
       "kind": "code.refactor",
+      "goal": "...",
       "description": "...",
       "checks": [{{"type": "cmd", "run": "cargo test"}}],
       "needs": {{"min_ram_gb": 8, "coder_class": 2}},
@@ -31,7 +32,25 @@ pub fn system_prompt(limits: &Limits) -> String {
 - Ширина ≤ {max_children}.
 - У каждой задачи ≥ 1 check.
 - depends_on ссылается на id из этого же ответа.
-- Первая задача (root) имеет depends_on: []."#,
+- Первая задача (root) имеет depends_on: [].
+
+Каталог kind (выбирай точное значение под тип работы):
+- code.investigate — разведка, аудит, ответы по коду без правок.
+- code.architect — проектирование типов, интерфейсов и границ до кода.
+- code.bugfix — воспроизвести дефект, найти первопричину, починить, доказать.
+- code.feature — новая функциональность от структур данных, затем TDD.
+- code.refactor — изменение структуры без изменения поведения.
+- code.perf — ускорение относительно зафиксированного baseline.
+- code.verify — проверка граничных случаев и негативных путей.
+Используй только эти значения; старые (code, test, doc) допустимы, но нежелательны.
+
+Tracer-bullet юниты (обязательно):
+- Каждая подзадача — самодостаточный ПРОВЕРЯЕМЫЙ юнит работы, а не абстрактный
+  этап («шаг 1», «анализ», «доработка») .
+- Каждая подзадача должна быть выполнима и проверяема независимо от других.
+- Запрещено дробить работу на «сначала подумать, потом сделать» без артефакта
+  на каждом шаге.
+- Формулируй goal так, чтобы по нему можно было однозначно понять, что сделано."#,
         max_tasks = limits.max_tasks,
         max_depth = limits.max_depth,
         max_children = limits.max_children,
@@ -93,6 +112,44 @@ mod tests {
         assert!(p.contains("Не более 7 задач"));
         assert!(p.contains("Глубина ≤ 3"));
         assert!(p.contains("Ширина ≤ 4"));
+    }
+
+    // Итерация 2: каталог kind и tracer-bullet требование в промпте планировщика.
+    #[test]
+    fn prompt_contains_kind_catalog() {
+        let lim = Limits::default();
+        let p = system_prompt(&lim);
+        for kind in [
+            "code.investigate",
+            "code.architect",
+            "code.bugfix",
+            "code.feature",
+            "code.refactor",
+            "code.perf",
+            "code.verify",
+        ] {
+            assert!(p.contains(kind), "нет kind {kind} в каталоге: {p}");
+        }
+        // goal описан в схеме ответа.
+        assert!(p.contains("\"goal\""), "нет поля goal в схеме: {p}");
+    }
+
+    #[test]
+    fn prompt_requires_tracer_bullet_units() {
+        let lim = Limits::default();
+        let p = system_prompt(&lim);
+        assert!(
+            p.contains("Tracer-bullet") || p.contains("tracer-bullet"),
+            "нет требования tracer-bullet: {p}"
+        );
+        assert!(
+            p.contains("самодостаточный ПРОВЕРЯЕМЫЙ юнит"),
+            "нет формулировки проверяемого юнита: {p}"
+        );
+        assert!(
+            p.contains("абстрактный") || p.contains("не абстрактный"),
+            "нет запрета абстрактных этапов: {p}"
+        );
     }
 
     #[test]

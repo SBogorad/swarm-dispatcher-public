@@ -97,8 +97,8 @@ pub fn subtask_contract(t: &PlannedTask) -> TaskContract {
         },
         // §2.2: description подзадачи из LLM-ответа.
         description: opt_description(&t.description),
-        // F-NEW-A: подзадача без goal — поле остаётся None (skip_serializing).
-        goal: None,
+        // Итерация 2: goal подзадачи, если LLM его указал.
+        goal: opt_description(&t.goal),
         checks: t.checks.clone(),
         needs,
         budget,
@@ -346,6 +346,7 @@ mod tests {
             id: "t2".into(),
             kind: "code.refactor".into(),
             description: "Выделить валидацию токенов".into(),
+            goal: String::new(),
             checks: vec![json!({"type": "cmd"})],
             needs: json!({}),
             budget: json!({}),
@@ -355,12 +356,39 @@ mod tests {
         assert_eq!(c.description.as_deref(), Some("Выделить валидацию токенов"));
     }
 
+    // Итерация 2: goal подзадачи доезжает до контракта, если LLM его указал.
+    #[test]
+    fn planner_subtask_contract_carries_goal() {
+        let t = PlannedTask {
+            id: "t2".into(),
+            kind: "code.bugfix".into(),
+            description: "детали".into(),
+            goal: "Починить падающий тест auth::tokens".into(),
+            checks: vec![json!({"type": "cmd"})],
+            needs: json!({}),
+            budget: json!({}),
+            depends_on: vec![],
+        };
+        let c = subtask_contract(&t);
+        assert_eq!(
+            c.goal.as_deref(),
+            Some("Починить падающий тест auth::tokens")
+        );
+        // Без goal — None, а не пустая строка.
+        let t2 = PlannedTask {
+            goal: "   ".into(),
+            ..t
+        };
+        assert!(subtask_contract(&t2).goal.is_none());
+    }
+
     #[test]
     fn subtask_contract_defaults() {
         let t = PlannedTask {
             id: "t1".into(),
             kind: "".into(),
             description: "d".into(),
+            goal: String::new(),
             checks: vec![json!({"type": "cmd"})],
             needs: json!({}),
             budget: json!({}),
