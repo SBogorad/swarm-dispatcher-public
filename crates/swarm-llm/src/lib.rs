@@ -160,7 +160,33 @@ struct OpenAiChoice {
 }
 #[derive(Deserialize)]
 struct OpenAiMessage {
-    content: String,
+    /// Текст ответа. `Option` — потому что провайдер отдаёт `null`, когда
+    /// модель израсходовала весь лимит токенов на размышление.
+    ///
+    /// Живой прогон (2026-10-16) на `deepseek-v4.1-flash`: при `finish_reason`
+    /// `length` ответ приходит как `{"content":null,"reasoning_content":"..."}`.
+    /// Строго типизированное `String` роняло ВСЮ десериализацию с диагнозом
+    /// «response is not valid json», хотя JSON был валиден — врал не парсер.
+    #[serde(default)]
+    content: Option<String>,
+    /// Ход размышления reasoning-моделей (DeepSeek и аналоги).
+    /// Служит запасным источником текста, если `content` пуст.
+    #[serde(default)]
+    reasoning_content: Option<String>,
+}
+
+impl OpenAiMessage {
+    /// Текст ответа: `content`, при его отсутствии — `reasoning_content`.
+    ///
+    /// Непустое `content` ВСЕГДА в приоритете: подменять рабочий ответ
+    /// «сырыми мыслями» нельзя — потребитель (планировщик) парсит JSON, и
+    /// рассуждения сломали бы разбор. Фолбэк нужен лишь там, где `content`
+    /// пуст, то есть весь бюджет ушёл на reasoning.
+    fn into_text(self) -> Option<String> {
+        let has_text = |s: &str| !s.trim().is_empty();
+        let take = |o: Option<String>| o.filter(|s| has_text(s));
+        take(self.content).or_else(|| take(self.reasoning_content))
+    }
 }
 #[derive(Deserialize)]
 struct OpenAiUsage {
@@ -346,13 +372,21 @@ impl HttpLlmClient {
             .choices
             .into_iter()
             .next()
-            .map(|c| LlmResponse {
-                text: c.message.content,
-                tokens_in: usage.prompt_tokens,
-                tokens_out: usage.completion_tokens,
-                model: parsed.model.unwrap_or_else(|| self.cfg.model.clone()),
+            .and_then(|c| {
+                let text = c.message.into_text()?;
+                Some(LlmResponse {
+                    text,
+                    tokens_in: usage.prompt_tokens,
+                    tokens_out: usage.completion_tokens,
+                    model: parsed.model.unwrap_or_else(|| self.cfg.model.clone()),
+                })
             })
-            .ok_or_else(|| LlmError::InvalidJson("empty choices".into()))
+            .ok_or_else(|| {
+                LlmError::EmptyContent(format!(
+                    "choices[0].message has no content and no reasoning_content; finish_reason unknown; raw={}",
+                    truncate(&text, 200)
+                ))
+            })
     }
 
     fn anthropic_chat(&self, req: &LlmRequest, max_tokens: u32) -> Result<LlmResponse, LlmError> {
@@ -567,5 +601,76 @@ mod tests {
             model: None,
         });
         assert!(matches!(err, Err(LlmError::Config(_))));
+    }
+
+    // --- reasoning_content: content=null (живой прогон 2026-10-16) ---
+
+    #[test]
+    fn openai_message_deserializes_content_null_with_reasoning() {
+        // Реальный ответ deepseek-v4.1-flash при обрыве по max_tokens:
+        // content=null, весь текст — в reasoning_content.
+        let raw = r#"{"content":null,"reasoning_content":"The task: design a REST API..."}"#;
+        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
+        assert!(m.content.is_none());
+        assert!(m.reasoning_content.is_some());
+        let text = m.into_text().unwrap();
+        assert!(text.contains("design a REST API"));
+    }
+
+    #[test]
+    fn openai_message_deserializes_content_present() {
+        // Нормальный ответ: content заполнен, reasoning_content может быть.
+        let raw = r#"{"content":"hello","reasoning_content":"thinking..."}"#;
+        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
+        // content в приоритете — reasoning не подменяет рабочий ответ.
+        let text = m.into_text().unwrap();
+        assert_eq!(text, "hello");
+    }
+
+    #[test]
+    fn openai_message_deserializes_content_empty_falls_back_to_reasoning() {
+        // content="" (пустая строка) — тоже fallback на reasoning.
+        let raw = r#"{"content":"","reasoning_content":"fallback text"}"#;
+        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
+        let text = m.into_text().unwrap();
+        assert_eq!(text, "fallback text");
+    }
+
+    #[test]
+    fn openai_message_both_empty_returns_none() {
+        // content=null, reasoning_content=null → нет текста → EmptyContent.
+        let raw = r#"{"content":null,"reasoning_content":null}"#;
+        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
+        assert!(m.into_text().is_none());
+    }
+
+    #[test]
+    fn openai_message_missing_fields_defaults_to_none() {
+        // Поля вообще отсутствуют (старый провайдер без reasoning_content).
+        let raw = r#"{}"#;
+        let m: OpenAiMessage = serde_json::from_str(raw).unwrap();
+        assert!(m.into_text().is_none());
+    }
+
+    #[test]
+    fn openai_response_with_null_content_parses_without_invalid_json() {
+        // Полный ответ провайдера с content=null — до фикса падал с
+        // «response is not valid json: invalid type: null, expected a string».
+        // Сейчас десериализация проходит, а пустой ответ даёт EmptyContent.
+        let raw = r#"{"id":"abc","model":"deepseek-v4.1-flash","object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":null,"reasoning_content":"thinking only"},"finish_reason":"length"}],"usage":{"prompt_tokens":10,"completion_tokens":400,"total_tokens":410}}"#;
+        let parsed: OpenAiResponse = serde_json::from_str(raw).unwrap();
+        let c = parsed.choices.into_iter().next().unwrap();
+        let text = c.message.into_text().unwrap();
+        assert_eq!(text, "thinking only");
+    }
+
+    #[test]
+    fn empty_content_error_is_not_transient_but_is_length_truncated() {
+        // EmptyContent — не транзиентная (повтор с тем же лимитом даст тот же
+        // обрыв), но is_length_truncated=true → воркер может ретраить с
+        // большим лимитом.
+        let e = LlmError::EmptyContent("test".into());
+        assert!(!e.is_transient());
+        assert!(e.is_length_truncated());
     }
 }
