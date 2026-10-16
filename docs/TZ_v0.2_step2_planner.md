@@ -253,7 +253,7 @@ ready to execute: 1
 7. deterministic_root_id — одинаковый текст → одинаковый root_id.
 8. deterministic_root_id_differs — разные тексты → разные root_id.
 
-9.2. Integration (tests/planner_integration.rs)
+9.2. Integration (crates/swarm-planner/tests/planner_integration.rs)
 
 Реальный Postgres, mock LLM.
 
@@ -271,7 +271,7 @@ ready to execute: 1
 9.3. Mock LLM
 
 В тестах — PLANNER_LLM_PROVIDER=mock, файл с ответом через env.
-Файл-заготовка в tests/fixtures/planner_ok.json.
+Файл-заготовка в crates/swarm-planner/tests/fixtures/planner_ok.json.
 
 10. Мутации (в отчёт)
 
