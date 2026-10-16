@@ -106,8 +106,9 @@ Rust-интеграция лежит рядом с крейтами: `crates/*/t
 |------|-----------|
 | `acceptance_harness.sh` | STRICT acceptance-гейт (зеркало CI) |
 | `acceptance_allowlist.txt` | Скоуп гейта: какие пути он рассматривает |
+| `apply_migrations.sh` | Раннер миграций для ЖИВОГО тома (реестр, план, откат) |
 | `compose_roles_arbiter.sh` | Живой арбитр ролей (DSN-роль + права в каталоге) |
-| `02-roles.sh`, `03-roles-2b.sh`, `03-role-patches.sh`, `05-migrations.sh` | initdb-скрипты контейнера postgres |
+| `02-roles.sh`, `03-roles-2b.sh`, `03-role-patches.sh`, `05-migrations.sh` | initdb-скрипты контейнера postgres (пустой том) |
 | `run_mutations_{v04,sql}.sh` | Мутационные прогоны (Rust M1–M6, SQL S1–S5) |
 | `build_audit_{bundle,index,report}.py`, `build_audit_zip.sh` | Сборка аудит-пакета |
 | `secret_scan.sh` | Скан секретов в диапазоне диффа |
