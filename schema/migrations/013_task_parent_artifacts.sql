@@ -16,6 +16,14 @@
 -- Контракт `kind` живёт в JSONB (`tasks.contract->>'kind'`), отдельной колонки
 --   нет — отсюда `coalesce(..., 'task')` для legacy-контрактов без kind.
 --
+-- Только ФИНАЛЬНЫЙ артефакт родителя (`a.ref = pt.result_ref`).
+--   Без этого фильтра задача, прошедшая реворк, отдавала дочерней и отвергнутые
+--   черновики: у родителя в `artifacts` лежат все попытки, а `result_ref`
+--   указывает на принятую. Аудит Gemini Argon (2026-10-16, вопрос 4) нашёл,
+--   что без фильтра дочерняя задача видит лишние строки. Для `done`-родителя
+--   `result_ref` заполняет `complete_task`; если он NULL (legacy-задача) —
+--   handoff пуст, что честнее ложного указателя на черновик.
+--
 -- Идемпотентно: create or replace + повторный grant безопасны.
 
 create or replace function public.task_parent_artifacts(p_task uuid, p_worker text,
@@ -39,6 +47,7 @@ begin
       join public.tasks pt on pt.id = d.dep_id
       join public.artifacts a on a.task_id = d.dep_id
      where d.task_id = p_task
+       and a.ref = pt.result_ref
      order by d.dep_id, a.created_at desc, a.ref asc;
 end $$;
 

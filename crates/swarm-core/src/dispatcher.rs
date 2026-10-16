@@ -170,7 +170,23 @@ impl SwarmDispatcher {
         // миграций (`create or replace` не меняет row type) и требует DROP +
         // перевыдачи гранта. Здесь же — обычный вызов привилегированной
         // функции, доступный только держателю живой аренды.
-        let (rework, last_review) = self.rework_feedback(task_id, worker_id, epoch)?;
+        //
+        // Best-effort (аудит Gemini Argon, вопрос 13): `claim_task` уже
+        // перевёл задачу в `leased` и вернул аренду. Если вспомогательный RPC
+        // диагностики недоступен (например, на старом томе нет миграции 012),
+        // ошибка здесь роняла бы `claim()` — аренда терялась бы, а задача
+        // висела в `leased` до истечения `lease_sec`. Диагностика — не повод
+        // срывать уже выданную работу, поэтому деградируем в `(0, None)`.
+        let (rework, last_review) = match self.rework_feedback(task_id, worker_id, epoch) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!(
+                    "warn: rework_feedback unavailable for task {task_id}: {e}; \
+                         continuing without review diagnosis"
+                );
+                (0, None)
+            }
+        };
         Ok(Some(Lease {
             task_id,
             contract: r.get(1), // сырой JSON: никакого from_value здесь

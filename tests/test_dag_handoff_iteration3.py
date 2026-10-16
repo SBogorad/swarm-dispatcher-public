@@ -117,6 +117,15 @@ def _mk_artifact(cur, tid, ref, by="w1", epoch=0):
     )
 
 
+def _set_result(cur, tid, ref):
+    """Финальный артефакт задачи: `complete_task` пишет его в `result_ref`.
+
+    Handoff (миграция 013) отдаёт дочерней задаче только строку, на которую
+    указывает `result_ref`. Задача с артефактами, но без выбранного финала,
+    не отдаёт ничего: «финальный» значит указанный явно, а не «самый свежий».
+    """
+    cur.execute("update tasks set result_ref = %s where id = %s", (ref, tid))
+
 # ---------- статический якорь: файл миграции присутствует ----------
 
 def test_iteration3_migration_file_exists():
@@ -170,6 +179,7 @@ def test_iteration3_returns_parent_artifacts(admin):
     # t1 — уже завершённый родитель (done), его артефакт и есть handoff.
     _mk_task(cur, t1, "done", "code.investigate")
     _mk_artifact(cur, t1, "sha256:deadbeef")
+    _set_result(cur, t1, "sha256:deadbeef")
     _mk_task(cur, t2, "leased", "code.feature", lease_owner="w1", epoch=3)
     cur.execute("insert into task_deps (task_id, dep_id) values (%s, %s)", (t2, t1))
 
@@ -195,6 +205,7 @@ def test_iteration3_requires_live_lease(admin):
     _mk_worker(cur, "w1")
     _mk_task(cur, t1, "done", "code.investigate")
     _mk_artifact(cur, t1, "sha256:deadbeef")
+    _set_result(cur, t1, "sha256:deadbeef")
     _mk_task(cur, t2, "leased", "code.feature", lease_owner="w1", epoch=3)
     cur.execute("insert into task_deps (task_id, dep_id) values (%s, %s)", (t2, t1))
 
@@ -244,6 +255,7 @@ def test_iteration3_legacy_contract_kind_fallback(admin):
         (t1, t1, json.dumps({"description": "legacy без kind"}, ensure_ascii=False)),
     )
     _mk_artifact(cur, t1, "sha256:cafe")
+    _set_result(cur, t1, "sha256:cafe")
     _mk_task(cur, t2, "leased", "code.feature", lease_owner="w1", epoch=1)
     cur.execute("insert into task_deps (task_id, dep_id) values (%s, %s)", (t2, t1))
 
@@ -253,3 +265,45 @@ def test_iteration3_legacy_contract_kind_fallback(admin):
     kind = cur2.fetchone()[0]
     w.close()
     assert kind == "task", f"legacy-контракт должен давать 'task', получено {kind!r}"
+
+
+def test_iteration3_only_final_result_ref_returned(admin):
+    """Реворк: у родителя черновик и финал — дочерней задаче идёт только финал.
+
+    Без фильтра `a.ref = pt.result_ref` дочерняя задача получала отвергнутый
+    на ревью черновик наравне с принятым артефактом (находка аудита, Вопрос 4).
+    """
+    t1, t2 = str(uuid.uuid4()), str(uuid.uuid4())
+    cur = admin.cursor()
+    _mk_worker(cur, "w1")
+    _mk_task(cur, t1, "done", "code.investigate")
+    _mk_artifact(cur, t1, "sha256:draft0")
+    _mk_artifact(cur, t1, "sha256:final1")
+    _set_result(cur, t1, "sha256:final1")
+    _mk_task(cur, t2, "leased", "code.feature", "w1", 1)
+    cur.execute("insert into task_deps (task_id, dep_id) values (%s, %s)", (t2, t1))
+
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    cur2 = w.cursor()
+    cur2.execute("select artifact_ref from task_parent_artifacts(%s, 'w1', 1)", (t2,))
+    rows = cur2.fetchall()
+    w.close()
+    assert rows == [("sha256:final1",)], f"должен вернуться только финал, получено {rows}"
+
+
+def test_iteration3_done_without_result_ref_returns_nothing(admin):
+    """`done`-родитель без `result_ref` не отдаёт черновики: пусто честнее ложного входа."""
+    t1, t2 = str(uuid.uuid4()), str(uuid.uuid4())
+    cur = admin.cursor()
+    _mk_worker(cur, "w1")
+    _mk_task(cur, t1, "done", "code.investigate")
+    _mk_artifact(cur, t1, "sha256:orphan")
+    _mk_task(cur, t2, "leased", "code.feature", "w1", 1)
+    cur.execute("insert into task_deps (task_id, dep_id) values (%s, %s)", (t2, t1))
+
+    w = connect("swarm_worker_w1", os.environ.get("W4_W1_PW", ""))
+    cur2 = w.cursor()
+    cur2.execute("select * from task_parent_artifacts(%s, 'w1', 1)", (t2,))
+    rows = cur2.fetchall()
+    w.close()
+    assert rows == [], f"без result_ref handoff пуст, получено {rows}"
