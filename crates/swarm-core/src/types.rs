@@ -125,6 +125,22 @@ impl Lease {
     }
 }
 
+/// Итерация 3 (DAG handoff): ссылка на артефакт родительской задачи.
+///
+/// Возвращается RPC `task_parent_artifacts` только держателю живой аренды
+/// дочерней задачи: воркер должен видеть вход, произведённый зависимостями,
+/// не имея прямого `SELECT` к `tasks`/`artifacts`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParentArtifactRef {
+    pub parent_task_id: Uuid,
+    /// `contract.kind` родителя (`coalesce(..., 'task')` для legacy-контрактов).
+    pub parent_kind: String,
+    /// `sha256:<hex>`.
+    pub artifact_ref: String,
+    /// Hex-часть `artifact_ref` без префикса (для сверки содержимого).
+    pub artifact_sha256: String,
+}
+
 /// Вердикт ревьюера.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {

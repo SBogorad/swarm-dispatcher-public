@@ -154,6 +154,11 @@ tests/test_f8_orphan_llm_spend.py
 # выживала (run_arbiters не покрывал этот путь).
 tests/test_worker_identity_f3.py
 
+# Итерация 3 (DAG handoff): новый RPC task_parent_artifacts требует правки
+# SQL-схемы (миграция 013) и своего арбитра. Арбитр — единственный потребитель,
+# на котором мутация S10 (снятие assert_lease) краснеет.
+tests/test_dag_handoff_iteration3.py
+
 # Документация для ИИ-агентов (ночная смена 2026-10-14): как работать с репо.
 # Скоуп гейта — код/инфраструктура; этот текст сюда не относится (как
 # docs/research/* в #40).

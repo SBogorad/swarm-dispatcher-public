@@ -102,10 +102,16 @@ run_arbiters() {
   # вообще содержит identity-строку. Без них S8 выживал: старый
   # test_worker_identity_f3 проверял только register_worker и не вызывал
   # fail_task/fail_task_state от чужого воркера.
+  #
+  # S10 (handoff): test_dag_handoff_iteration3.py — единственный потребитель
+  # task_parent_artifacts. Без явного добавления сюда мутация S10 выживала
+  # (проверено прогоном 38840603168): список арбитров ручной, и тест просто не
+  # исполнялся. Тот же класс, что «проверка, которой нет».
   "$PY" -m pytest -q tests/test_v0.py tests/test_review_gate_f2.py \
         tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py \
         tests/test_worker_identity_f3.py \
-        tests/test_no_duplicate_function_bodies.py >/dev/null 2>&1
+        tests/test_no_duplicate_function_bodies.py \
+        tests/test_dag_handoff_iteration3.py >/dev/null 2>&1
 }
 
 # Чистое пересоздание схемы в disposable-БД.
@@ -265,8 +271,19 @@ run_mutation S9 "complete_task: игнорировать перерасход б
   "v_new := 'review';" \
   "schema/migrations/011_budget_sync_and_root_cap.sql"
 
+# S10 — task_parent_artifacts (Итерация 3, DAG handoff): снять проверку живой
+# аренды. Мутация: RPC отдаёт артефакты родительских задач вообще без
+# `perform assert_lease(...)` — то есть любой воркер читает вход чужой задачи
+# (утечка плана работ графа и содержимого артефактов).
+# Ожидание: tests/test_dag_handoff_iteration3.py краснеет на
+# test_iteration3_requires_live_lease (вместо LS001 — успешное чтение).
+run_mutation S10 "task_parent_artifacts: снять проверку живой аренды (handoff утечка)" \
+  "perform assert_lease(p_task, p_worker, p_epoch);" \
+  "null;" \
+  "schema/migrations/013_task_parent_artifacts.sql"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S9 ===================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S10 ==================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"

@@ -30,6 +30,9 @@ _WAVE4_ARBITER_FILES = (
     "test_review_gate_wave4.py",
     "test_review_gate_f2.py",
     "test_contract_form_f15.py",
+    # Итерация 3 (DAG handoff): RPC task_parent_artifacts проверяет identity
+    # воркера и аренду — тот же W4_*-контракт соединения.
+    "test_dag_handoff_iteration3.py",
 )
 
 
