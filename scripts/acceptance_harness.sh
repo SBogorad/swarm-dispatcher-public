@@ -774,6 +774,14 @@ if [[ -x "$_dg_py" ]]; then
   # swarm), иначе assert_worker_identity в демо обходится. Статический разбор compose.
   run_worktree_step "demo worker role isolation guard" \
     .venv/bin/python -m pytest -q tests/test_demo_worker_roles.py
+  # Ночная смена (2026-10-17, Q3): тот же класс гнили, что в PR #3, но во всём
+  # живом корпусе документов — 59 битых ссылок, из них 34 реальных дефекта
+  # (документы уехали в docs/optional/, integration.rs переименован в
+  # integration_verified.rs, путь монтирования вместо репозиторного). Страж —
+  # статический, БД не требует; замороженные срезы (docs/audit, docs/history)
+  # вне скоупа, живой индекс docs/history/README.md — внутри.
+  run_worktree_step "docs link drift guard (live docs)" \
+    .venv/bin/python -m pytest -q tests/test_docs_link_drift.py
 else
   status BLOCKED "drift guard blocked: .venv with pytest+psycopg2 unavailable"
 fi

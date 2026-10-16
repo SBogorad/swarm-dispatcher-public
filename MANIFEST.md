@@ -12,12 +12,12 @@
 1. `README.md` — что это и как запустить.
 2. `docs/PROJECT_STATE.md` — где мы сейчас.
 3. `docs/METHODOLOGY.md` — как принимаются решения.
-4. `docs/NEXT_STEPS.md` — что делать дальше.
+4. `docs/optional/NEXT_STEPS.md` — что делать дальше.
 5. Остальное — по мере необходимости.
 
 **Если вы ИИ-агент:**
-1. `docs/BRIEF_FOR_AGENTS.md` — что делать и как.
-2. `docs/ROADMAP.md` — где мы в плане.
+1. `docs/optional/BRIEF_FOR_AGENTS.md` — что делать и как.
+2. `docs/optional/ROADMAP.md` — где мы в плане.
 3. Текущее ТЗ (`docs/TZ_vX.Y_*.md`) — конкретная задача.
 4. `docs/ARCHITECTURE.md` — если нужно понять контекст.
 
@@ -121,8 +121,8 @@
 1. `README.md` — 5 минут.
 2. `docs/PROJECT_STATE.md` — 10 минут.
 3. `docs/METHODOLOGY.md` — 10 минут.
-4. `docs/ROADMAP.md` — 10 минут.
-5. `docs/NEXT_STEPS.md` — 5 минут.
+4. `docs/optional/ROADMAP.md` — 10 минут.
+5. `docs/optional/NEXT_STEPS.md` — 5 минут.
 6. `docs/ARCHITECTURE.md` — 20 минут.
 7. `schema/schema_v0.sql` — 30 минут.
 8. `tests/test_v0.py` — 20 минут.
@@ -135,5 +135,5 @@
 
 1. Запустить: `docker compose up -d --build` или `swarm-test start`.
 2. Проверить: `pytest tests/test_v0.py -q` → 26 passed.
-3. Взять задачу из `docs/NEXT_STEPS.md` (ближайшая — step 1 фазы v0.2).
+3. Взять задачу из `docs/optional/NEXT_STEPS.md` (ближайшая — step 1 фазы v0.2).
 4. Перед PR — прочитать `docs/METHODOLOGY.md`, проверить соответствие.

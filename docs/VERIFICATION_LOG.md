@@ -81,7 +81,9 @@
 - `save_artifact` пишет только metadata, не файл.
 - Нет rate limiting, OPA, approvals, мультитенантности.
 
-**Артефакты:** `docs/history/REPORT_v0_e2e.md`, `docs/history/swarm_fixes.diff`.
+**Артефакты:** утрачены — файлы `docs/history/REPORT_v0_e2e.md` и `docs/history/swarm_fixes.diff`
+в репозиторий не попали (проверено 2026-10-17). Запись оставлена как есть: это
+журнал верификаций, а не список существующих файлов.
 
 ---
 

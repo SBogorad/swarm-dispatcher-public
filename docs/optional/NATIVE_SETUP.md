@@ -303,7 +303,7 @@ Native — для dev / research. Compose — для production / демонст
 
 ---
 
-## Файл 8: `docs/BRIEF_FOR_AGENTS.md` (обновлённый)
+## Файл 8: `docs/optional/BRIEF_FOR_AGENTS.md` (обновлённый)
 
 Полная версия — в предыдущем сообщении, здесь только правки:
 

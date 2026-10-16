@@ -63,14 +63,14 @@ batch-сценариев на слабом гетерогенном железе
 1. `RESUME.md` — этот файл.
 2. `docs/PROJECT_STATE.md` — что есть сейчас.
 3. `docs/METHODOLOGY.md` — принципы работы.
-4. `docs/ROADMAP.md` — план v0.1 → v1.0.
-5. `docs/NEXT_STEPS.md` — что делать прямо сейчас.
+4. `docs/optional/ROADMAP.md` — план v0.1 → v1.0.
+5. `docs/optional/NEXT_STEPS.md` — что делать прямо сейчас.
 6. Последнее ТЗ — что делать конкретно.
 7. `docs/ARCHITECTURE.md` — 6 диаграмм.
 
 **Для OpenClaw / агента на ноутбуке:**
 
-1. `docs/BRIEF_FOR_AGENTS.md` — что делать и как.
+1. `docs/optional/BRIEF_FOR_AGENTS.md` — что делать и как.
 2. Текущее ТЗ (`docs/TZ_v0.2_step1_fixes.md`).
 3. `docs/ARCHITECTURE.md` — если нужен контекст.
 
@@ -83,7 +83,7 @@ batch-сценариев на слабом гетерогенном железе
 **Прикрепить в новое сообщение:**
 1. `RESUME.md` (этот файл).
 2. `docs/PROJECT_STATE.md`.
-3. `docs/NEXT_STEPS.md`.
+3. `docs/optional/NEXT_STEPS.md`.
 
 **Написать:**
 > Продолжаем проект Swarm Dispatcher. v0.1 закрыт. Начинается v0.2
@@ -102,7 +102,7 @@ batch-сценариев на слабом гетерогенном железе
 
 **Прикрепить:**
 1. `docs/TZ_v0.2_step1_fixes.md` — текущее ТЗ.
-2. `docs/BRIEF_FOR_AGENTS.md`.
+2. `docs/optional/BRIEF_FOR_AGENTS.md`.
 3. `RESUME.md`.
 
 **Написать:**
@@ -178,7 +178,7 @@ batch-сценариев на слабом гетерогенном железе
 **Приоритет сохранения** (если не успеваете всё):
 1. `RESUME.md` (этот файл) — критично.
 2. `docs/TZ_v0.2_step1_fixes.md` — передать OpenClaw.
-3. `docs/ROADMAP.md` — план.
+3. `docs/optional/ROADMAP.md` — план.
 4. `docs/METHODOLOGY.md` — принципы.
 5. Остальное — по мере.
 

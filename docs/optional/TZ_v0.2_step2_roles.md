@@ -26,7 +26,7 @@
 ## 2. Что сделать
 
 ### 2.1 Инициализация в Docker Compose
-- Смонтировать `roles.sql` в контейнер postgres как `/sql/roles.sql:ro` и добавить скрипт `docker-entrypoint-initdb.d/02-roles.sh`, который запускается **после** `01-schema.sql`:
+- Смонтировать `roles.sql` в контейнер postgres как `/sql/roles.sql:ro` и добавить скрипт `scripts/02-roles.sh` (монтируется в контейнер как `/docker-entrypoint-initdb.d/02-roles.sh`, см. `docker-compose.yml`), который запускается **после** `01-schema.sql`:
   ```sh
   psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
     -v worker_pw="$SWARM_PW_WORKER"     -v watchdog_pw="$SWARM_PW_WATCHDOG" \
@@ -45,7 +45,7 @@
 - Интеграционные Rust-тесты и `test_v0.py` продолжают идти под суперпользователем (так задумано).
 
 ### 2.4 Native-окружение
-Обновить `docs/NATIVE_SETUP.md` и скрипт `swarm-test reset`: после `schema_v0.sql` применять `roles.sql`, пароли генерировать (`head -c 24 /dev/urandom | base64 | tr -d '/+='`), хранить в файле с правами 600. Порт native-базы задаётся переменной `ROLES_PORT` для тестов.
+Обновить `docs/optional/NATIVE_SETUP.md` и скрипт `swarm-test reset`: после `schema_v0.sql` применять `roles.sql`, пароли генерировать (`head -c 24 /dev/urandom | base64 | tr -d '/+='`), хранить в файле с правами 600. Порт native-базы задаётся переменной `ROLES_PORT` для тестов.
 
 ### 2.5 Документация
 - `docs/KNOWN_LIMITATIONS.md`: заменить пункт 2.1 на реальное состояние (см. §5).
