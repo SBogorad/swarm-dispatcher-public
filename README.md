@@ -165,7 +165,9 @@ swarm-dispatcher/
 ├── README.md                    # этот файл
 ├── MANIFEST.md                  # карта репозитория
 ├── CHANGELOG.md                 # история версий
-├── LICENSE                      # MIT
+├── LICENSE                      # MIT (собственный код)
+├── THIRD_PARTY_NOTICES.md       # атрибуция сторонних MIT-источников
+├── LICENSES/                    # тексты лицензий третьих сторон
 ├── Cargo.toml                   # workspace, rust-version = 1.94.1
 ├── Dockerfile                   # rust:1.98-slim + Debian runtime
 ├── docker-compose.yml           # postgres + watchdog + 2 воркера + cli
@@ -258,8 +260,9 @@ docs/METHODOLOGY.md.
 
 Лицензия
 
-MIT. См. LICENSE.
+Собственный код — MIT. См. LICENSE.
 
-```
-
----
+Сторонние материалы: плейбуки и инженерные принципы в
+`crates/swarm-worker/src/playbooks.rs` производны от **pstack**
+(Copyright (c) 2026 Lauren Tan, MIT). Полная атрибуция —
+THIRD_PARTY_NOTICES.md, тексты лицензий — `LICENSES/`.
