@@ -385,7 +385,7 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
             }
         }
         if let Some(ram) = t.needs.get("min_ram_gb").and_then(|v| v.as_f64()) {
-            if !ram.is_finite() || ram < 0.0 || ram > contract_limits::MAX_MIN_RAM_GB {
+            if !ram.is_finite() || !(0.0..=contract_limits::MAX_MIN_RAM_GB).contains(&ram) {
                 return Err(PlannerError::Validation(format!(
                     "task {} needs.min_ram_gb {} out of range 0..={}",
                     t.id,
@@ -395,7 +395,7 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
             }
         }
         if let Some(cc) = t.needs.get("coder_class").and_then(|v| v.as_f64()) {
-            if !cc.is_finite() || cc < 0.0 || cc > contract_limits::MAX_CODER_CLASS {
+            if !cc.is_finite() || !(0.0..=contract_limits::MAX_CODER_CLASS).contains(&cc) {
                 return Err(PlannerError::Validation(format!(
                     "task {} needs.coder_class {} out of range 0..={}",
                     t.id,
