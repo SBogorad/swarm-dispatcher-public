@@ -164,6 +164,67 @@ pub fn deterministic_root_id(text: &str) -> Uuid {
     Uuid::new_v5(&ROOT_NAMESPACE, sha256_hex(text).as_bytes())
 }
 
+/// Итерация 4 (F17): `root_id` с учётом ОБЛАСТИ планирования.
+///
+/// При пустых (или чисто пробельных) `context`/`expected` результат
+/// ПОБАЙТОВО совпадает с [`deterministic_root_id`] — 100% обратная
+/// совместимость со старыми графами и тестами.
+///
+/// При непустом scope `root_id` отличается: один и тот же текст задачи в
+/// разном контексте — разные графы. Роли `context` и `expected` не
+/// смешиваются (раздельные префиксы `ctx\0` / `exp\0`), а NUL-разделитель
+/// исключает инъекцию: `context="a\0expected=b"` не совпадёт с парой
+/// `context="a"`, `expected="b"`.
+pub fn deterministic_root_id_with_scope(
+    text: &str,
+    context: Option<&str>,
+    expected: Option<&str>,
+) -> Uuid {
+    let c = context.map(str::trim).filter(|s| !s.is_empty());
+    let e = expected.map(str::trim).filter(|s| !s.is_empty());
+    if c.is_none() && e.is_none() {
+        return deterministic_root_id(text);
+    }
+    let mut material = String::new();
+    material.push_str("ctx\0");
+    material.push_str(c.unwrap_or(""));
+    material.push_str("\0exp\0");
+    material.push_str(e.unwrap_or(""));
+    material.push('\0');
+    material.push_str(text);
+    Uuid::new_v5(&ROOT_NAMESPACE, sha256_hex(&material).as_bytes())
+}
+
+/// Итерация 4 (вопрос 5 аудита): нормализовать мульти-корневой граф к единому
+/// корню ВМЕСТО отказа и отката на примитивный `rule-based` путь.
+///
+/// Дефект: `validate_graph` отвергал план с более чем одной задачей без
+/// зависимостей, хотя `insert_graph` всё равно перезаписывает корень
+/// синтетическим `root_contract`. На flash-моделях это давало ~40% отказов.
+///
+/// Нормализация: первый безкорневой узел остаётся корнем, все остальные
+/// безкорневые получают его в `depends_on`. Задач не добавляется и не
+/// удаляется — число корней становится ровно 1.
+///
+/// Возвращает `true`, если граф был изменён.
+pub fn normalize_multi_root(graph: &mut PlannedGraph) -> bool {
+    let roots: Vec<usize> = graph
+        .tasks
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| t.depends_on.is_empty())
+        .map(|(i, _)| i)
+        .collect();
+    if roots.len() <= 1 {
+        return false;
+    }
+    let root_id = graph.tasks[roots[0]].id.clone();
+    for &i in &roots[1..] {
+        graph.tasks[i].depends_on.push(root_id.clone());
+    }
+    true
+}
+
 /// Разбор ответа LLM. Выделяет первый JSON-объект из возможной обёртки
 /// (markdown-код-блок, текст вокруг).
 pub fn parse_response(raw: &str) -> Result<PlannedGraph> {
@@ -340,7 +401,12 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
         }
     }
 
-    // g. ровно один корень (depends_on пуст)
+    // g. ровно один корень (depends_on пуст).
+    //
+    // Инвариант ПОСЛЕ нормализации: сырой ответ LLM с несколькими корнями
+    // чинит `normalize_multi_root` до вызова этой функции (см. Итерацию 4,
+    // вопрос 5 аудита). Здесь остаётся жёсткая проверка как страховка —
+    // вставляемый в БД граф обязан иметь ровно один корень.
     let roots: Vec<&str> = graph
         .tasks
         .iter()
@@ -349,7 +415,7 @@ pub fn validate_graph(graph: &PlannedGraph, limits: &Limits) -> Result<()> {
         .collect();
     if roots.len() != 1 {
         return Err(PlannerError::Validation(format!(
-            "expected exactly one root, got {}",
+            "expected exactly one root, got {} (normalize_multi_root должен был свести к одному)",
             roots.len()
         )));
     }
@@ -548,6 +614,99 @@ mod tests {
         let a = deterministic_root_id("Рефакторинг auth");
         let b = deterministic_root_id("Рефакторинг db");
         assert_ne!(a, b);
+    }
+
+    // ---------- Итерация 4: root_id с областью планирования (F17) ----------
+
+    #[test]
+    fn scoped_root_id_without_scope_equals_plain() {
+        // 100% обратная совместимость: пустой/пробельный scope не меняет id.
+        let text = "Рефакторинг auth";
+        let plain = deterministic_root_id(text);
+        assert_eq!(deterministic_root_id_with_scope(text, None, None), plain);
+        assert_eq!(
+            deterministic_root_id_with_scope(text, Some("  "), Some("")),
+            plain
+        );
+    }
+
+    #[test]
+    fn scoped_root_id_differs_on_context() {
+        let text = "Рефакторинг auth";
+        let a = deterministic_root_id_with_scope(text, Some("ctxA"), None);
+        let b = deterministic_root_id_with_scope(text, Some("ctxB"), None);
+        assert_ne!(a, b);
+        assert_ne!(a, deterministic_root_id(text));
+    }
+
+    #[test]
+    fn scoped_root_id_context_and_expected_do_not_collide() {
+        // Роли context и expected не смешиваются: один и тот же текст в
+        // разных полях даёт разные id.
+        let text = "Рефакторинг auth";
+        let as_context = deterministic_root_id_with_scope(text, Some("a"), None);
+        let as_expected = deterministic_root_id_with_scope(text, None, Some("a"));
+        assert_ne!(as_context, as_expected);
+    }
+
+    #[test]
+    fn scoped_root_id_immune_to_separator_injection() {
+        // NUL-разделитель: context="a\0expected=b" не совпадает с
+        // парой context="a", expected="b".
+        let text = "Рефакторинг auth";
+        let injected = deterministic_root_id_with_scope(text, Some("a\0expected=b"), None);
+        let pair = deterministic_root_id_with_scope(text, Some("a"), Some("b"));
+        assert_ne!(injected, pair);
+    }
+
+    // ---------- Итерация 4: нормализация мульти-корня (вопрос 5) ----------
+
+    #[test]
+    fn normalize_multi_root_welds_to_single_root() {
+        let mut gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec![]),
+            ok_task("t3", vec!["t1"])
+        ]));
+        assert!(normalize_multi_root(&mut gr));
+        // Ровно один корень, и это первый безкорневой узел.
+        let roots: Vec<&str> = gr
+            .tasks
+            .iter()
+            .filter(|t| t.depends_on.is_empty())
+            .map(|t| t.id.as_str())
+            .collect();
+        assert_eq!(roots, vec!["t1"]);
+        // t2 подвешен под t1, t3 не тронут.
+        let t2 = gr.tasks.iter().find(|t| t.id == "t2").unwrap();
+        assert_eq!(t2.depends_on, vec!["t1".to_string()]);
+        let t3 = gr.tasks.iter().find(|t| t.id == "t3").unwrap();
+        assert_eq!(t3.depends_on, vec!["t1".to_string()]);
+        // После нормализации граф валиден.
+        assert!(validate_graph(&gr, &Limits::default()).is_ok());
+    }
+
+    #[test]
+    fn normalize_multi_root_noop_on_single_root() {
+        let mut gr = g(serde_json::json!([
+            ok_task("t1", vec![]),
+            ok_task("t2", vec!["t1"])
+        ]));
+        assert!(!normalize_multi_root(&mut gr));
+        assert!(validate_graph(&gr, &Limits::default()).is_ok());
+    }
+
+    #[test]
+    fn normalize_multi_root_three_roots_all_welded() {
+        let mut gr = g(serde_json::json!([
+            ok_task("a", vec![]),
+            ok_task("b", vec![]),
+            ok_task("c", vec![])
+        ]));
+        assert!(normalize_multi_root(&mut gr));
+        let roots = gr.tasks.iter().filter(|t| t.depends_on.is_empty()).count();
+        assert_eq!(roots, 1, "остался ровно один корень");
+        assert!(validate_graph(&gr, &Limits::default()).is_ok());
     }
 
     // ---------- F7: контроль контрактов планировщика ----------
