@@ -233,3 +233,12 @@ docs/TZ_v0.2_step1_fixes.md
 docs/TZ_v0.2_step2_planner.md
 docs/TZ_v0.3_llm_worker.md
 docs/TZ_v0.4_shell_tools_sandbox.md
+
+# Лицензионная атрибуция (2026-10-17). Публичный репозиторий содержит текст,
+# производный от pstack (MIT, Lauren Tan): `crates/swarm-worker/src/playbooks.rs`
+# прямо декларирует происхождение. MIT требует сохранять copyright notice и
+# текст лицензии — значит LICENSE/NOTICES это инфраструктура публикации, а не
+# «просто docs». Скоуп гейта — код/инфраструктура, поэтому пути включены.
+LICENSE
+THIRD_PARTY_NOTICES.md
+LICENSES/*
