@@ -106,6 +106,11 @@ pub const CANONICAL_KINDS: &[&str] = &[
     "code.refactor",
     "code.perf",
     "code.verify",
+    // Итерация 4 (`arena`): независимый кандидат и вершина-синтезатор.
+    // Синтезатор зависит от N кандидатов через `task_deps` и получает их
+    // превью через `load_parent_previews()` (handoff, PR #58).
+    "code.arena_candidate",
+    "code.arena_synthesize",
     "root",
 ];
 

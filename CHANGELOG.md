@@ -70,6 +70,47 @@ Release-tag требует acceptance harness с `--full-workspace-test`, стр
   `promote_ready` + `claim` + `heartbeat` на двух независимых графах — без
   дедлоков, промоушен не теряется.
 
+### Added (Итерация 4 — боевые протоколы pstack в Rust-ядре — 2026-10-17)
+
+- **`crates/swarm-worker/src/playbooks.rs` — полные протоколы вместо выжимок.**
+  `CORE_PRINCIPLES` расширен шестью принципами, которые раньше не доезжали до
+  модели: Attack the Premise, Type System Discipline, Make Operations Idempotent,
+  Test Behavior Not Implementation, Explain the Number, Show Me Your Work
+  (последний задаёт секцию `## Decision Trail`). Плейбуки по видам задач
+  переписаны по дословным текстам `skills/`: `code.bugfix` — четыре фазы
+  диагностики (тесная петля → минимизация → опровержимые гипотезы → фикс
+  первопричины + регресс-тест); `code.architect` — Usage First, Data Structures
+  First, Design It Twice и 8 красных флагов дизайна; `code.perf` — 7 вопросов
+  `benchmark-checklist` и 7 мантр; `code.verify` — фальсифицируемый предикат,
+  blast-radius, вердикт VERIFIED/NOT VERIFIED/INCONCLUSIVE; `code.investigate` —
+  механика vs мотивация и уровни уверенности `[Direct]`/`[Inferred]`/…;
+  `code.refactor` — characterization pin, subtract-before-add, одна волна
+  миграции вызывающих.
+- **`crates/swarm-reviewer/src/main.rs` — строгий режим рубрики.** Новая
+  переменная `REVIEW_REQUIRE_DECISION_TRAIL` (дефолт `0`): при включении артефакт
+  обязан нести секцию `## Decision Trail` (markdown-таблица или TSV из
+  `show-me-your-work`) с проверяемыми `evidence`. `evidence` признаётся
+  указателем только при пути/`file:line`, ссылке на артефакт (`sha256:`, `PR #`,
+  SHA коммита ≥ 7 hex) или проверяемой команде/результате (`cargo `, `pytest`,
+  `rc=0`, …); стоп-лист `""`/`"-"`/`"n/a"`/`"todo"`/`"ok"`/`"did"` и проза
+  отклоняются с меткой `[RUBRIC:TRAIL]`. Анти-слоп фильтр `[RUBRIC:UNSLOP]`
+  расширен маркерами `NotImplementedError`, `PLACEHOLDER`, `lorem ipsum`,
+  `not implemented yet`.
+- **Режим `Arena` (`arena/SKILL.md`).** В `CANONICAL_KINDS` (`parse.rs`) и в
+  каталог промпта планировщика добавлены `code.arena_candidate` (независимый
+  кандидат со своим вариантом и обоснованием отвергнутых альтернатив) и
+  `code.arena_synthesize` (выбор базы среди кандидатов через `task_deps` и
+  вживление лучших частей проигравших). Плейбуки обоих видов — в `playbooks.rs`.
+- **Контуры включают строгий режим:** `REVIEW_REQUIRE_DECISION_TRAIL: "1"`
+  в `docker-compose.yml`, `docker-compose.demo.yml` (сервис ревьюера) и
+  `REVIEW_REQUIRE_DECISION_TRAIL=1` в `.env.example`.
+
+### Changed
+
+- `docs/KNOWN_LIMITATIONS.md` и `tests/test_known_limitations_refs.py`: анкер
+  `crates/swarm-planner/src/parse.rs:163` → `:168` (два новых `kind` сдвинули
+  `deterministic_root_id`). Страж поймал сдвиг сам — правка механическая.
+
 ### Added (миграционный раннер для живого тома — §5.3)
 
 - **`scripts/apply_migrations.sh`** — раннер миграций для УЖЕ СУЩЕСТВУЮЩЕГО тома
