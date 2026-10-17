@@ -1,0 +1,63 @@
+version: 2
+
+updates:
+  # Rust workspace — one entry, Cargo.lock at the root covers all crates.
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Asia/Krasnoyarsk"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+    groups:
+      # AWS SDK crates move together: bumping one alone leaves two TLS stacks
+      # in the tree, which is exactly how rustls-webpki 0.101.7 survived
+      # (see PR #6). Keep them in a single PR.
+      aws-sdk:
+        patterns:
+          - "aws-*"
+      # Dev-only churn should never crowd out a security update.
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+
+  # GitHub Actions used by the release gate and secret scan.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - dependencies
+      - ci
+
+  # Python tooling for the arbiters and harness (pip requirements, if added).
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - python
+    open-pull-requests-limit: 3
+
+  # Base images: the Rust builder and the Postgres service.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - dependencies
+      - docker

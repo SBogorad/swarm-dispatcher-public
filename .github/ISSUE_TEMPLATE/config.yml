@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/xodapi/swarm-dispatcher-public/security/advisories/new
+    about: Report privately. Do not open a public issue — see SECURITY.md.
+  - name: Known limitations
+    url: https://github.com/xodapi/swarm-dispatcher-public/blob/main/docs/KNOWN_LIMITATIONS.md
+    about: Many surprising behaviours are documented, accepted limitations. Check here first.
+  - name: Architecture and design decisions
+    url: https://github.com/xodapi/swarm-dispatcher-public/blob/main/docs/ARCHITECTURE.md
+    about: Why Postgres, why no Redis, why leases work the way they do.

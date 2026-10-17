@@ -1,268 +1,321 @@
+<div align="center">
+
 # Swarm Dispatcher
 
-Reference implementation распределённой оркестрации задач для сценариев,
-где важна выполнимость на слабом гетерогенном железе, а не latency.
+**Postgres-centric orchestration for AI agent swarms on cheap, heterogeneous hardware.**
 
-## Что это
+[![release-gate](https://github.com/xodapi/swarm-dispatcher-public/actions/workflows/release-gate.yml/badge.svg)](https://github.com/xodapi/swarm-dispatcher-public/actions/workflows/release-gate.yml)
+[![secret-scan](https://github.com/xodapi/swarm-dispatcher-public/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/xodapi/swarm-dispatcher-public/actions/workflows/secret-scan.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Rust 1.94.1+](https://img.shields.io/badge/rust-1.94.1%2B-orange.svg)](Cargo.toml)
+[![Postgres 16+](https://img.shields.io/badge/postgres-16%2B-336791.svg)](schema/schema_v0.sql)
 
-Postgres-центричный диспетчер задач с канбан-подобным контролем состояний.
-Один источник истины, fencing tokens, хэш-цепочка событий, recursive cascade.
-Без Redis, без внешнего durable execution, без OPA (в v0.1).
+[Русская версия](README.ru.md) · [Architecture](docs/ARCHITECTURE.md) · [Known limitations](docs/KNOWN_LIMITATIONS.md) · [Changelog](CHANGELOG.md)
 
-**Подходит для:**
-- Batch-обработки больших задач (рефакторинг, анализ корпуса, генерация).
-- Гетерогенного железа (разные модели у разных воркеров, разные RAM/GPU).
-- Сценариев, где «8 часов на выполнение» — приемлемо.
-- Локальных кластеров без облачных зависимостей.
-
-**Не подходит для:**
-- Интерактивных ассистентов (latency критична).
-- Real-time систем.
-- Одного воркера на одной машине (оверкилл, используйте проще).
+</div>
 
 ---
 
-## Требования
+## Why this exists
 
-- **Rust 1.94.1+** (из-за `edition2024` в транзитивных зависимостях; MSRV
- задан в `Cargo.toml` как `rust-version = "1.94.1"`).
-- **Postgres 16+** (проверено на 16.4 и 18.6).
-- **Docker + Docker Compose** (для production-пути).
-- ИЛИ **Linux + Postgres в user-space** (для dev-пути без root).
+Most agent orchestrators optimise for **latency** and assume a homogeneous fleet
+with a reliable network. That is the wrong trade-off for a large class of real
+work: refactoring a repository, analysing a corpus, generating thousands of
+artefacts. Here a task may legitimately run for eight hours, workers differ in
+RAM and GPU, and the machine holding a lease may simply die.
+
+Swarm Dispatcher optimises for **completability on unreliable, heterogeneous
+hardware**. It is a control plane, not a runtime: it decides *who may do what,
+for how long, and at what cost* — and it keeps that decision auditable even when
+a worker lies, stalls, or disappears.
+
+**Good fit**
+
+- Batch work measured in hours, not milliseconds
+- Mixed fleets — different models, different hardware, different throughput
+- Local clusters with no cloud dependency
+- Budgets that must be enforced, not merely reported
+
+**Poor fit**
+
+- Interactive assistants where latency is the product
+- Real-time systems
+- A single worker on a single machine — this is overkill; use something simpler
 
 ---
 
-## Быстрый старт (Docker Compose)
+## What it is
+
+A kanban-like task state machine whose **only source of truth is PostgreSQL 16+**.
+No Redis, no external durable-execution service, no policy engine.
+
+Six tables (`tasks`, `artifacts`, `task_deps`, `workers`, `events`, `reviews`),
+25 SQL functions, and eight task states:
+
+```
+pending → ready → leased → review → done
+             ↑        │        │
+             │        ↓        │
+          blocked ← failed     │
+             ↑                 │
+     budget_exhausted          │
+                               │
+  review verdicts ─────────────┘
+    approved                 → done
+    changes_requested        → ready  (rework + 1)
+    rejected                 → blocked (block_reason = 'rejected')
+    changes_requested when rework is exhausted → blocked (max_rework)
+```
+
+State transitions happen **inside SQL functions**, not in application code.
+A worker cannot move a task by writing to a table; it can only call
+`claim_task`, `save_artifact`, `complete_task`, `submit_review` and friends,
+each of which validates identity, lease, and contract.
+
+### The four guarantees
+
+| Guarantee | Mechanism |
+|---|---|
+| **No zombie workers** | Fencing token `tasks.lease_epoch` — a monotonic counter, not a UUID. Every write re-checks it; a resurrected worker's lease is stale by construction. |
+| **No silent history rewrite** | Per-task hash chain (`prev_hash` → `hash`) over `events`, verified by `verify_chain`. Tampering is *detectable*, not prevented — see [limitations](docs/KNOWN_LIMITATIONS.md). |
+| **No orphaned descendants** | Recursive cascade: `reopen_task` rolls back the entire subtree, `fail_task` blocks dependants rather than leaving them `ready`. |
+| **No unbounded spend** | Cost ledger checked *before* each LLM call, fail-closed. `MAX_TOTAL_COST_USD`, per-run `MAX_LLM_CALLS` / `MAX_DURATION_SEC`, circuit breaker on 401/403. |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph actors["Actors"]
+        Human["Operator"]
+        Planner["swarm-planner<br/>LLM decomposition"]
+    end
+
+    subgraph control["Control plane (Rust)"]
+        Core["swarm-core<br/>SwarmDispatcher · types · errors"]
+        Watchdog["swarm-watchdog<br/>reclaim_expired · promote_ready"]
+        CLI["swarm-cli<br/>seed · status · review · reopen · unblock"]
+        Reviewer["swarm-reviewer<br/>review → done"]
+    end
+
+    subgraph data["Source of truth"]
+        PG[("PostgreSQL 16+<br/>6 tables · 25 functions<br/>FSM · leases · hash chain")]
+    end
+
+    subgraph exec["Execution plane"]
+        W1["swarm-worker<br/>agent loop"]
+        W2["swarm-worker<br/>agent loop"]
+        SB["Sandbox<br/>cap_drop ALL · read_only<br/>network none"]
+        LLM["LLM API"]
+    end
+
+    Human --> CLI
+    Planner -->|creates task graph| Core
+    CLI --> Core
+    Watchdog --> Core
+    Reviewer --> Core
+    Core --> PG
+    W1 -->|claim · heartbeat · complete| PG
+    W2 -->|claim · heartbeat · complete| PG
+    W1 -.-> SB
+    W2 -.-> SB
+    W1 -.-> LLM
+    W2 -.-> LLM
+```
+
+Six C4 diagrams — context, containers, data, states, flows, deployment — live in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+**Identity is a database role, not a bearer token.** Each worker connects as its
+own Postgres role (`swarm_worker_w1`, `swarm_worker_w2`, …); `claim_task` and
+friends call `assert_lease`, which compares `current_user` against the lease
+owner. A worker cannot claim another worker's task by passing a different ID —
+there is no ID to pass.
+
+---
+
+## Quick start
+
+### Docker Compose
 
 ```bash
-# 1. Клонировать
-git clone <repo> && cd swarm-dispatcher
+git clone https://github.com/xodapi/swarm-dispatcher-public.git
+cd swarm-dispatcher-public
 
-# 2. Создать .env
+# .env with the service-role passwords (see .env.example for the full list)
 printf 'DB_PASSWORD=%s\n' "$(head -c 24 /dev/urandom | base64 | tr -d '/+=')" > .env
 
-# 3. Поднять стек
 docker compose up -d --build
-
-# 4. Проверить, что всё работает
-docker compose logs watchdog | tail -5
-
-# 5. Создать демо-задачи
 docker compose run --rm --no-deps cli swarm-cli seed
-
-# 6. Посмотреть статус
 docker compose run --rm --no-deps cli swarm-cli status
 ```
 
-Через 60 секунд должно быть видно: задачи в review и ready, в логах
-сторожа — {"reclaimed": 1}.
+Within about a minute you should see tasks sitting in `review` and `ready`, and
+a JSON event with `"reclaimed": 1` in the watchdog log — that line is the
+fencing mechanism proving itself on a deliberately expired lease.
 
-Важно: CLI запускается через docker compose run --rm --no-deps cli
-swarm-cli <command>. Не через docker compose run --rm cli seed — там
-compose подменяет entrypoint.
+> **Note on the CLI.** Always invoke it as
+> `docker compose run --rm --no-deps cli swarm-cli <command>`.
+> Without `--no-deps`, Compose overrides the container entrypoint.
 
-Порядок применения SQL (важно)
+### Demo console
 
-Роли и патчи применяются строго в этом порядке (это же порядок в
-`docker-compose.yml` через `/docker-entrypoint-initdb.d/`):
+```bash
+./scripts/start_demo.sh            # builds, starts, opens the browser
+./scripts/start_demo.sh --no-open  # headless
+./scripts/start_demo.sh --down     # stop and remove, including the database
+```
+
+A kanban board plus swarm view backed entirely by the engine's own database —
+no terminal, no `cargo test` on screen. See [demo/README.md](demo/README.md).
+
+### Without Docker
+
+Postgres in user space, no root required — see
+[docs/optional/NATIVE_SETUP.md](docs/optional/NATIVE_SETUP.md).
+
+---
+
+## Components
+
+| Crate | Role |
+|---|---|
+| `swarm-core` | Dispatcher, transaction wrapper, domain types, error codes |
+| `swarm-llm` | HTTP LLM client: `openai`, `anthropic`, `openai-compatible`, `mock`; retries, body truncation |
+| `swarm-planner` | LLM task decomposition plus a plan validator that rejects malformed graphs |
+| `swarm-worker` | Agent loop, shell-tool allowlist, playbooks, cost ledger |
+| `swarm-reviewer` | Independent acceptance — reads the artefact, never invents a pass |
+| `swarm-watchdog` | `reclaim_expired` + `promote_ready` every 30 s |
+| `swarm-cli` | `seed`, `status`, `review`, `reopen`, `unblock` |
+
+SQL is applied in a fixed order; the sequence matters because later patches
+redefine function bodies:
 
 ```
 schema/schema_v0.sql
   → step2/roles.sql
   → step2b/roles_2b.sql
   → step2/roles_patch_planner_status.sql
-  → step2/roles_patch_tool_call_audit.sql   (v0.4: аудит tool calls)
+  → step2/roles_patch_tool_call_audit.sql
 ```
 
-`step2/roles.sql` не меняется (принят в step 2). Новые гранты
-добавляются отдельными патч-файлами вида `step2/roles_patch_*.sql`.
-При применении вручную (без Docker) — выполнить все пять файлов
-по порядку, иначе роли не получат нужных прав.
+Then the 14 incremental migrations in `schema/migrations/` (001–014), which are
+additive and safe on a live volume.
 
 ---
 
-Быстрый старт (без Docker)
+## Verification
+
+This repository is built around the idea that **a check which cannot fail is
+worse than no check**. That principle is enforced on the checks themselves.
 
 ```bash
-# 1. Установить Postgres в user-space (см. docs/optional/NATIVE_SETUP.md)
-# 2. Собрать
-cargo build --release
-
-# 3. Запустить Postgres
-~/.local/bin/swarm-test start
-
-# 4. Создать задачи
-~/.local/bin/swarm-test seed
-
-# 5. Запустить сторож и воркеры (в отдельных терминалах)
-~/.local/bin/swarm-test watchdog
-WORKER_ID=worker-1 ~/.local/bin/swarm-test worker
-
-# 6. Проверить статус
-~/.local/bin/swarm-test cli status
+# Full STRICT gate — mirrors CI exactly
+scripts/acceptance_harness.sh --base main --branch HEAD \
+  --full-workspace-test --allowlist-file scripts/acceptance_allowlist.txt
 ```
 
-Подробнее — docs/optional/NATIVE_SETUP.md.
+The gate runs 44 checks against a disposable PostgreSQL container: FSM
+invariants, RBAC, review-gate triads, worker identity, planner validation,
+sandbox escape attempts, backup/restore round-trip, doc-link drift, ast-grep
+architecture rules, and Rust unit plus integration tests.
+
+| Layer | What it proves |
+|---|---|
+| **Python arbiters** (158 tests) | SQL-level invariants against a real database: leases, cascades, identity, review gate |
+| **Rust tests** (302 test functions) | Library and binary behaviour, sandbox boundaries, retry and budget logic |
+| **Mutation testing** | Rust M1–M6 and SQL S1–S14 — a surviving mutant fails the build |
+| **Secret scan** | Pre-commit hook plus CI; scans the diff for real `.env` values, self-tested |
+| **ast-grep rules** | `no-unwrap-in-production`, `no-hardcoded-secrets`, `required-error-context` |
+| **Attestation** | Each run emits `harness-*.attestation.json` with `release_gate: STRICT`, `blocked_count: 0`, and the concrete test names that ran |
+
+Deliberate failure modes: a step that cannot run is `BLOCKED`, never `PASS`.
+A negative control that greps for nothing is itself a defect — one such
+vacuous check was found and fixed in v0.5.2.
+
+Benchmarks and their caveats — including a claim-latency target that was **not**
+met — are reported honestly in [bench/REPORT.md](bench/REPORT.md).
 
 ---
 
-Что уже работает
+## Security model
 
-· Postgres 16+ — единственный источник истины.
-· 19 SQL-функций (schema_v0.sql) + `task_status` (roles.sql) + `record_tool_call`
-  (roles_patch_tool_call_audit.sql); всего 23 после применения
-  roles.sql → roles_2b.sql → roles_patch_planner_status.sql → roles_patch_tool_call_audit.sql:
-  add_task, add_dep, claim_task, heartbeat,
-  save_artifact, complete_task, submit_review, reclaim_expired,
-  reopen_task, unblock_task, promote_ready, register_worker,
-  append_event, verify_chain + 6 вспомогательных.
-· 30 тестов на инварианты: pytest tests/test_v0.py -> 30 passed (v0.5).
-· Rust-тесты воркспейса: 118 lib + интеграционные (`integration_verified`, `integration_alt`, `worker_*`); полный прогон — `scripts/acceptance_harness.sh --full-workspace-test` (536 имён тестов, STRICT).
-· v0.4: shell tools в Docker-sandbox (allowlist deny-by-default, timeout,
-  лимит вывода, audit `tool_call`); unit 35 + integration 9.
-· Fencing token через lease_epoch — защита от зомби-воркеров.
-· Хэш-цепочка событий — non-repudiation.
-· Recursive cascade — откат всего поддерева графа.
-· **Issue #3/#4: предохранители расходов и контролируемый проход.** Глобальный
-  лимит `MAX_TOTAL_COST_USD` (из cost ledger, fail-closed) и circuit breaker на
-  401/403; жёсткие пределы прохода `MAX_LLM_CALLS` / `MAX_DURATION_SEC` и режим
-  `RUN_ONCE=1` (одна задача — один проход). 0 = без лимита.
-· **Issue #7/#10: выбор модели по цене успешного результата.** Модель выбирается
-  не по названию, а по измеренной стоимости доведённой до `done` задачи
-  (`cost_per_success_usd`). Каталог цен — из `GET /api/pricing` relay.fast
-  (`scripts/fetch_model_catalog.py`), статистика качества — из view
-  `llm_model_quality` (миграция 010, `scripts/model_quality_report.py`).
-  Включается `SWARM_MODEL_AUTOSELECT=1`; по умолчанию выключено — модель
-  берётся из `LLM_MODEL`, поведение не меняется.
-· **Issue #1: архитектурные проверки ast-grep.** Три AST-правила в
-  `.ast-grep/rules/` (`no-unwrap-in-production`, `no-hardcoded-secrets`,
-  `required-error-context`) + фикстуры в `.ast-grep/tests/`. Гоняются в
-  `scripts/acceptance_harness.sh` (`ast-grep test` + `ast-grep scan --error`)
-  и в CI (`release-gate.yml`, до сборки). Локально: `ast-grep scan --error`.
-  Подавление одной находки — `// ast-grep-ignore: <rule-id>`.
+- **Least privilege by role.** `swarm_worker`, `swarm_reviewer`, `swarm_planner`,
+  `swarm_operator`, `swarm_cli`, `swarm_watchdog` are separate Postgres roles.
+  The reviewer has no `SELECT` on `tasks`/`artifacts`; it goes through
+  `review_candidates` and `submit_review`.
+- **Deny-by-default shell tools.** `WORKER_SHELL_TOOLS=0` by default. When
+  enabled, `ALLOWED_GIT_SUBCMDS` / `ALLOWED_CARGO_SUBCMDS` whitelist
+  subcommands, not just options — `git config core.pager "sh -c ..."` is a real
+  RCE vector that an options-only filter misses.
+- **Sandbox.** `cap_drop: ALL`, `read_only: true`, `network: none`, pids/memory/
+  CPU limits, output cap, per-command timeout. Docker socket access is documented
+  as a risk, with a socket-proxy alternative in
+  [ops/docker-socket-proxy.md](ops/docker-socket-proxy.md).
+- **No secrets in history.** The scanner compares the diff against real values
+  read from local `.env*` files; a fresh clone with no `.env` must not block
+  commits (a regression here was found and fixed).
+
+Threat model and residual risks: [docs/optional/THREAT_MODEL.md](docs/optional/THREAT_MODEL.md).
 
 ---
 
-Что не в v0.1
+## Known limitations
 
-· OPA / Policy Engine (v2).
-· Approvals с Ed25519 / Trust Registry (v2).
-· OpenTelemetry (v1).
-· Rate limiting (v1).
-· Мультитенантность (v2).
-· Реальный LLM в воркере (v0.3).
-· Planner / LLM-декомпозиция (v0.2).
-· Веб-доска (v0.4).
+Stated plainly, because a reference implementation that hides its edges is not a
+reference:
 
-Полный список — docs/optional/ROADMAP.md и docs/KNOWN_LIMITATIONS.md.
+1. **Worker identity is a DB role, not mTLS.** A compromised host with valid
+   credentials is indistinguishable from the real worker.
+2. **The event log is tamper-*evident*, not tamper-*proof*.** The hash chain
+   detects rewriting; a trigger does not yet prevent `UPDATE`/`DELETE`.
+3. **No rate limiting, no OPA, no Ed25519 approvals.** All deferred to later
+   versions by design.
+4. **A single Postgres is a bottleneck.** Vertical scaling only for now.
+5. **No OpenTelemetry, no dashboard, no alerts.** Logs and SQL, deliberately.
+6. **No git integration** in the worker.
+7. **Planner on flash-tier models sometimes emits extra roots** — mitigated by
+   `normalize_multi_root`, not eliminated.
 
----
-
-Структура
-
-```
-swarm-dispatcher/
-├── README.md                    # этот файл
-├── MANIFEST.md                  # карта репозитория
-├── CHANGELOG.md                 # история версий
-├── LICENSE                      # MIT (собственный код)
-├── THIRD_PARTY_NOTICES.md       # атрибуция сторонних MIT-источников
-├── LICENSES/                    # тексты лицензий третьих сторон
-├── Cargo.toml                   # workspace, rust-version = 1.94.1
-├── Dockerfile                   # rust:1.98-slim + Debian runtime
-├── docker-compose.yml           # postgres + watchdog + 2 воркера + cli
-├── .env.example
-│
-├── schema/
-│   └── schema_v0.sql            # DDL + 19 функций
-│
-├── step2/
-│   ├── roles.sql                # роли + task_status (принят, не менять)
-│   └── roles_patch_planner_status.sql  # патч гранта (после roles/roles_2b)
-│
-├── step2b/
-│   └── roles_2b.sql             # идентификация воркера
-│
-├── crates/
-│   ├── swarm-core/              # библиотека
-│   ├── swarm-watchdog/          # сторож
-│   ├── swarm-worker/            # воркер
-│   └── swarm-cli/               # CLI
-│
-├── tests/                       # Python-арбитры (Postgres)
-│   ├── test_v0.py               # 30 SQL-тестов инвариантов
-│   └── test_{contract_f15,fail_unblock_f4,find04_*,review_gate_*,
-│       worker_identity_f3}.py   # арбитры волны 4 (триады)
-│
-├── crates/*/tests/              # Rust-интеграция по крейтам
-│   ├── swarm-core/tests/integration_verified.rs
-│   ├── swarm-core/tests/alt/integration_alt.rs
-│   ├── swarm-worker/tests/{runtime_gate,worker_sandbox,worker_integration}.rs
-│   └── swarm-planner/tests/planner_integration.rs
-│
-└── docs/                        # см. MANIFEST.md
-```
+The maintained list, with per-item status, is
+[docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ---
 
-Коды ошибок
+## Documentation
 
-Код Когда возникает
-LS001 Запись с чужим, устаревшим или истёкшим lease
-AR001 complete с неизвестным result_ref
-CT001 Нет checks или нечисловое поле в контракте
-GR000–GR009 Ошибки графа (цикл, глубина, лимиты)
-RV001–RV003 Ошибки ревью (устаревшее, self-review, checks)
-WK001–WK002 Ошибки воркера (невалидный, не зарегистрирован)
-
-Полная таблица — docs/optional/ERRORS.md.
-
-### Контракт рецензента (ломающее изменение)
-
-Начиная с v0.4.2 (ужесточение гейта `submit_review`, коммит `b9ea4d0`),
-каждая проверка из `checks` контракта должна вернуться с совпадающим ключом:
-
-- если в контракте у проверки был `id` — рецензент **обязан** вернуть тот же
-  `id`;
-- если `id` не было — должны совпасть `type` и `run` (команда проверки).
-
-Возврат checks без `id` и без `run` отклоняется (`RV002/RV003`). Старые
-клиенты рецензента, отправлявшие `{"type": "cmd", "status": "pass"}` без
-`run`, должны его добавить.
+| Document | Contents |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Six C4 diagrams: context, containers, data, states, flows, deployment |
+| [docs/PROJECT_STATE.md](docs/PROJECT_STATE.md) | What exists today, component by component |
+| [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) | Every limitation, with status and rationale |
+| [docs/METHODOLOGY.md](docs/METHODOLOGY.md) | How this project is built and reviewed |
+| [docs/optional/ROADMAP.md](docs/optional/ROADMAP.md) | Version plan |
+| [docs/optional/ERRORS.md](docs/optional/ERRORS.md) | Error code reference |
+| [docs/optional/ARCHITECTURE_DECISIONS.md](docs/optional/ARCHITECTURE_DECISIONS.md) | Why Postgres, why no Redis, why no OPA |
+| [docs/optional/NATIVE_SETUP.md](docs/optional/NATIVE_SETUP.md) | Postgres in user space, no root |
+| [docs/ci/CI_COST.md](docs/ci/CI_COST.md) | What CI costs and how to reduce it |
+| [MANIFEST.md](MANIFEST.md) | Map of every path in the repository |
+| [docs/AGENTS.md](docs/AGENTS.md) | Brief for AI agents working in this repo |
 
 ---
 
-Известные ограничения v0.1
+## Contributing
 
-1. save_artifact пишет только metadata, файл на диск не пишется.
-2. Worker — заглушка (sleep), реального LLM нет.
-3. Planner (LLM-декомпозиция) отсутствует.
-4. Веб-доски нет — только cli status.
-5. worker_id не аутентифицирован.
-6. Нет backup / restore.
+Read [CONTRIBUTING.md](CONTRIBUTING.md). In short: one logical change per PR,
+the STRICT gate must be green, no direct pushes to `main`, and every claim in a
+commit message must be reproducible from the diff.
 
-Полный список — docs/KNOWN_LIMITATIONS.md.
+Found a security issue? [SECURITY.md](SECURITY.md) explains the private channel.
 
 ---
 
-Дальше
+## License
 
-План развития — docs/optional/ROADMAP.md. Ближайший шаг — v0.2: правки v0.1
+Own code — MIT, see [LICENSE](LICENSE).
 
-· Planner. Текущее ТЗ — docs/TZ_v0.2_step1_fixes.md.
-
-Для ИИ-агентов: docs/optional/BRIEF_FOR_AGENTS.md — что делать и как.
-
-Для новых участников: MANIFEST.md → docs/PROJECT_STATE.md →
-docs/METHODOLOGY.md.
-
----
-
-Лицензия
-
-Собственный код — MIT. См. LICENSE.
-
-Сторонние материалы: плейбуки и инженерные принципы в
-`crates/swarm-worker/src/playbooks.rs` производны от **pstack**
-(Copyright (c) 2026 Lauren Tan, MIT). Полная атрибуция —
-THIRD_PARTY_NOTICES.md, тексты лицензий — `LICENSES/`.
+Playbooks and engineering principles in `crates/swarm-worker/src/playbooks.rs`
+are derived from **pstack** (Copyright © 2026 Lauren Tan, MIT). Full attribution
+in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); license texts in
+`LICENSES/`.
