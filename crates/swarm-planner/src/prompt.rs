@@ -42,6 +42,10 @@ pub fn system_prompt(limits: &Limits) -> String {
 - code.refactor — изменение структуры без изменения поведения.
 - code.perf — ускорение относительно зафиксированного baseline.
 - code.verify — проверка граничных случаев и негативных путей.
+- code.arena_candidate — независимый кандидат: свой целостный вариант решения
+  и обоснование отвергнутых альтернатив.
+- code.arena_synthesize — синтез: выбор базы среди кандидатов (depends_on на них)
+  и вживление лучших частей проигравших в базу.
 Используй только эти значения; старые (code, test, doc) допустимы, но нежелательны.
 
 Tracer-bullet юниты (обязательно):
@@ -127,6 +131,8 @@ mod tests {
             "code.refactor",
             "code.perf",
             "code.verify",
+            "code.arena_candidate",
+            "code.arena_synthesize",
         ] {
             assert!(p.contains(kind), "нет kind {kind} в каталоге: {p}");
         }

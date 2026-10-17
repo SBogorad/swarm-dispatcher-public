@@ -47,7 +47,7 @@ ANCHORS = {
     "crates/swarm-llm/src/lib.rs:408": "truncate(&text, 400)",
     "crates/swarm-llm/src/lib.rs:466": "truncate(&text, 400)",
     "crates/swarm-llm/src/error.rs:14": "Http { status: u16, body: String }",
-    "crates/swarm-planner/src/parse.rs:163": "pub fn deterministic_root_id",
+    "crates/swarm-planner/src/parse.rs:168": "pub fn deterministic_root_id",
     "crates/swarm-worker/src/storage.rs:48": "Runtime::new()",
     "step2/roles.sql:91": "to swarm_reviewer",
 }

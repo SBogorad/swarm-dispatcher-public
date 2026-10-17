@@ -393,12 +393,12 @@ mod v03_tests {
             "нет секции: {p}"
         );
         assert!(p.contains("Bug Fix"), "не тот плейбук: {p}");
-        assert!(p.contains("Воспроизведи проблему"), "нет шагов: {p}");
+        assert!(p.contains("тесная петля обратной связи"), "нет шагов: {p}");
         // Плейбук доверенный: он вне <untrusted>.
         let untrusted = p.split("<untrusted>").nth(1).unwrap_or("");
         let inside = untrusted.split("</untrusted>").next().unwrap_or("");
         assert!(
-            !inside.contains("Воспроизведи проблему"),
+            !inside.contains("тесная петля обратной связи"),
             "плейбук внутри <untrusted>: {p}"
         );
     }
@@ -411,6 +411,8 @@ mod v03_tests {
             ("code.perf", "Performance"),
             ("code.architect", "Architect"),
             ("code.verify", "Verification"),
+            ("code.arena_candidate", "Arena — независимый кандидат"),
+            ("code.arena_synthesize", "Arena — синтез"),
             ("root", "Root Synthesis"),
         ];
         for (kind, marker) in cases {

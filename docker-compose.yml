@@ -132,6 +132,10 @@ services:
       ARTIFACTS_DIR: /var/swarm/artifacts
       REVIEW_MIN_BYTES: "80"
       REVIEW_POLL_SEC: "2.0"
+      # Строгий режим рубрики: требовать `## Decision Trail` с проверяемыми
+      # `evidence`. Дефолт в коде — 0 (чтобы unit-тесты без env не ломались),
+      # в бою включаем явно.
+      REVIEW_REQUIRE_DECISION_TRAIL: "1"
       RUST_LOG: swarm_reviewer=info
     security_opt:
       - no-new-privileges:true

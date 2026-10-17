@@ -146,6 +146,8 @@ services:
     environment:
       <<: *demo-env
       DEMO_REVIEWER_ID: agent_reviewer
+      # Строгий режим рубрики и в демо: витрина должна быть честной.
+      REVIEW_REQUIRE_DECISION_TRAIL: "1"
     volumes:
       - demo_artifacts:/artifacts
     depends_on:
