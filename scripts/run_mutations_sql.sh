@@ -41,13 +41,18 @@ MIG_013="schema/migrations/013_task_parent_artifacts.sql"
 # (проверено зондом на disposable-БД: claim_task и complete_task в 011 дали
 # SURVIVED), и который уронил бы защиту тихо.
 MIG_014="schema/migrations/014_identity_in_override_migrations.sql"
+# S15 (память роя): мутация снимает `assert_lease` в `task_recall_memory`
+# (миграция 015). Файл обязан быть под backup/restore и git-clean fail-fast:
+# иначе снятая аренда останется в рабочем дереве, и шлюз памяти будет открыт
+# любому воркеру, знающему task_id.
+MIG_015="schema/migrations/015_agent_memory.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
 # Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
 # предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
 # trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014" "$MIG_015"; do
     if ! git diff --quiet -- "$f"; then
       echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
       echo "  hint: git checkout -- $f" >&2
@@ -85,19 +90,22 @@ BACKUP_MIG="${TMPDIR:-/tmp}/swarm_mig011_backup_$$.sql"
 BACKUP_2B="${TMPDIR:-/tmp}/swarm_roles2b_backup_$$.sql"
 BACKUP_013="${TMPDIR:-/tmp}/swarm_mig013_backup_$$.sql"
 BACKUP_014="${TMPDIR:-/tmp}/swarm_mig014_backup_$$.sql"
+BACKUP_015="${TMPDIR:-/tmp}/swarm_mig015_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
 [ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
 [ -f "$ROLES_2B" ] && cp "$ROLES_2B" "$BACKUP_2B"
 [ -f "$MIG_013" ] && cp "$MIG_013" "$BACKUP_013"
 [ -f "$MIG_014" ] && cp "$MIG_014" "$BACKUP_014"
+[ -f "$MIG_015" ] && cp "$MIG_015" "$BACKUP_015"
 restore() {
   cp -f "$BACKUP" "$SCHEMA"
   [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
   [ -f "$BACKUP_2B" ] && cp -f "$BACKUP_2B" "$ROLES_2B"
   [ -f "$BACKUP_013" ] && cp -f "$BACKUP_013" "$MIG_013"
   [ -f "$BACKUP_014" ] && cp -f "$BACKUP_014" "$MIG_014"
+  [ -f "$BACKUP_015" ] && cp -f "$BACKUP_015" "$MIG_015"
 }
-cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013" "$BACKUP_014"; }
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013" "$BACKUP_014" "$BACKUP_015"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -132,6 +140,7 @@ run_arbiters() {
         tests/test_worker_identity_f3.py \
         tests/test_no_duplicate_function_bodies.py \
         tests/test_dag_handoff_iteration3.py \
+        tests/test_agent_memory_015.py \
         tests/test_migration_identity_preserved.py >/dev/null 2>&1
 }
 
@@ -349,8 +358,21 @@ run_mutation S14 "task_rework_feedback (014): снять identity в перек�
   select t.rework into v_rework" \
   "$MIG_014"
 
+# S15 — task_recall_memory (миграция 015, память роя): снять проверку живой
+# аренды. Ожидание: краснеет test_agent_memory_015.py::test_recall_requires_live_lease.
+# Без аренды общую память роя смог бы вычитать любой воркер, знающий task_id.
+run_mutation S15 "task_recall_memory: снять проверку живой аренды (утечка памяти роя)" \
+  "  perform assert_worker_identity(p_worker);
+  perform assert_lease(p_task, p_worker, p_epoch);
+
+  select coalesce(nullif(btrim(t.contract->>'kind'), ''), '*')" \
+  "  perform assert_worker_identity(p_worker);
+
+  select coalesce(nullif(btrim(t.contract->>'kind'), ''), '*')" \
+  "$MIG_015"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S14 ==================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S15 ==================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"
@@ -362,7 +384,7 @@ echo
 # S10/S11 мутировали 013, а restore() его не покрывал).
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
   dirty=0
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014" "$MIG_015"; do
     if ! git diff --quiet -- "$f"; then
       echo "FAIL: $f остался изменённым после прогона — restore() не покрывает файл" >&2
       dirty=1

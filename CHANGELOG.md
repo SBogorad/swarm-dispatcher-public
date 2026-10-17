@@ -15,6 +15,35 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Added (память роя: reflect + correct + encode-lessons — 2026-10-17)
+
+У роя не было долгосрочной памяти: `task_rework_feedback` и
+`task_parent_artifacts` живут внутри одного графа, а контейнер воркера
+эфемерен (`--read-only`, tmpfs) и своего `MEMORY.md` не имеет. Завершился
+граф — наступила амнезия, и следующий граф повторял те же ошибки на ревью.
+
+- `schema/migrations/015_agent_memory.sql` — общая память роя в PostgreSQL:
+  таблица `agent_memory` (kind, source_task_id, rework_count, lesson),
+  триггер `tasks_consolidate_memory` (пишет урок при переходе в `done` после
+  `rework > 0`, беря проваленные проверки из последнего `changes_requested`),
+  RPC `record_agent_lesson` и шлюз `task_recall_memory` (последние 5 уроков
+  прошлых графов, только держателю живой аренды).
+- `crates/swarm-core`: тип `MemoryLesson` и метод
+  `SwarmDispatcher::task_recall_memory`.
+- `crates/swarm-worker`: уроки подгружаются после `claim_task` и идут в промпт
+  внутри `<untrusted>` (инвариант F6 сохранён).
+- `crates/swarm-worker/src/playbooks.rs`: принципы `Encode Lessons in
+  Structure` и `Reflect After Correction` в `CORE_PRINCIPLES`.
+- `tests/test_agent_memory_015.py` — цикл «граф №1 учится → граф №2
+  вспоминает», плюс негативные пути (нет аренды → `LS001`, своя задача
+  исключена, урок `*` виден любому kind, дублей по задаче нет).
+- Мутация `S15` в `scripts/run_mutations_sql.sh` — снятие `assert_lease`
+  в `task_recall_memory` обязано ронять арбитр.
+
+Нумерация: задание просило `014_agent_memory.sql`, но `014` занята
+`014_identity_in_override_migrations.sql` — два файла с одним номером
+разъехались бы в реестре `schema_migrations`. Поэтому `015`.
+
 ### Docs (публичное оформление репозитория — 2026-10-17)
 
 Репозиторий публичный, но точка входа была написана как внутренняя памятка:

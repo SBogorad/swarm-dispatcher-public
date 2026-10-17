@@ -141,6 +141,24 @@ pub struct ParentArtifactRef {
     pub artifact_sha256: String,
 }
 
+/// Pstack `reflect`/`correct`: урок, выученный роем на прошлом графе.
+///
+/// Возвращается RPC `task_recall_memory` — общая память роя вместо
+/// `MEMORY.md`, которого у контейнера воркера нет. `created_at` — текст
+/// (ISO-8601 из `timestamptz::text`): `swarm-core` не тянет `chrono`-фичу
+/// `postgres`, а сортировку и отображение делает SQL.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MemoryLesson {
+    /// Формулировка урока (10..2000 символов, гарантирует CHECK в БД).
+    pub lesson: String,
+    /// `kind`, к которому урок относится (`*` — применим к любому виду).
+    pub kind: String,
+    /// Сколько реворков понадобилось задаче-источнику.
+    pub rework_count: i32,
+    /// Момент записи урока, ISO-8601.
+    pub created_at: String,
+}
+
 /// Вердикт ревьюера.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
