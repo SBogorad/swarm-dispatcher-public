@@ -96,7 +96,8 @@ Release-tag требует acceptance harness с `--full-workspace-test`, стр
   отклоняются с меткой `[RUBRIC:TRAIL]`. Анти-слоп фильтр `[RUBRIC:UNSLOP]`
   расширен маркерами `NotImplementedError`, `PLACEHOLDER`, `lorem ipsum`,
   `not implemented yet`.
-- **Режим `Arena` (`arena/SKILL.md`).** В `CANONICAL_KINDS` (`parse.rs`) и в
+- **Режим `Arena`.** Навык `arena` из pstack (внешний набор, не файл этого
+  репозитория). В `CANONICAL_KINDS` (`parse.rs`) и в
   каталог промпта планировщика добавлены `code.arena_candidate` (независимый
   кандидат со своим вариантом и обоснованием отвергнутых альтернатив) и
   `code.arena_synthesize` (выбор базы среди кандидатов через `task_deps` и
