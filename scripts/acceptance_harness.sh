@@ -397,6 +397,28 @@ fmt_check() {
   fi
 }
 
+# Техдолг (2026-10-17): clippy не входил в гейт, поэтому мёртвый код и
+# предупреждения компилятора доезжали до main незамеченными (так проскочила
+# `fn verify` в swarm-reviewer, PR #5). Fail-closed: нет subcommand clippy —
+# BLOCKED, а не «зелено».
+clippy_check() {
+  local out rc ver
+  if ! ver="$(cargo clippy --version 2>/dev/null)"; then
+    status BLOCKED "clippy unavailable: cargo clippy not run"
+    return 0
+  fi
+  set +e
+  out="$(cd "$WORKTREE" && cargo clippy --workspace --all-targets --locked -- -D warnings 2>&1)"
+  rc=$?
+  set -e
+  if ((rc == 0)); then
+    status PASS "clippy ($ver)" 0 "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  else
+    printf '%s\n' "$out"
+    status FAIL "clippy: предупреждения компилятора (cargo clippy -D warnings, см. log)" "$rc" "cargo clippy --workspace --all-targets --locked -- -D warnings"
+  fi
+}
+
 # FIND-01 (Волна 5.2, переработан): после снятия feature-гейта модули shell-tools
 # компилируются ВСЕГДА, и символы модуля физически живут в бинаре (мангалинг:
 # `swarm_worker7sandbox`, а не `swarm_worker::sandbox`). Поэтому старая
@@ -783,6 +805,7 @@ run_step "secret scanner self-test" secret_scan_self_test
 # Дешёвый шаг без БД/Docker — сразу после синтаксиса, до дорогой сборки.
 if command -v cargo >/dev/null 2>&1; then
   run_step "rustfmt formatting (cargo fmt --check)" fmt_check
+  run_step "clippy linting (cargo clippy -D warnings)" clippy_check
 else
   status BLOCKED "cargo unavailable: rustfmt check not run"
 fi
