@@ -23,7 +23,15 @@ OUT_DIR = REPO / "docs" / "audit"
 
 EXCL_DIRS = {"target", ".venv", "__pycache__", ".git", "node_modules",
              ".pytest_cache", ".mypy_cache"}
-EXCL_FILES = {".env", ".env.bak.1791466553"}
+def is_secret(name: str) -> bool:
+    """Секретные файлы окружения: любые `.env*`, кроме публичных примеров.
+
+    Раньше здесь лежал захардкоженный список из двух имён: `.env` и одного
+    конкретного исторического бэкапа. Он ловил ровно этот бэкап и пропускал
+    любой следующий (`.env.bak.<ts>`, `.env.local`, `.env.prod`). Имя
+    конкретного бэкапа к тому же само по себе — метаданные о ротации.
+    """
+    return name.startswith(".env") and not name.endswith(".example")
 BINARY_SUFFIX = {".docx", ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip",
                  ".gz", ".tar", ".rlib", ".rmeta", ".o", ".so"}
 
@@ -100,7 +108,7 @@ def collect(vol: dict) -> list[Path]:
                 continue
             if set(p.relative_to(REPO).parts) & EXCL_DIRS:
                 continue
-            if p.name in EXCL_FILES or p.suffix in BINARY_SUFFIX:
+            if is_secret(p.name) or p.suffix in BINARY_SUFFIX:
                 continue
             rel = p.relative_to(REPO).as_posix()
             if any(rel.startswith(x) for x in ex_pfx):
