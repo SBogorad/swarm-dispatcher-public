@@ -32,6 +32,19 @@ sha2 = "0.10"
 ctrlc = "3.4"
 aws-config = "1"
 aws-credential-types = "1"
-aws-sdk-s3 = "1"
+# Dependabot GHSA-82j2-j2ch-gfr8 / GHSA-xgp8-3hg3-c2mh / GHSA-965h-392x-2mh5.
+# `default` у s3 включает фичу `rustls` → aws-smithy-runtime/tls-rustls →
+# aws-smithy-http-client/legacy-rustls-ring → rustls 0.21 + rustls-webpki 0.101.7
+# (в линии 0.101 патча нет: advisory требует >= 0.103.12).
+# Современный TLS даёт `default-https-client` (rustls 0.23 + webpki 0.103),
+# поэтому legacy выключаем — это ровно набор default минус `rustls`.
+# Настройка на уровне workspace: `default-features = false` в члене workspace
+# не отменяет дефолты, объявленные здесь.
+aws-sdk-s3 = { version = "1", default-features = false, features = [
+    "sigv4a",
+    "http-1x",
+    "default-https-client",
+    "rt-tokio",
+] }
 aws-types = "1"
 tokio = { version = "1", features = ["rt-multi-thread"] }

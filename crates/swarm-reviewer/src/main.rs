@@ -229,6 +229,11 @@ fn looks_like_error(text: &str) -> bool {
 /// Шаг Б: маркеры недоделанной работы (`todo!()`, `unimplemented!()`, ...)
 /// дают `ChangesRequested` с префиксом `[RUBRIC:UNSLOP]`; `detail` доедет до
 /// воркера через `task_rework_feedback`.
+///
+/// Только для тестов: боевой путь вызывает `verify_with_trail` напрямую и
+/// передаёт `require_trail` из конфигурации. Без `cfg(test)` функция остаётся
+/// мёртвой в бинаре и роняет `clippy -D warnings` (`dead_code`).
+#[cfg(test)]
 fn verify(contract: &Value, text: Option<&str>, min_bytes: usize) -> (Verdict, Vec<String>) {
     verify_with_trail(contract, text, min_bytes, false)
 }
