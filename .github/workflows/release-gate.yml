@@ -45,7 +45,7 @@ jobs:
           fetch-depth: 0   # the harness diffs BASE..HEAD
 
       - name: Install Rust toolchain (MSRV 1.94.1)
-        uses: dtolnay/rust-toolchain@1.94.1
+        uses: dtolnay/rust-toolchain@1.120.0
         with:
           # clippy обязателен: гейт содержит fail-closed шаг
           # `cargo clippy --workspace --all-targets --locked -- -D warnings`.
@@ -116,7 +116,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain (MSRV 1.94.1)
-        uses: dtolnay/rust-toolchain@1.94.1
+        uses: dtolnay/rust-toolchain@1.120.0
 
       - name: Cache cargo registry and target
         uses: actions/cache@v4
