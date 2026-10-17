@@ -256,3 +256,15 @@ scripts/build_audit_zip.sh
 scripts/build_audit_bundle.py
 scripts/build_project_bundle.py
 tasks/self-improve/goal-001-audit.yaml
+
+# Публичное оформление репозитория (2026-10-17). README на двух языках,
+# правила участия и приватный канал для уязвимостей, шаблоны issue/PR и
+# Dependabot-конфиг. Это инфраструктура публикации, а не «просто docs»:
+# без неё внешний читатель не понимает, как собрать, проверить и не сломать
+# проект, а security-отчёт уходит в публичный issue.
+README.md
+README.ru.md
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+.github/*
