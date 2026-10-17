@@ -1,5 +1,7 @@
 use crate::errors::DispatcherError;
-use crate::types::{Lease, ParentArtifactRef, TaskContract, TaskRow, TaskStatusRow, Verdict};
+use crate::types::{
+    Lease, MemoryLesson, ParentArtifactRef, TaskContract, TaskRow, TaskStatusRow, Verdict,
+};
 use postgres::{Client, NoTls};
 use uuid::Uuid;
 
@@ -226,6 +228,40 @@ impl SwarmDispatcher {
                 parent_kind: r.get(1),
                 artifact_ref: r.get(2),
                 artifact_sha256: r.get(3),
+            })
+            .collect())
+    }
+
+    /// Pstack `reflect`/`correct`: уроки прошлых графов для текущей задачи.
+    ///
+    /// У контейнера воркера нет `MEMORY.md` и нет диска — состояние роя живёт
+    /// только в PostgreSQL. Без этого RPC каждый новый граф начинается с
+    /// амнезии, и воркеры повторяют те же ошибки на ревью.
+    ///
+    /// `task_recall_memory` — SECURITY DEFINER: проверяет identity воркера и
+    /// ЖИВУЮ аренду именно этой задачи, поэтому общую память роя нельзя
+    /// вычитать по чужой задаче.
+    pub fn task_recall_memory(
+        &mut self,
+        task_id: Uuid,
+        worker_id: &str,
+        epoch: i64,
+    ) -> Result<Vec<MemoryLesson>, DispatcherError> {
+        let rows = self
+            .client
+            .query(
+                "SELECT lesson, kind, rework_count, created_at::text \
+                 FROM task_recall_memory($1, $2, $3)",
+                &[&task_id, &worker_id, &epoch],
+            )
+            .map_err(DispatcherError::from_pg)?;
+        Ok(rows
+            .iter()
+            .map(|r| MemoryLesson {
+                lesson: r.get(0),
+                kind: r.get(1),
+                rework_count: r.get(2),
+                created_at: r.get(3),
             })
             .collect())
     }

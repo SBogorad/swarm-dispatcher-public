@@ -419,7 +419,7 @@
   тестами `truncate_is_utf8_safe`). Поле `Http.body: String`
   (`crates/swarm-llm/src/error.rs:14`) остаётся строкой, но заполняется только
   обрезанным фрагментом. Остаток: `body` всё ещё попадает в fail-артефакт через
-  `format!("llm_error: {e}")` (`crates/swarm-worker/src/worker.rs:566`) — но уже
+  `format!("llm_error: {e}")` (`crates/swarm-worker/src/worker.rs:583`) — но уже
   обрезанным до 400 байт.
 
 #### FIND-NEW-02 (ночная смена 2026-10-17): identity в ПЕРЕКРЫВАЮЩИХ миграциях — ЗАКРЫТО (миграция 014)

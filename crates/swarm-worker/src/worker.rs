@@ -362,17 +362,34 @@ pub fn process_lease(
     // `code.verify` — ей нужен проверяемый текст. Читаем превью родительских
     // артефактов с общего тома best-effort: нет файла или не сошёлся sha256 →
     // `None`, и секция отдаёт только метаданные (как раньше).
+    // Pstack `reflect`/`correct`: память роя между графами. Контейнер воркера
+    // эфемерен (`--read-only`, tmpfs) и своего `MEMORY.md` не имеет, поэтому
+    // единственный носитель опыта — `agent_memory` в PostgreSQL. Best-effort:
+    // потеря памяти деградирует качество, но не должна ронять задачу.
+    let lessons = match d.task_recall_memory(lease.task_id, &lease.worker_id, lease.epoch) {
+        Ok(l) => l,
+        Err(e) => {
+            warn!(task_id = %lease.task_id, error = %e, "memory: lessons unavailable");
+            Vec::new()
+        }
+    };
+    if !lessons.is_empty() {
+        info!(task_id = %lease.task_id, count = lessons.len(), "memory: lessons recalled");
+    }
     let previews = load_parent_previews(cfg, &parents);
     let call_started_at = chrono::Utc::now();
     let call_started = Instant::now();
     let result = call_llm_with_retries(
         llm,
-        &contract,
         cfg,
-        lease.rework,
-        lease.last_review.as_ref(),
-        &parents,
-        &previews,
+        LlmPromptInput {
+            contract: &contract,
+            rework: lease.rework,
+            last_review: lease.last_review.as_ref(),
+            parents: &parents,
+            previews: &previews,
+            lessons: &lessons,
+        },
     );
     let call_duration_ms = call_started.elapsed().as_millis() as i64;
     let call_completed_at = chrono::Utc::now();
@@ -747,18 +764,32 @@ fn load_parent_previews(
         .collect()
 }
 
+/// Вход промпта одним значением: шесть независимых параметров в сигнатуре
+/// давали 8 аргументов и упирались в `clippy::too_many_arguments`.
+struct LlmPromptInput<'a> {
+    contract: &'a serde_json::Value,
+    rework: i32,
+    last_review: Option<&'a serde_json::Value>,
+    parents: &'a [swarm_core::ParentArtifactRef],
+    previews: &'a [Option<String>],
+    lessons: &'a [swarm_core::MemoryLesson],
+}
+
 fn call_llm_with_retries(
     llm: &dyn LlmClient,
-    contract: &serde_json::Value,
     cfg: &WorkerConfig,
-    rework: i32,
-    last_review: Option<&serde_json::Value>,
-    parents: &[swarm_core::ParentArtifactRef],
-    previews: &[Option<String>],
+    input: LlmPromptInput<'_>,
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
-    let user = prompt::user_prompt_with_previews(contract, rework, last_review, parents, previews);
-    let selected_model = select_model(cfg, contract);
+    let user = prompt::user_prompt_with_memory(
+        input.contract,
+        input.rework,
+        input.last_review,
+        input.parents,
+        input.previews,
+        input.lessons,
+    );
+    let selected_model = select_model(cfg, input.contract);
 
     let req = LlmRequest {
         system: sys,

@@ -332,8 +332,13 @@ def test_refuses_legacy_volume_and_adopts_on_explicit_request(pg):
     """
     dsn = pg.fresh_db("legacy")
     names = _migration_names()
-    assert names[-1].startswith("014"), f"последняя миграция не 014: {names[-1]}"
-    pg.apply_migrations_raw(dsn, names[:-1])
+    # Рубеж дефекта — 014: на унаследованном томе initdb накатал всё ДО неё.
+    # Считать «последняя миграция = 014» нельзя: после неё появились 015+,
+    # и тогда сценарий перестаёт воспроизводить отсутствие identity.
+    boundary = next(i for i, n in enumerate(names) if n.startswith("014_"))
+    legacy, pending = names[:boundary], names[boundary:]
+    assert pending, "нет миграций начиная с 014 — сценарий не воспроизводится"
+    pg.apply_migrations_raw(dsn, legacy)
 
     # До раннера фикса на томе нет — это и есть дефект §5.3.
     ident = (
@@ -347,7 +352,9 @@ def test_refuses_legacy_volume_and_adopts_on_explicit_request(pg):
 
     adopted = run_runner("--adopt-up-to", "013_", "--dsn", dsn)
     assert adopted.returncode == 0, adopted.stderr
-    assert "pending=1" in adopted.stdout and f"[apply] {names[-1]}" in adopted.stdout, adopted.stdout
+    assert f"pending={len(pending)}" in adopted.stdout, adopted.stdout
+    for name in pending:
+        assert f"[apply] {name}" in adopted.stdout, adopted.stdout
     rows = _ledger_rows(pg, dsn)
     assert sorted(rows) == names, f"реестр не полон: {sorted(rows)}"
     assert pg.scalar(dsn, ident) == "t", "фикс identity не доехал до унаследованного тома"
