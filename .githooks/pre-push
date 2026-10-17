@@ -13,8 +13,16 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
     0000000000000000000000000000000000000000) continue ;;
   esac
   if [[ "$remote_sha" =~ ^0+$ ]]; then
-    # Новая ветка на remote: диапазон от merge-base с origin/master (или все коммиты).
-    base="$(git merge-base "$local_sha" origin/master 2>/dev/null || true)"
+    # Новая ветка на remote: диапазон от merge-base с дефолтной веткой
+    # (origin/HEAD -> main|master; жёсткий origin/master ломался после
+    # переименования ветки и давал диапазон = вся история).
+    default_ref="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)"
+    if [[ -z "$default_ref" ]]; then
+      for cand in origin/main origin/master; do
+        if git rev-parse --verify --quiet "$cand" >/dev/null 2>&1; then default_ref="$cand"; break; fi
+      done
+    fi
+    base="$(git merge-base "$local_sha" "$default_ref" 2>/dev/null || true)"
     range="${base:+$base..$local_sha}"
     [[ -n "$range" ]] || range="$local_sha"
   else
