@@ -12,10 +12,12 @@ on:
   push:
     branches:
       - "feature/**"
-      - master
+      - "fix/**"
+      - "chore/**"
+      - main
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch: {}
 
 permissions:

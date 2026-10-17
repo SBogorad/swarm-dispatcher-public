@@ -76,13 +76,25 @@ fi
 # не касалась (push-прогон 38831042846: `git diff --check` на всей истории).
 # Заменяем маркер на общий предок с целевой веткой — это и есть настоящая база.
 if [[ "$BASE" =~ ^0+$ ]]; then
-  RESOLVED_BASE="$(git -C "$WORKTREE" merge-base origin/master "$BRANCH" 2>/dev/null || true)"
+  # Базовая ветка: origin/HEAD -> дефолт репозитория (main в публичном репо,
+  # master в старом). Жёсткий `origin/master` ломал гейт после переименования
+  # ветки: merge-base возвращал пусто и harness падал с exit 2.
+  BASE_REF="${BASE_REF:-$(git -C "$WORKTREE" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)}"
+  if [[ -z "$BASE_REF" ]]; then
+    for cand in origin/main origin/master; do
+      if git -C "$WORKTREE" rev-parse --verify --quiet "$cand" >/dev/null 2>&1; then
+        BASE_REF="$cand"; break
+      fi
+    done
+  fi
+  RESOLVED_BASE=""
+  [[ -n "$BASE_REF" ]] && RESOLVED_BASE="$(git -C "$WORKTREE" merge-base "$BASE_REF" "$BRANCH" 2>/dev/null || true)"
   if [[ -z "$RESOLVED_BASE" ]]; then
-    echo "FAIL --base is all-zeros and merge-base origin/master $BRANCH is unresolved" >&2
+    echo "FAIL --base is all-zeros and merge-base ${BASE_REF:-<no default branch>} $BRANCH is unresolved" >&2
     usage >&2
     exit 2
   fi
-  echo "note: --base was all-zeros; resolved to merge-base origin/master $BRANCH = $RESOLVED_BASE"
+  echo "note: --base was all-zeros; resolved to merge-base $BASE_REF $BRANCH = $RESOLVED_BASE"
   BASE="$RESOLVED_BASE"
 fi
 
