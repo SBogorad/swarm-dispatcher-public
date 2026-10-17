@@ -16,7 +16,7 @@
 //!   TEST_DATABASE_URL="host=127.0.0.1 port=55440 user=postgres password=pw dbname=v0worker" \
 //!     cargo test -p swarm-worker --test worker_heartbeat_f5 -- --test-threads=1
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
@@ -65,9 +65,9 @@ fn tmpdir(tag: &str) -> PathBuf {
     d
 }
 
-fn cfg(dir: &PathBuf, lease_sec: i32) -> WorkerConfig {
+fn cfg(dir: &Path, lease_sec: i32) -> WorkerConfig {
     WorkerConfig {
-        artifacts_dir: dir.clone(),
+        artifacts_dir: dir.to_path_buf(),
         lease_sec,
         max_tokens: 4096,
         llm_timeout_sec: 5,

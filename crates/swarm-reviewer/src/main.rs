@@ -156,6 +156,7 @@ fn review_once(d: &mut SwarmDispatcher, cfg: &ReviewerConfig) -> Result<usize, D
 /// `storage_path` бывает двух видов (см. `swarm-worker::worker::local_storage_uri`):
 ///   * `volume://<name>/<relpath>` — разрешаем относительно `ARTIFACTS_DIR`;
 ///   * абсолютный путь (локальный режим) — читаем как есть.
+///
 /// Фолбэк по basename покрывает случай, когда volume смонтирован в другую точку.
 fn read_artifact(storage_path: &str, artifacts_dir: &Path) -> Option<String> {
     let candidates = artifact_candidates(storage_path, artifacts_dir);

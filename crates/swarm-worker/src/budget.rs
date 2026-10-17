@@ -54,21 +54,12 @@ impl Default for BudgetPolicy {
 ///
 /// `0` означает «без лимита» — это осознанный дефолт, чтобы штатный
 /// долгоживущий воркер не менял поведение. Лимиты включаются явно.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct RunLimits {
     /// Максимум LLM-вызовов за проход (0 — без лимита).
     pub max_llm_calls: u32,
     /// Максимум секунд с начала прохода (0 — без лимита).
     pub max_duration_sec: u64,
-}
-
-impl Default for RunLimits {
-    fn default() -> Self {
-        Self {
-            max_llm_calls: 0,
-            max_duration_sec: 0,
-        }
-    }
 }
 
 /// Почему проход остановлен.
