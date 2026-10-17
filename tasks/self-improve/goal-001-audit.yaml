@@ -8,39 +8,47 @@ description: |
   4. Insurance: Prepare fixes in feature/audit-v0.5.3 branch
   5. Re-test: Verify fixes do not break existing functionality
 
+  Статус: контур self-improve не заведён. Этот манифест — декларация
+  намерения, ни один скрипт и ни один шаг CI на него не ссылается.
+  Пути приведены к фактической раскладке репозитория (2026-10-17): раньше
+  здесь значились `src/**`, `schema.sql` и `harness/**`, которых в дереве
+  нет — код живёт в `crates/**`, схема в `schema/schema_v0.sql`, тесты
+  прогоняются через `scripts/acceptance_harness.sh`.
+
 scope:
   allowed_paths:
     read:
-      - "src/**"
+      - "crates/**"
       - "Cargo.toml"
-      - "schema.sql"
-      - "harness/**"
+      - "Cargo.lock"
+      - "schema/**"
       - "tests/**"
+      - "scripts/**"
     write:
       - "docs/**"
-      - "harness/test-reports/**"
+      - "tests/test-reports/**"
       - "feature/audit-v0.5.3/**"
   forbidden:
-    - "Direct push to master"
+    - "Direct push to main"
     - "Modify Cargo.toml without review"
-    - "Delete schema.sql"
+    - "Delete schema/schema_v0.sql"
 
 tasks:
   - task_id: audit-static
     title: "Static analysis (clippy, safety)"
     estimated_tokens: 1000
     capabilities: ["rust", "audit"]
-    
+
   - task_id: audit-integration-tests
     title: "Run full integration test suite"
     estimated_tokens: 2000
     capabilities: ["test", "docker"]
-    
+
   - task_id: audit-document-findings
     title: "Document findings to S3"
     estimated_tokens: 500
     capabilities: ["doc", "s3"]
-    
+
   - task_id: audit-prepare-fixes
     title: "Prepare fix branch"
     estimated_tokens: 1500

@@ -245,3 +245,14 @@ docs/TZ_v0.4_shell_tools_sandbox.md
 LICENSE
 THIRD_PARTY_NOTICES.md
 LICENSES/*
+
+# Гигиена аудит-упаковки (2026-10-17, по итогам сверки архива 78bdd1c).
+# `build_audit_zip.sh` паковал восемь файлов docs/audit/*_v0.4.* и падал, если
+# их не было, хотя фактический архив собирался по всему дереву. Скрипты
+# бандлов держали в фильтре захардкоженное имя одного исторического `.env.bak`
+# вместо правила «любой `.env*`, кроме примеров». Манифест self-improve
+# ссылался на `src/`, `schema.sql` и `harness/`, которых в дереве нет.
+scripts/build_audit_zip.sh
+scripts/build_audit_bundle.py
+scripts/build_project_bundle.py
+tasks/self-improve/goal-001-audit.yaml

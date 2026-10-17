@@ -15,6 +15,41 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Fixed (гигиена аудит-упаковки — 2026-10-17)
+
+По итогам сверки архива `78bdd1c` внешним аудитором. Три расхождения между
+тем, что заявлено, и тем, что в дереве.
+
+- **`scripts/build_audit_zip.sh` паковал не то, что заявлено.** Скрипт
+  копировал восемь заранее собранных файлов `docs/audit/*_v0.4.*`
+  (`PROJECT_*_BUNDLE_v0.4.xml`, `AUDITOR_BRIEF_v0.4.*`,
+  `AUDIT_PACKAGE_INDEX_v0.4.md`, `CHECKSUMS_v0.4.txt`) и падал с
+  `ERROR: нет docs/audit/...`, если их не было. При этом фактический
+  аудиторский архив `78bdd1c` собирался вручную по всему дереву. Хуже:
+  томы описывали срез v0.4 и отставали от HEAD. Теперь скрипт берёт
+  `git archive HEAD` — снимок всегда соответствует ровно своему коммиту.
+  Секреты проверяются fail-closed по распакованному дереву: любой
+  `.env*`, кроме `.env.example` и `.env.artifacts.example`, останавливает
+  сборку; та же проверка повторяется по списку файлов готового архива.
+  `CHECKSUMS.txt` считается по фактическому содержимому снимка.
+
+- **Захардкоженное имя старого бэкапа в фильтрах.**
+  `scripts/build_audit_bundle.py` (`FORBIDDEN`) и
+  `scripts/build_project_bundle.py` (`EXCL_FILES`) содержали литерал
+  `{".env", ".env.bak.<ts>"}` — ровно одно историческое имя. Такой фильтр
+  ловил этот бэкап и пропускал любой следующий (`.env.bak.<ts2>`,
+  `.env.local`, `.env.prod`), а само имя файла в исходниках — метаданные
+  о ротации. Заменено на `is_secret()`: любые `.env*` кроме `*.example`.
+
+- **`tasks/self-improve/goal-001-audit.yaml` ссылался на несуществующее.**
+  После удаления `docker-compose.self-improve.yml` в PR #3 манифест
+  остался и указывал на `src/**`, `schema.sql`, `harness/**` — ни одного
+  из этих путей в дереве нет (код в `crates/**`, схема в
+  `schema/schema_v0.sql`, гейт в `scripts/acceptance_harness.sh`), плюс
+  запрет «direct push to master» при ветке `main`. Пути приведены к
+  фактическим; в шапке зафиксировано, что контур self-improve не заведён
+  и на манифест ничего не ссылается.
+
 ### Fixed (гигиена ядра: clippy + мёртвый compose — ночная смена 2026-10-17)
 
 - **`cargo clippy --workspace --locked --all-targets -- -D warnings` — зелёный.**

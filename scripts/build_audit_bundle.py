@@ -45,7 +45,15 @@ FILES = [
     ("rust_fixes/dispatcher.rs", "patch", "rust"),
 ]
 
-FORBIDDEN = {".env", ".env.bak.1791466553"}
+def is_secret(name: str) -> bool:
+    """Секретные файлы окружения: любые `.env*`, кроме публичных примеров.
+
+    Раньше здесь лежал захардкоженный список из двух имён: `.env` и одного
+    конкретного исторического бэкапа. Он ловил ровно этот бэкап и пропускал
+    любой следующий (`.env.bak.<ts>`, `.env.local`, `.env.prod`). Имя
+    конкретного бэкапа к тому же само по себе — метаданные о ротации.
+    """
+    return name.startswith(".env") and not name.endswith(".example")
 
 
 def sha256(path: Path) -> str:
@@ -92,7 +100,7 @@ def main() -> int:
     missing = []
     for rel, role, lang in FILES:
         p = REPO / rel
-        if rel in FORBIDDEN or not p.is_file():
+        if is_secret(p.name) or not p.is_file():
             missing.append(rel)
             continue
         raw = p.read_bytes()
