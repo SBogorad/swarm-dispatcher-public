@@ -74,7 +74,7 @@ jobs:
           ast-grep scan --error
 
       - name: Install uv (for pytest venv)
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Build sandbox image (agent-sandbox:1.85)
         run: docker build -t agent-sandbox:1.85 sandbox/
@@ -133,7 +133,7 @@ jobs:
       # не было — SQL-шаг падал с 'BLOCKED: .venv/bin/python not found',
       # и S1-S5 НИКОГДА не исполнялись в CI (красный на master).
       - name: Install uv and create pytest venv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Create .venv for SQL mutation arbiters
         run: |
