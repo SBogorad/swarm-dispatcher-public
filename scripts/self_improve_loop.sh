@@ -376,14 +376,21 @@ artifact_refs_for_root() {
 read_artifact() {
   local ref="$1" hex vol
   hex="${ref#sha256:}"
-  if docker compose exec -T worker-1 sh -c "test -f /var/swarm/artifacts/${hex}.txt" 2>/dev/null; then
-    docker compose exec -T worker-1 sh -c "cat /var/swarm/artifacts/${hex}.txt"
+  # `docker compose exec -T` читает stdin. Вызывающая сторона перебирает
+  # кандидатов через `while ... done <<< "$REFS"`, поэтому exec съедал
+  # here-string: после первого кандидата цикл завершался. Первым по свежести
+  # идёт `code.verify` (в нём diff'а нет), и контур писал ложный урок
+  # «ни один артефакт не содержит применимого diff», хотя валидный патч лежал
+  # в третьем кандидате. stdin закрываем явно — цикл не должен зависеть от того,
+  # читает ли вызываемая команда stdin.
+  if docker compose exec -T worker-1 sh -c "test -f /var/swarm/artifacts/${hex}.txt" </dev/null 2>/dev/null; then
+    docker compose exec -T worker-1 sh -c "cat /var/swarm/artifacts/${hex}.txt" </dev/null
     return 0
   fi
   vol="$(docker compose config --format json 2>/dev/null \
         | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["name"]+"_swarm-artifacts")' 2>/dev/null || true)"
   [[ -n "$vol" ]] || return 1
-  docker run --rm -v "${vol}:/a:ro" alpine:3 sh -c "cat /a/${hex}.txt"
+  docker run --rm -i -v "${vol}:/a:ro" alpine:3 sh -c "cat /a/${hex}.txt" </dev/null
 }
 
 extract_patch() {
