@@ -751,6 +751,10 @@ review_gate_acceptance() {
     # ЖИВОГО тома. Без этого шага раннер остался бы непроверенным кодом (класс
     # «проверки, которой нет»), а миграции на живой том накатывались бы вручную.
     "tests/test_migration_ledger_runner.py|миграционный реестр: initdb-путь и живой том (§5.3)"
+    # RSI v2: классификация сбоя контура (HarnessFault vs AgentFault). Урок в
+    # `agent_memory` пишется только при AGENT_FAULT — иначе сбой обвязки
+    # становится «опытом» роя. Статический страж, БД не требует.
+    "tests/test_harness_fault_classification.py|классификация сбоев контура: HARNESS_FAULT vs AGENT_FAULT (RSI v2)"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }
