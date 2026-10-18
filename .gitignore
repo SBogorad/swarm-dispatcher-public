@@ -27,3 +27,6 @@ docs/history/inbound/
 outbox/
 # Волна 5.2: runtime-курсор mock-LLM (последовательность ответов).
 .mock_cursor
+
+# Контур самомодификации: извлечённые патчи — рабочий мусор, не история
+.self-improve/
