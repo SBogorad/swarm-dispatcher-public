@@ -568,8 +568,8 @@ pub fn process_lease(
             // "unknown", из-за чего `llm_calls.model` и витрины llm_costs_daily /
             // llm_model_quality теряли, какая ИМЕННО модель даёт ошибки. Теперь
             // берём выбранную селектором модель либо модель по умолчанию клиента.
-            let attempted_model =
-                select_model(cfg, &contract).unwrap_or_else(|| llm.default_model().to_string());
+            let attempted_model = select_model(cfg, &contract, lease.rework)
+                .unwrap_or_else(|| llm.default_model().to_string());
             match d.record_llm_call(
                 lease.task_id,
                 &lease.worker_id,
@@ -824,7 +824,7 @@ fn call_llm_with_retries(
         input.lessons,
         input.repo,
     );
-    let selected_model = select_model(cfg, input.contract);
+    let selected_model = select_model(cfg, input.contract, input.rework);
 
     let req = LlmRequest {
         system: sys,
@@ -859,9 +859,13 @@ fn call_llm_with_retries(
 
 /// Issue #7/#10: выбор модели по измеренной цене успешного результата.
 /// `None` — модель берётся из конфига клиента (поведение по умолчанию).
-fn select_model(cfg: &WorkerConfig, contract: &serde_json::Value) -> Option<String> {
+fn select_model(cfg: &WorkerConfig, contract: &serde_json::Value, rework: i32) -> Option<String> {
     cfg.model_selector.as_ref().and_then(|s| {
-        let sel = s.choose(contract)?;
+        // `choose_with_rework`, а не `choose`: при `rework > 0` эффективный
+        // уровень задачи поднимается, и повтор не отдаётся той же модели,
+        // которая уже ошиблась. Раньше здесь стоял `choose` (rework = 0),
+        // поэтому механизм селектора существовал, но не срабатывал.
+        let sel = s.choose_with_rework(contract, rework)?;
         info!(
             model = %sel.model,
             basis = ?sel.basis,

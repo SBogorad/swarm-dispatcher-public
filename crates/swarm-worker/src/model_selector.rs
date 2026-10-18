@@ -462,4 +462,55 @@ mod tests {
         let sel = s.choose(&serde_json::json!({"quality_tier": 3})).unwrap();
         assert_eq!(sel.model, "strong");
     }
+
+    /// Реворк поднимает эффективный уровень: задача tier=1 при `rework=2`
+    /// уходит на модель tier=3, а не на ту же дешёвую, что уже ошиблась.
+    #[test]
+    fn rework_raises_effective_tier() {
+        let s = ModelSelector {
+            catalog: cat(),
+            stats: vec![],
+            min_samples: 3,
+            min_success_rate: 0.5,
+            expected_output_ratio: 2.0,
+            default_task_tier: 1,
+        };
+        let contract = serde_json::json!({"quality_tier": 1});
+
+        let first = s.choose_with_rework(&contract, 0).unwrap();
+        assert_eq!(first.model, "cheap", "первая попытка — дешёвая модель");
+
+        let second = s.choose_with_rework(&contract, 2).unwrap();
+        assert_eq!(
+            second.model, "strong",
+            "rework=2: tier 1 -> 3, слабая модель повторно не берётся"
+        );
+        assert!(
+            second.reason.contains("tier=1->3"),
+            "подъём уровня виден в reason: {}",
+            second.reason
+        );
+    }
+
+    /// Потолок: уровень не уходит выше 3 даже при большом числе реворков.
+    #[test]
+    fn rework_tier_is_capped_at_three() {
+        let s = ModelSelector {
+            catalog: cat(),
+            stats: vec![],
+            min_samples: 3,
+            min_success_rate: 0.5,
+            expected_output_ratio: 2.0,
+            default_task_tier: 2,
+        };
+        let sel = s
+            .choose_with_rework(&serde_json::json!({"quality_tier": 2}), 9)
+            .unwrap();
+        assert_eq!(sel.model, "strong");
+        assert!(
+            sel.reason.contains("tier=2->3"),
+            "потолок 3: {}",
+            sel.reason
+        );
+    }
 }
