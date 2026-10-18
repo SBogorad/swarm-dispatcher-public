@@ -43,7 +43,7 @@ ABSENT_ALLOWED = {
 # тест краснеет и требует обновить документ, а не тихо разойтись.
 ANCHORS = {
     "crates/swarm-worker/src/worker.rs:95": "fn sleep_interruptible",
-    "crates/swarm-worker/src/worker.rs:608": 'format!("llm_error: {e}")',
+    "crates/swarm-worker/src/worker.rs:613": 'format!("llm_error: {e}")',
     "crates/swarm-llm/src/lib.rs:408": "truncate(&text, 400)",
     "crates/swarm-llm/src/lib.rs:466": "truncate(&text, 400)",
     "crates/swarm-llm/src/error.rs:14": "Http { status: u16, body: String }",
