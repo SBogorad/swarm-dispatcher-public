@@ -259,13 +259,40 @@ fn e2e_planner_to_review() {
     let state = d.complete(&lease, "sha256:root", 1).unwrap();
     assert_eq!(state, "review");
 
+    // Требования ревью берём из контракта в БД, а не зашиваем ключ руками:
+    // строгий гейт RV003 сверяет набор ключей `coalesce(id, type||'|'||run)`
+    // с контрактом. Жёстко зашитый `cmd|true` разошёлся с контрактом, когда
+    // заглушка планировщика сменилась на `manual` — тест падал на ChecksFailed,
+    // хотя код был верен. Здесь проверяется e2e, а не форма контракта.
+    let mut c = raw();
+    let contract: serde_json::Value = c
+        .query_one("select contract from tasks where id = $1", &[&out.root_id])
+        .unwrap()
+        .get(0);
+    let checks: Vec<serde_json::Value> = contract["checks"]
+        .as_array()
+        .expect("в контракте нет checks")
+        .iter()
+        .map(|req| {
+            let ctype = req["type"].as_str().unwrap_or("check");
+            let run = req["run"].as_str().unwrap_or("");
+            serde_json::json!({
+                "id": format!("{ctype}|{run}"),
+                "type": ctype,
+                "run": run,
+                "status": "pass",
+            })
+        })
+        .collect();
+    assert!(!checks.is_empty(), "контракт без требований: {contract}");
+
     let st = d
         .submit_review(
             out.root_id,
             "sha256:root",
             "reviewer",
             swarm_core::Verdict::Approved,
-            &serde_json::json!([{"type": "cmd", "run": "true", "status": "pass", "exit_code": 0}]),
+            &serde_json::Value::Array(checks),
         )
         .unwrap();
     assert_eq!(st, "done");
