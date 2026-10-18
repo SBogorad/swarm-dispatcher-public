@@ -226,11 +226,7 @@ else
 fi
 
 TASK_TEXT="$(cat <<EOF
-Самосовершенствование роя swarm-dispatcher, виток ${ROUND}, попытка ${attempt}.
-
-Номер попытки входит в постановку намеренно: планировщик идемпотентен по её
-хэшу, поэтому без него повтор вернул бы тот же граф и тот же отвергнутый
-артефакт — «повтор с уроком» был бы фикцией.
+Самосовершенствование роя swarm-dispatcher, виток ${ROUND}.
 
 Ты — часть роя, который улучшает собственный БОЕВОЙ исходный код.
 ${WORK_HEADER}
@@ -291,6 +287,12 @@ planner_run() {
   # оставались только строки «подаю постановку», а причина — в отдельном
   # planner-логе. Живой случай: `task t1 has disallowed check type "output"`.
   docker compose run --rm --no-deps planner swarm-planner "$text" > /tmp/self-improve-planner.log 2>&1 || rc=$?
+  # `graph already exists` приходит с ненулевым кодом, но это НЕ отказ: граф
+  # создан прошлой попыткой и готов к работе. Проверяем лог ДО кода возврата,
+  # иначе повторная подача навсегда считается провалом планировщика.
+  if grep -q 'graph already exists (root_id=' /tmp/self-improve-planner.log; then
+    return 0
+  fi
   if (( rc != 0 )); then
     log "planner вернул rc=$rc: $(grep -m1 -E 'error:|Error:' /tmp/self-improve-planner.log || echo 'см. /tmp/self-improve-planner.log')"
     return 1
@@ -507,7 +509,12 @@ write_lesson() {
 
 while (( attempt <= MAX_ATTEMPTS )); do
   log "B: виток $ROUND, попытка $attempt — подаю постановку в planner"
-  ROOT_ID="$(planner_run "$TASK_TEXT")"
+  # Планировщик идемпотентен по хэшу постановки. `TASK_TEXT` собирается до
+  # цикла, поэтому без явного суффикса попытка 2 получала тот же граф и тот же
+  # отвергнутый артефакт — «повтор с уроком» был фикцией.
+  ROOT_ID="$(planner_run "${TASK_TEXT}
+
+Номер этой попытки: ${attempt}. Учти уроки выше: прошлая попытка отвергнута.")"
   [[ -n "$ROOT_ID" ]] || fail "planner не вернул root_id (см. /tmp/self-improve-planner.log)"
   log "граф: $ROOT_ID"
 
