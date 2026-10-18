@@ -292,13 +292,29 @@ fn verify_with_trail(
             )],
         );
     }
-    if let Err(why) = validate_unified_diff(body) {
+    let blocks = match validate_unified_diff(body) {
+        Ok(n) => n,
+        Err(why) => {
+            return (
+                Verdict::ChangesRequested,
+                vec![format!("[RUBRIC:DIFF] {why}")],
+            );
+        }
+    };
+    // `Ok(0)` значит «diff-блоков нет вовсе» — раньше это молча считалось
+    // успехом, и артефакт с голым ```rust-фрагментом получал `approved`.
+    // Контур затем не мог извлечь патч: виток 4 сжёг три графа на этом.
+    // Для задач, которые правят код, diff обязателен.
+    if blocks == 0 && edits_code(contract) {
         return (
             Verdict::ChangesRequested,
-            vec![format!("[RUBRIC:DIFF] {why}")],
+            vec![
+                "[RUBRIC:DIFF] задача правит код, но в артефакте нет ни одного \
+                  ```diff-блока: патч нечего применять"
+                    .to_string(),
+            ],
         );
     }
-    let _ = contract;
     if body.len() < min_bytes {
         return (
             Verdict::ChangesRequested,
@@ -470,6 +486,39 @@ fn validate_decision_trail(body: &str) -> Result<usize, String> {
         return Err("секция `## Decision Trail` без строк решений".into());
     }
     Ok(rows)
+}
+
+/// Правят ли задачи этого вида исходный код.
+///
+/// `code.` — декоративный префикс (`code.bugfix` ≡ `bugfix`), как в
+/// `swarm_worker::playbook_for_kind`. Виды, которые только исследуют,
+/// проверяют или проектируют, diff не обязаны присылать.
+fn edits_code(contract: &Value) -> bool {
+    let kind = contract
+        .get("kind")
+        .and_then(|k| k.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase();
+    let base = kind.strip_prefix("code.").unwrap_or(&kind);
+    matches!(
+        base,
+        "feature"
+            | "code"
+            | "task"
+            | "implementation"
+            | "bugfix"
+            | "bug"
+            | "fix"
+            | "refactor"
+            | "refactoring"
+            | "cleanup"
+            | "perf"
+            | "performance"
+            | "hillclimb"
+            | "arena_candidate"
+            | "arena_synthesize"
+    )
 }
 
 /// Валидация структуры unified diff в артефакте.
@@ -990,5 +1039,37 @@ mod tests {
         let good = "```diff\n--- a/x.rs\n+++ b/x.rs\n@@ -1,2 +1,3 @@\n a\n b\n+c\n```\n";
         let (v, r) = verify_with_trail(&c, Some(good), 1, false);
         assert_eq!(v, Verdict::Approved, "валидный патч отвергнут: {r:?}");
+    }
+
+    /// Виток 4: модель вернула ```rust-фрагмент вместо патча, ревьюер
+    /// поставил `approved`, и контур не смог извлечь diff из артефакта.
+    #[test]
+    fn code_task_without_diff_is_changes_requested() {
+        let c = json!({"kind": "code.feature", "checks": []});
+        let no_diff = "```rust\npub fn choose_with_rework(&self) {}\n```\n";
+        let (v, r) = verify_with_trail(&c, Some(no_diff), 1, false);
+        assert_eq!(v, Verdict::ChangesRequested, "{r:?}");
+        assert!(r[0].contains("[RUBRIC:DIFF]"), "нет метки: {r:?}");
+    }
+
+    #[test]
+    fn non_editing_kind_without_diff_is_approved() {
+        let c = json!({"kind": "code.investigate", "checks": []});
+        let text = "## Decision Trail\n\nВывод: дефект в парсере.\n";
+        let (v, r) = verify_with_trail(&c, Some(text), 1, false);
+        assert_eq!(
+            v,
+            Verdict::Approved,
+            "исследование не обязано давать diff: {r:?}"
+        );
+    }
+
+    #[test]
+    fn code_prefix_is_decorative_for_diff_requirement() {
+        assert!(edits_code(&json!({"kind": "bugfix"})));
+        assert!(edits_code(&json!({"kind": "code.bugfix"})));
+        assert!(edits_code(&json!({"kind": "code.refactor"})));
+        assert!(!edits_code(&json!({"kind": "code.verify"})));
+        assert!(!edits_code(&json!({"kind": "root"})));
     }
 }
