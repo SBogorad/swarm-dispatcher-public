@@ -292,6 +292,12 @@ fn verify_with_trail(
             )],
         );
     }
+    if let Err(why) = validate_unified_diff(body) {
+        return (
+            Verdict::ChangesRequested,
+            vec![format!("[RUBRIC:DIFF] {why}")],
+        );
+    }
     let _ = contract;
     if body.len() < min_bytes {
         return (
@@ -464,6 +470,137 @@ fn validate_decision_trail(body: &str) -> Result<usize, String> {
         return Err("секция `## Decision Trail` без строк решений".into());
     }
     Ok(rows)
+}
+
+/// Валидация структуры unified diff в артефакте.
+///
+/// Ловит битые патчи, которые `git apply` отвергнет позже: неправильный
+/// заголовок ханка (`@@ set -euo pipefail @@`) или неверный счёт строк.
+/// Возвращает `Ok(n)` — число проверенных diff-блоков; блоков нет → `Ok(0)`.
+fn validate_unified_diff(body: &str) -> Result<usize, String> {
+    let lines: Vec<&str> = body.lines().collect();
+    let mut blocks = 0usize;
+    let mut i = 0usize;
+    while i < lines.len() {
+        if !lines[i].trim_start().starts_with("```diff") {
+            i += 1;
+            continue;
+        }
+        blocks += 1;
+        i += 1;
+        let mut seen_old = false;
+        let mut seen_new = false;
+        let mut hunk: Option<(usize, usize, usize, usize, usize)> = None;
+        while i < lines.len() && !lines[i].trim_start().starts_with("```") {
+            let line = lines[i];
+            if line.starts_with("--- ") {
+                if !(line.starts_with("--- a/") || line.starts_with("--- /dev/null")) {
+                    return Err(format!(
+                        "строка {}: ожидается `--- a/<path>` или `--- /dev/null`, получено `{}`",
+                        i + 1,
+                        truncate(line, 60)
+                    ));
+                }
+                seen_old = true;
+            } else if line.starts_with("+++ ") {
+                if !line.starts_with("+++ b/") {
+                    return Err(format!(
+                        "строка {}: ожидается `+++ b/<path>`, получено `{}`",
+                        i + 1,
+                        truncate(line, 60)
+                    ));
+                }
+                seen_new = true;
+            } else if line.starts_with("@@") {
+                if let Some(h) = hunk.take() {
+                    check_hunk_totals(h)?;
+                }
+                let (old_s, new_s) = parse_hunk_header(line).ok_or_else(|| {
+                    format!(
+                        "строка {}: заголовок ханка `{}` не вида `@@ -l,s +l,s @@`",
+                        i + 1,
+                        truncate(line, 60)
+                    )
+                })?;
+                hunk = Some((i + 1, old_s, new_s, 0, 0));
+            } else if let Some(h) = hunk.as_mut() {
+                let c = line.chars().next();
+                if c == Some(' ') {
+                    h.3 += 1;
+                    h.4 += 1;
+                } else if c == Some('-') {
+                    h.3 += 1;
+                } else if c == Some('+') {
+                    h.4 += 1;
+                } else if c == Some('\\') {
+                    // `\ No newline at end of file` — не строка тела.
+                } else {
+                    return Err(format!(
+                        "строка {}: недопустимая строка тела ханка `{}`",
+                        i + 1,
+                        truncate(line, 60)
+                    ));
+                }
+            }
+            i += 1;
+        }
+        if let Some(h) = hunk.take() {
+            check_hunk_totals(h)?;
+        }
+        if !seen_old || !seen_new {
+            return Err(format!(
+                "diff-блок #{}: нужны строки `--- a/<path>` (или `--- /dev/null`) и `+++ b/<path>`",
+                blocks
+            ));
+        }
+        i += 1;
+    }
+    Ok(blocks)
+}
+
+/// Разобрать `@@ -l,s +l,s @@` (s по умолчанию 1). None — заголовок битый.
+fn parse_hunk_header(line: &str) -> Option<(usize, usize)> {
+    let rest = line.strip_prefix("@@ ")?;
+    let end = rest.find(" @@")?;
+    // Хвост после закрывающих `@@` — имя функции-якоря (`@@ -10,7 +10,8 @@ fn f()`).
+    // Git его допускает, поэтому здесь он не проверяется; важен только диапазон.
+    //
+    // Срез берётся от `rest`, а не от `line`: `end` посчитан в координатах
+    // `rest`, и смешивать их — значит терять последний символ диапазона.
+    // Именно так первая версия отвергала ЛЮБОЙ корректный заголовок
+    // (`@@ -1,2 +1,3 @@` → `-1,2 +1,`).
+    let spec = &rest[..end];
+    let mut parts = spec.split(' ');
+    let old = parts.next()?.strip_prefix('-')?;
+    let new = parts.next()?.strip_prefix('+')?;
+    if parts.next().is_some() {
+        return None;
+    }
+    let count = |s: &str| -> Option<usize> {
+        match s.split_once(',') {
+            Some((_, n)) => n.parse().ok(),
+            None => {
+                // Без запятой объявлено ровно 1 строка; пустая часть — не число.
+                if s.is_empty() {
+                    None
+                } else {
+                    Some(1)
+                }
+            }
+        }
+    };
+    Some((count(old)?, count(new)?))
+}
+
+/// Сверить объявленный счёт строк ханка с фактическим.
+fn check_hunk_totals(h: (usize, usize, usize, usize, usize)) -> Result<(), String> {
+    let (line_no, old_s, new_s, old_a, new_a) = h;
+    if old_s != old_a || new_s != new_a {
+        return Err(format!(
+            "строка {line_no}: ханк объявляет old={old_s} new={new_s}, фактически old={old_a} new={new_a}"
+        ));
+    }
+    Ok(())
 }
 
 /// Ячейка строки-разделителя markdown-таблицы (`---`, `:--:`, пусто).
@@ -819,5 +956,39 @@ mod tests {
             assert_eq!(v, Verdict::ChangesRequested, "{marker} не пойман");
             assert!(r[0].contains("[RUBRIC:UNSLOP]"), "нет метки для {marker}");
         }
+    }
+
+    // Структурная проверка diff'а: заголовок разбирается целиком, а не
+    // «примерно». Без этих проверок первая версия функции отвергала любой
+    // валидный ханк и сделала бы ревьюер строже к хорошим патчам, чем к плохим.
+    #[test]
+    fn hunk_header_parses_both_counts_and_bare_form() {
+        assert_eq!(parse_hunk_header("@@ -1,2 +1,3 @@"), Some((2, 3)));
+        assert_eq!(parse_hunk_header("@@ -0,0 +1,5 @@"), Some((0, 5)));
+        assert_eq!(parse_hunk_header("@@ -1 +1 @@"), Some((1, 1)));
+        assert_eq!(parse_hunk_header("@@ -10,7 +10,8 @@ fn f()"), Some((7, 8)));
+        assert_eq!(parse_hunk_header("@@ set -euo pipefail @@"), None);
+    }
+
+    #[test]
+    fn broken_diff_is_changes_requested() {
+        let c = contract_with(json!([]));
+        let bad = "```diff\n--- a/x.rs\n+++ b/x.rs\n@@ set -euo pipefail @@\n+let x = 1;\n```\n";
+        let (v, r) = verify_with_trail(&c, Some(bad), 1, false);
+        assert_eq!(v, Verdict::ChangesRequested);
+        assert!(r[0].contains("[RUBRIC:DIFF]"), "нет метки: {r:?}");
+
+        let miscount = "```diff\n--- a/x.rs\n+++ b/x.rs\n@@ -1,2 +1,9 @@\n+a\n+b\n```\n";
+        let (v2, r2) = verify_with_trail(&c, Some(miscount), 1, false);
+        assert_eq!(v2, Verdict::ChangesRequested);
+        assert!(r2[0].contains("[RUBRIC:DIFF]"), "нет метки: {r2:?}");
+    }
+
+    #[test]
+    fn valid_diff_is_approved() {
+        let c = contract_with(json!([]));
+        let good = "```diff\n--- a/x.rs\n+++ b/x.rs\n@@ -1,2 +1,3 @@\n a\n b\n+c\n```\n";
+        let (v, r) = verify_with_trail(&c, Some(good), 1, false);
+        assert_eq!(v, Verdict::Approved, "валидный патч отвергнут: {r:?}");
     }
 }
