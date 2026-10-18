@@ -124,6 +124,7 @@ old = строки, начинающиеся с пробела или '-', new =
     MODE="edit"
     CRATE="swarm-worker"
     TARGET="crates/swarm-worker/src/model_selector.rs"
+    TARGET_FILES="crates/swarm-worker/src/model_selector.rs crates/swarm-worker/src/worker.rs"
     SUBJECT="повышение класса модели при реворке"
     BEHAVIOUR="Сейчас при повторной попытке (\`rework > 0\`) воркер берёт ту же модель, \
 на которой уже ошибся. 1) В \`model_selector.rs\` добавить \
