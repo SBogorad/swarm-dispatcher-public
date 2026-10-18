@@ -105,6 +105,7 @@ esac
 BRANCH="self-improve/round-${ROUND}"
 PATCH_DIR="$REPO_ROOT/.self-improve"
 PATCH_FILE="$PATCH_DIR/round-${ROUND}.patch"
+ARTIFACT_FILE="$PATCH_DIR/round-${ROUND}.artifact.txt"
 
 # ---------------------------------------------------------------------------
 # A. Интроспекция: живая память + телеметрия.
@@ -213,7 +214,19 @@ planner_run() {
     log "planner вернул rc=$rc: $(grep -m1 -E 'error:|Error:' /tmp/self-improve-planner.log || echo 'см. /tmp/self-improve-planner.log')"
     return 1
   fi
-  sed -n 's/^root_id: //p' /tmp/self-improve-planner.log | tail -1
+  # Планировщик идемпотентен по хэшу постановки: повторная подача той же
+  # постановки не создаёт второй граф, а печатает `graph already exists
+  # (root_id=...)` и НЕ печатает `root_id:`. Живой виток 2 упал именно так:
+  # первая попытка создала граф, вторая — получила существующий и умерла с
+  # «planner не вернул root_id», хотя граф был готов к работе.
+  local root
+  root="$(sed -n 's/^root_id: //p' /tmp/self-improve-planner.log | tail -1)"
+  if [[ -z "$root" ]]; then
+    root="$(sed -n 's/.*graph already exists (root_id=\([0-9a-f-]\{36\}\)).*/\1/p' \
+              /tmp/self-improve-planner.log | tail -1)"
+    [[ -n "$root" ]] && log "граф уже существует, переиспользую: $root"
+  fi
+  printf '%s\n' "$root"
 }
 
 wait_graph() {
@@ -282,24 +295,17 @@ read_artifact() {
 }
 
 extract_patch() {
-  # stdin: артефакт. stdout: unified diff. Ненулевой код — diff не найден.
-  python3 - "$TARGET" <<'PY'
-import re, sys
-target = sys.argv[1]
-body = sys.stdin.read()
-blocks = re.findall(r"```(?:diff|patch)?\n(.*?)```", body, re.S)
-cands = [b for b in blocks if "+++ b/" in b or b.lstrip().startswith("diff --git")]
-if not cands:
-    sys.exit(1)
-# Предпочитаем блок, который создаёт ровно целевой файл.
-for b in cands:
-    if f"+++ b/{target}" in b and b.count("+++ b/") == 1:
-        print(normalize_new_file(b, target), end="")
-        sys.exit(0)
-sys.exit(2)
+  # $1: файл с артефактом. stdout: unified diff. Ненулевой код — diff не найден.
+  # Артефакт читается ИЗ ФАЙЛА, а не из stdin: heredoc `python3 - <<'PY'`
+  # занимает stdin под саму программу, поэтому pipe с артефактом молча давал
+  # пустое тело. Живой виток 2 записал из-за этого ложный урок «ни один
+  # артефакт не содержит применимого diff», хотя diff в артефакте был.
+  python3 - "$TARGET" "$1" <<'PY'
+import re
+import sys
 
 
-def normalize_new_file(block, target):
+def normalize_new_file(block):
     """Пересобрать hunk-заголовок для diff'а «новый файл» по фактическим строкам.
 
     Модель регулярно ошибается в счёте строк: объявляет `@@ -0,0 +1,63 @@`,
@@ -312,12 +318,26 @@ def normalize_new_file(block, target):
     lines = block.rstrip("\n").split("\n")
     if len(lines) < 3 or lines[0].strip() != "--- /dev/null":
         return block if block.endswith("\n") else block + "\n"
-    body = lines[3:]
-    if any(l.startswith(("-", "@@", "diff --git")) for l in body):
+    payload = lines[3:]
+    if any(l.startswith(("-", "@@", "diff --git")) for l in payload):
         return block if block.endswith("\n") else block + "\n"
-    n = sum(1 for l in body if l.startswith("+"))
-    head = [lines[0], lines[1], f"@@ -0,0 +1,{n} @@"]
-    return "\n".join(head + body) + "\n"
+    n = sum(1 for l in payload if l.startswith("+"))
+    head = [lines[0], lines[1], "@@ -0,0 +1,%d @@" % n]
+    return "\n".join(head + payload) + "\n"
+
+
+target, path = sys.argv[1], sys.argv[2]
+body = open(path, encoding="utf-8", errors="replace").read()
+blocks = re.findall(r"```(?:diff|patch)?\n(.*?)```", body, re.S)
+cands = [b for b in blocks if "+++ b/" in b or b.lstrip().startswith("diff --git")]
+if not cands:
+    sys.exit(1)
+# Предпочитаем блок, который создаёт ровно целевой файл.
+for b in cands:
+    if ("+++ b/%s" % target) in b and b.count("+++ b/") == 1:
+        print(normalize_new_file(b), end="")
+        sys.exit(0)
+sys.exit(2)
 PY
 }
 
@@ -370,7 +390,8 @@ while (( attempt <= MAX_ATTEMPTS )); do
   while IFS= read -r cand; do
     [[ -n "$cand" ]] || continue
     if ARTIFACT="$(read_artifact "$cand")" \
-       && printf '%s' "$ARTIFACT" | extract_patch > "$PATCH_FILE"; then
+       && printf '%s' "$ARTIFACT" > "$ARTIFACT_FILE" \
+       && extract_patch "$ARTIFACT_FILE" > "$PATCH_FILE"; then
       REF="$cand"
       break
     fi
