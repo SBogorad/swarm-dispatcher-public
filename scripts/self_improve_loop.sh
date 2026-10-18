@@ -203,12 +203,17 @@ wait_graph() {
 # извлекается diff.
 artifact_refs_for_root() {
   local root="$1"
-  db "select distinct a.ref from public.tasks t
+  # Свежие сверху: `max(r.id) desc` отражает финальное одобрение после всех
+  # реворков. Раньше здесь был `order by 1` + `tac` (обратный лексикографический
+  # порядок хэшей) — это выбирало артефакт по случайному признаку, а не по
+  # времени. Живой прогон витка 1 показал дефект: при трёх одобренных задачах
+  # графа первым мог приехать артефакт `code.verify`, в котором diff'а нет.
+  db "select a.ref from public.tasks t
         join public.artifacts a on a.task_id = t.id
         join public.reviews r on r.task_id = t.id and r.artifact_ref = a.ref
        where t.root_id = '$root' and r.verdict = 'approved'
-       order by 1;
-       " | tac
+       group by a.ref
+       order by max(r.id) desc;"
 }
 
 read_artifact() {
