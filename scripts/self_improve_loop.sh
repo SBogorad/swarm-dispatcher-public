@@ -203,10 +203,17 @@ fi
 # B. Исполнение роем.
 # ---------------------------------------------------------------------------
 planner_run() {
-  local text="$1"
-  docker compose run --rm --no-deps planner swarm-planner "$text" 2>&1 \
-    | tee /tmp/self-improve-planner.log \
-    | sed -n 's/^root_id: //p' | tail -1
+  local text="$1" rc=0
+  # `set -o pipefail` ронял весь скрипт, если planner возвращал ненулевой код
+  # (например, валидация отвергла тип проверки). Юнит умирал МОЛЧА: в логе
+  # оставались только строки «подаю постановку», а причина — в отдельном
+  # planner-логе. Живой случай: `task t1 has disallowed check type "output"`.
+  docker compose run --rm --no-deps planner swarm-planner "$text" > /tmp/self-improve-planner.log 2>&1 || rc=$?
+  if (( rc != 0 )); then
+    log "planner вернул rc=$rc: $(grep -m1 -E 'error:|Error:' /tmp/self-improve-planner.log || echo 'см. /tmp/self-improve-planner.log')"
+    return 1
+  fi
+  sed -n 's/^root_id: //p' /tmp/self-improve-planner.log | tail -1
 }
 
 wait_graph() {
@@ -287,9 +294,30 @@ if not cands:
 # Предпочитаем блок, который создаёт ровно целевой файл.
 for b in cands:
     if f"+++ b/{target}" in b and b.count("+++ b/") == 1:
-        print(b if b.endswith("\n") else b + "\n", end="")
+        print(normalize_new_file(b, target), end="")
         sys.exit(0)
 sys.exit(2)
+
+
+def normalize_new_file(block, target):
+    """Пересобрать hunk-заголовок для diff'а «новый файл» по фактическим строкам.
+
+    Модель регулярно ошибается в счёте строк: объявляет `@@ -0,0 +1,63 @@`,
+    а в блоке 61 строка содержимого. `git apply` отвечает `corrupt patch` и
+    отвергает ВЕСЬ патч — хотя текст теста целый. Для diff'а, создающего файл,
+    счёт однозначно выводится из тела: это не догадка, а арифметика. Правка
+    заголовка не меняет содержимое ни на байт, поэтому не может «подогнать»
+    патч под желаемый результат.
+    """
+    lines = block.rstrip("\n").split("\n")
+    if len(lines) < 3 or lines[0].strip() != "--- /dev/null":
+        return block if block.endswith("\n") else block + "\n"
+    body = lines[3:]
+    if any(l.startswith(("-", "@@", "diff --git")) for l in body):
+        return block if block.endswith("\n") else block + "\n"
+    n = sum(1 for l in body if l.startswith("+"))
+    head = [lines[0], lines[1], f"@@ -0,0 +1,{n} @@"]
+    return "\n".join(head + body) + "\n"
 PY
 }
 
