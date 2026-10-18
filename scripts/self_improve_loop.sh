@@ -523,6 +523,81 @@ write_lesson() {
   log "урок записан: $outcome $kind"
 }
 
+# Одноразовая Postgres для шага тестов контура.
+#
+# `cargo test -p swarm-worker` включает интеграционные тесты
+# (`worker_heartbeat_f5`, `worker_integration`): они требуют ЖИВУЮ базу и
+# падают с `Connection refused`, если её нет. Виток 4 трижды применил патч
+# роя и трижды покраснел на этом шаге — при том что те же тесты падают и на
+# чистом `main`. Это дефект контура, а не патча: гейт
+# (`acceptance_harness.sh`) поднимает одноразовую БД, а шаг тестов — нет.
+#
+# Порядок инициализации ровно тот же, что в гейте: schema_v0.sql → roles.sql →
+# roles_2b.sql → два патча → миграции по лексикографическому имени.
+TEST_DB_CONTAINER=""
+TEST_DB_PASSWORD=""
+
+cleanup_test_db() {
+  if [[ -n "$TEST_DB_CONTAINER" ]]; then
+    docker rm -f "$TEST_DB_CONTAINER" >/dev/null 2>&1 || true
+    TEST_DB_CONTAINER=""
+  fi
+}
+trap cleanup_test_db EXIT
+
+provision_test_db() {
+  [[ -n "$TEST_DB_CONTAINER" ]] && return 0
+  command -v docker >/dev/null 2>&1 || return 1
+  TEST_DB_PASSWORD="si_$(openssl rand -hex 20)"
+  TEST_DB_CONTAINER="si_test_${USER:-user}_$$"
+  TEST_DB_CONTAINER="${TEST_DB_CONTAINER//[^a-zA-Z0-9_.-]/_}"
+  docker run -d --name "$TEST_DB_CONTAINER" \
+    -e POSTGRES_DB=c2_swarm -e POSTGRES_USER=postgres \
+    -e "POSTGRES_PASSWORD=$TEST_DB_PASSWORD" \
+    -p 127.0.0.1::5432 \
+    -v "$REPO_ROOT/schema/schema_v0.sql:/si/schema.sql:ro" \
+    -v "$REPO_ROOT/step2/roles.sql:/si/roles.sql:ro" \
+    -v "$REPO_ROOT/step2b/roles_2b.sql:/si/roles_2b.sql:ro" \
+    -v "$REPO_ROOT/step2/roles_patch_planner_status.sql:/si/patch_planner.sql:ro" \
+    -v "$REPO_ROOT/step2/roles_patch_tool_call_audit.sql:/si/patch_tool_call.sql:ro" \
+    -v "$REPO_ROOT/schema/migrations:/si/migrations:ro" \
+    postgres:16-alpine >/dev/null || return 1
+
+  local port ready=0
+  port="$(docker port "$TEST_DB_CONTAINER" 5432/tcp | awk -F: 'NR == 1 {print $NF}')"
+  [[ "$port" =~ ^[0-9]+$ ]] || return 1
+  for _ in {1..60}; do
+    if docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" "$TEST_DB_CONTAINER" \
+      psql -X -U postgres -d c2_swarm -c 'select 1' >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
+    sleep 1
+  done
+  ((ready == 1)) || return 1
+
+  local pg
+  pg() { docker exec -e PGPASSWORD="$TEST_DB_PASSWORD" "$TEST_DB_CONTAINER" \
+           psql -X -v ON_ERROR_STOP=1 -U postgres -d c2_swarm "$@"; }
+  pg -f /si/schema.sql || return 1
+  pg -v worker_pw=si_worker -v watchdog_pw=si_watchdog \
+     -v planner_pw=si_planner -v reviewer_pw=si_reviewer \
+     -v operator_pw=si_operator -v cli_pw=si_cli -f /si/roles.sql || return 1
+  pg -v w1_pw=si_w1 -v w2_pw=si_w2 -v w_1_pw=si_w_1 \
+     -v gpu_1_pw=si_gpu_1 -f /si/roles_2b.sql || return 1
+  pg -f /si/patch_planner.sql || return 1
+  pg -f /si/patch_tool_call.sql || return 1
+  local mig
+  for mig in "$REPO_ROOT"/schema/migrations/*.sql; do
+    [ -e "$mig" ] || continue
+    pg -f "/si/migrations/$(basename "$mig")" || return 1
+  done
+
+  export TEST_DATABASE_URL="host=127.0.0.1 port=${port} user=postgres password=${TEST_DB_PASSWORD} dbname=c2_swarm"
+  export DATABASE_URL="$TEST_DATABASE_URL"
+  log "тестовая БД поднята (порт $port, контейнер $TEST_DB_CONTAINER)"
+}
+
 while (( attempt <= MAX_ATTEMPTS )); do
   log "B: виток $ROUND, попытка $attempt — подаю постановку в planner"
   # Планировщик идемпотентен по хэшу постановки. `TASK_TEXT` собирается до
@@ -615,7 +690,16 @@ while (( attempt <= MAX_ATTEMPTS )); do
   # меняет, поэтому это работа контура, а не повод для ещё одного витка.
   cargo fmt --all
 
-  if ! cargo test -p "$CRATE" --locked > /tmp/self-improve-test.log 2>&1; then
+  # Интеграционным тестам крейта нужна живая БД; без неё шаг краснеет
+  # независимо от патча роя (проверено на чистом main).
+  provision_test_db || log "WARN: тестовая БД не поднялась — интеграционные тесты упадут"
+
+  # `--test-threads=1`: интеграционные тесты крейта работают с ОДНОЙ базой и
+  # в `clear()` транкают таблицы. Параллельный прогон валит их друг другу:
+  # `f5_lease_revoked_mid_flight_fails_fast` падал с `left: "review"`,
+  # потому что соседний тест успевал завершить его задачу. Гейт гоняет те же
+  # тесты с `--test-threads=1` — здесь тот же режим.
+  if ! cargo test -p "$CRATE" --locked -- --test-threads=1 > /tmp/self-improve-test.log 2>&1; then
     TAIL="$(grep -E '^(error|test result: FAILED)' /tmp/self-improve-test.log | head -3 | tr '\n' ' ')"
     write_lesson "$ROOT_ID" "$CRATE" blocked \
       "Виток $ROUND: тест роя не проходит после применения: ${TAIL:-см. лог}."
