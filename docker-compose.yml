@@ -63,6 +63,11 @@ services:
       ARTIFACTS_DIR: /var/swarm/artifacts
       # Корень репозитория только для чтения (см. volume `.:/workspace:ro`).
       SWARM_REPO_DIR: /workspace
+      # Дефолт в коде — 24 КБ, а боевые файлы крупнее: `swarm-reviewer/src/main.rs`
+      # 34 КБ, `swarm-worker/src/prompt.rs` 51 КБ. С обрезкой воркер видел только
+      # начало файла и «вставлял» код по выдуманному якорю: патч витка 3 приехал
+      # с продублированным телом `has_hex_token` и не применился.
+      SWARM_REPO_MAX_FILE_BYTES: "200000"
       # F1: storage_path пишется как volume://<name>/<relpath> — видим потребителю.
       SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
@@ -108,6 +113,11 @@ services:
       ARTIFACTS_DIR: /var/swarm/artifacts
       # Корень репозитория только для чтения (см. volume `.:/workspace:ro`).
       SWARM_REPO_DIR: /workspace
+      # Дефолт в коде — 24 КБ, а боевые файлы крупнее: `swarm-reviewer/src/main.rs`
+      # 34 КБ, `swarm-worker/src/prompt.rs` 51 КБ. С обрезкой воркер видел только
+      # начало файла и «вставлял» код по выдуманному якорю: патч витка 3 приехал
+      # с продублированным телом `has_hex_token` и не применился.
+      SWARM_REPO_MAX_FILE_BYTES: "200000"
       SWARM_ARTIFACTS_VOLUME: swarm-artifacts
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
       LLM_BASE_URL: ${WORKER_LLM_BASE_URL:-https://relay.fast}

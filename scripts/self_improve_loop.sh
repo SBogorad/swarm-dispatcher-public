@@ -196,6 +196,7 @@ CEIL_RAM="${WORKER_CEILING##* / }"
 [[ -n "$CEIL_CLASS" && "$CEIL_CLASS" != "0" ]] || CEIL_CLASS=2
 [[ -n "$CEIL_RAM" && "$CEIL_RAM" != "0" ]] || CEIL_RAM=16
 
+attempt=1
 mkdir -p "$PATCH_DIR"
 
 if [[ "$MODE" == "edit" ]]; then
@@ -204,8 +205,12 @@ if [[ "$MODE" == "edit" ]]; then
 Правку вноси ТОЛЬКО в перечисленные файлы, остальное не трогай."
   FILE_FORM_RULES="- Diff правит СУЩЕСТВУЮЩИЙ файл ${TARGET}: строки \`--- a/${TARGET}\` и \`+++ b/${TARGET}\`.
 - Других файлов в диффе нет. Никаких новых файлов, никаких тестов.
+- Контекст — МАКСИМУМ 3 строки до места вставки и 3 после. Тело функции,
+  в которую вставляешь, повторять НЕЛЬЗЯ: дублированный контекст отвергается.
 - Контекстные строки копируй БАЙТ В БАЙТ из прочитанного файла: \`git apply\`
   сверяет их точно. Если не уверен в строке — не включай её в контекст.
+- Якорь выбирай по УНИКАЛЬНОЙ строке рядом с местом вставки, а не по номеру
+  строки: номера в заголовке ханка контур пересчитывает сам.
 - Заголовок ханка: \`@@ -<старая_стр>,<old_n> +<новая_стр>,<new_n> @@\`, где
   old_n = контекст + удаления, new_n = контекст + добавления. Пересчитай перед отправкой.
 - Правка КОМПАКТНАЯ: не более 60 добавленных строк. Одна функция или один блок."
@@ -221,7 +226,11 @@ else
 fi
 
 TASK_TEXT="$(cat <<EOF
-Самосовершенствование роя swarm-dispatcher, виток ${ROUND}.
+Самосовершенствование роя swarm-dispatcher, виток ${ROUND}, попытка ${attempt}.
+
+Номер попытки входит в постановку намеренно: планировщик идемпотентен по её
+хэшу, поэтому без него повтор вернул бы тот же граф и тот же отвергнутый
+артефакт — «повтор с уроком» был бы фикцией.
 
 Ты — часть роя, который улучшает собственный БОЕВОЙ исходный код.
 ${WORK_HEADER}
@@ -318,9 +327,9 @@ wait_graph() {
                           and not exists (
                             select 1 from public.workers w
                              where (w.capabilities->'models'->>'coder_class')::numeric
-                                     >= (t.contract #>> '{needs,coder_class}')::numeric
+                                     >= coalesce((t.contract #>> '{needs,coder_class}')::numeric, 0)
                                and (w.capabilities->>'ram_gb')::numeric
-                                     >= (t.contract #>> '{needs,min_ram_gb}')::numeric);")"
+                                     >= coalesce((t.contract #>> '{needs,min_ram_gb}')::numeric, 0));")"
     if [[ -n "$unclaimable" && "$unclaimable" != "0" ]]; then
       log "граф встал: $unclaimable ready-задач(и) требуют возможностей выше парка (coder_class<=$CEIL_CLASS)"
       return 1
@@ -426,10 +435,43 @@ def normalize_hunk_counts(block):
     return "\n".join(lines) + "\n"
 
 
+def repair_context_markers(block):
+    """Восстановить потерянный ведущий пробел у контекстных строк ханка.
+
+    Модель иногда копирует контекст без первого пробела: строка `/// Есть ли
+    в строке hex-токен` приходит как есть вместо ` /// Есть ли...`. Для
+    `git apply` это «unexpected line», и патч отвергается целиком, хотя
+    содержимое верное. Внутри тела ханка любая непустая строка обязана
+    начинаться с ' ', '+', '-' или '\\'; всё прочее — потерянный маркер
+    контекста. Восстановление не меняет содержимое: `git apply` всё равно
+    сверит строку с файлом байт в байт, поэтому подогнать результат нельзя.
+    """
+    lines = block.rstrip("\n").split("\n")
+    out, in_hunk = [], False
+    for l in lines:
+        if l.startswith("@@"):
+            in_hunk = True
+            out.append(l)
+            continue
+        if l.startswith(("diff --git", "--- ", "+++ ")):
+            in_hunk = False
+            out.append(l)
+            continue
+        if in_hunk and l and l[0] not in " +-\\":
+            out.append(" " + l)
+        else:
+            out.append(l)
+    return "\n".join(out) + "\n"
+
+
 target, path, allowed = sys.argv[1], sys.argv[2], sys.argv[3]
 allowed_set = {p for p in allowed.split() if p}
 body = open(path, encoding="utf-8", errors="replace").read()
-blocks = re.findall(r"```(?:diff|patch)?\n(.*?)```", body, re.S)
+# Закрывающий забор — ТОЛЬКО отдельная строка целиком. Внутри добавленного
+# кода законно встречается ``` в тексте (например, doc-комментарий
+# «съесть закрывающий ```»), и нежадный поиск обрывал блок на нём: патч
+# витка 3 приехал обрезанным на 52 строках из 157 и не применялся.
+blocks = re.findall(r"^```(?:diff|patch)?[ \t]*\n(.*?)^```[ \t]*$", body, re.S | re.M)
 cands = [b for b in blocks if "+++ b/" in b or b.lstrip().startswith("diff --git")]
 if not cands:
     sys.exit(1)
@@ -443,7 +485,7 @@ for b in cands:
         continue
     fixed = normalize_new_file(b)
     if fixed == b or not b.lstrip().startswith("--- /dev/null"):
-        fixed = normalize_hunk_counts(fixed)
+        fixed = normalize_hunk_counts(repair_context_markers(fixed))
     print(fixed, end="")
     sys.exit(0)
 sys.exit(2)
@@ -463,7 +505,6 @@ write_lesson() {
   log "урок записан: $outcome $kind"
 }
 
-attempt=1
 while (( attempt <= MAX_ATTEMPTS )); do
   log "B: виток $ROUND, попытка $attempt — подаю постановку в planner"
   ROOT_ID="$(planner_run "$TASK_TEXT")"
@@ -520,7 +561,9 @@ while (( attempt <= MAX_ATTEMPTS )); do
   git fetch -q public main
   BASE_SHA="$(git rev-parse public/main)"
   git checkout -q -B "$BRANCH" "$BASE_SHA"
-  if ! git apply --check "$PATCH_FILE" 2>/tmp/self-improve-apply.err; then
+  # `--recount` пересчитывает счётчики ханка, но НЕ отменяет сверку
+  # содержимого: подогнать патч под файл он не может.
+  if ! git apply --recount --check "$PATCH_FILE" 2>/tmp/self-improve-apply.err; then
     # Точная причина важна: «патч не применился» не говорит следующему витку
     # ничего. Обрезанный hunk — самый частый случай (модель теряет строки на
     # длинном файле), и лечится он требованием компактного ответа.
@@ -538,7 +581,7 @@ while (( attempt <= MAX_ATTEMPTS )); do
     attempt=$((attempt + 1))
     continue
   fi
-  git apply "$PATCH_FILE"
+  git apply --recount "$PATCH_FILE"
   log "патч применён к $BRANCH (base $BASE_SHA)"
 
   if ! cargo test -p "$CRATE" --locked > /tmp/self-improve-test.log 2>&1; then
