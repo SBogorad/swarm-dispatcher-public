@@ -85,6 +85,8 @@ services:
       WORKER_ID: w1
       LEASE_SEC: "120"
       ARTIFACTS_DIR: /artifacts
+      # Read-only исходники репозитория (см. volume `.:/workspace:ro`).
+      SWARM_REPO_DIR: /workspace
       WORKER_SHELL_TOOLS: "0"
       CAPABILITIES: '{"ram_gb":32,"models":{"coder_class":3}}'
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
@@ -94,6 +96,8 @@ services:
       RUST_LOG: swarm_worker=info
     volumes:
       - demo_artifacts:/artifacts
+      # Read-only исходники: воркер видит файлы, упомянутые в задаче.
+      - .:/workspace:ro
     depends_on:
       postgres: {condition: service_healthy}
 
@@ -106,6 +110,8 @@ services:
       WORKER_ID: w2
       LEASE_SEC: "120"
       ARTIFACTS_DIR: /artifacts
+      # Read-only исходники репозитория (см. volume `.:/workspace:ro`).
+      SWARM_REPO_DIR: /workspace
       WORKER_SHELL_TOOLS: "0"
       CAPABILITIES: '{"ram_gb":16,"models":{"coder_class":2}}'
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
@@ -115,6 +121,8 @@ services:
       RUST_LOG: swarm_worker=info
     volumes:
       - demo_artifacts:/artifacts
+      # Read-only исходники: воркер видит файлы, упомянутые в задаче.
+      - .:/workspace:ro
     depends_on:
       postgres: {condition: service_healthy}
 
@@ -127,6 +135,8 @@ services:
       WORKER_ID: w-1
       LEASE_SEC: "120"
       ARTIFACTS_DIR: /artifacts
+      # Read-only исходники репозитория (см. volume `.:/workspace:ro`).
+      SWARM_REPO_DIR: /workspace
       WORKER_SHELL_TOOLS: "0"
       CAPABILITIES: '{"ram_gb":32,"models":{"coder_class":3}}'
       LLM_PROVIDER: ${WORKER_LLM_PROVIDER:-openai-compatible}
@@ -136,6 +146,8 @@ services:
       RUST_LOG: swarm_worker=info
     volumes:
       - demo_artifacts:/artifacts
+      # Read-only исходники: воркер видит файлы, упомянутые в задаче.
+      - .:/workspace:ro
     depends_on:
       postgres: {condition: service_healthy}
 

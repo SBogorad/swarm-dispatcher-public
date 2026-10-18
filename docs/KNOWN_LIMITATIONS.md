@@ -396,7 +396,7 @@
 - **F9 (неприрываемый `sleep` в heartbeat) — ЗАКРЫТО (коммит `5e27a4c`, PR #43).**
   Было: `thread::sleep(interval)` без проверки флага между шагами —
   `HeartbeatGuard::drop` делал `join` и ждал до `lease_sec/3` (при 300 с — до
-  100 с). Стало: `sleep_interruptible` (`crates/swarm-worker/src/worker.rs:88`,
+  100 с). Стало: `sleep_interruptible` (`crates/swarm-worker/src/worker.rs:95`,
   шаг 500 мс) — цикл heartbeat проверяет флаг и выходит за ≤500 мс (тот же приём,
   что в `crates/swarm-watchdog/src/main.rs`). Покрыто unit-тестами
   `sleep_interruptible_wakes_on_stop` и `sleep_interruptible_returns_false_without_stop`.
@@ -419,7 +419,7 @@
   тестами `truncate_is_utf8_safe`). Поле `Http.body: String`
   (`crates/swarm-llm/src/error.rs:14`) остаётся строкой, но заполняется только
   обрезанным фрагментом. Остаток: `body` всё ещё попадает в fail-артефакт через
-  `format!("llm_error: {e}")` (`crates/swarm-worker/src/worker.rs:583`) — но уже
+  `format!("llm_error: {e}")` (`crates/swarm-worker/src/worker.rs:608`) — но уже
   обрезанным до 400 байт.
 
 #### FIND-NEW-02 (ночная смена 2026-10-17): identity в ПЕРЕКРЫВАЮЩИХ миграциях — ЗАКРЫТО (миграция 014)

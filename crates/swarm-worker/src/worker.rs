@@ -38,6 +38,12 @@ pub struct WorkerConfig {
     /// Issue #7/#10: выбор модели по измеренной цене успеха. `None` — модель
     /// берётся из конфига LLM-клиента (поведение по умолчанию не меняется).
     pub model_selector: Option<Arc<ModelSelector>>,
+    /// Read-only исходники репозитория для промпта (`SWARM_REPO_DIR`).
+    ///
+    /// `None` — репозиторий не смонтирован: поведение прежнее (воркер видит
+    /// только контракт). Живой урок `agent_memory#1`: без этого задача «поправь
+    /// файл X» уходила в `blocked (missing_input)`.
+    pub repo: Option<crate::repo_context::RepoContext>,
 }
 
 impl Default for WorkerConfig {
@@ -53,6 +59,7 @@ impl Default for WorkerConfig {
             run_limits: RunLimits::default(),
             llm_calls: None,
             model_selector: None,
+            repo: None,
         }
     }
 }
@@ -376,6 +383,23 @@ pub fn process_lease(
     if !lessons.is_empty() {
         info!(task_id = %lease.task_id, count = lessons.len(), "memory: lessons recalled");
     }
+    // Исходники, упомянутые в постановке: без них задача «поправь файл X»
+    // уходила в `blocked (missing_input)` — воркер не видел ни файла, ни
+    // возможности построить корректный unified diff (урок `agent_memory#1`).
+    let repo_files = match cfg.repo.as_ref() {
+        Some(repo) => {
+            let files = repo.collect(&contract);
+            if !files.is_empty() {
+                info!(
+                    task_id = %lease.task_id,
+                    count = files.len(),
+                    "repo: source files attached"
+                );
+            }
+            files
+        }
+        None => Vec::new(),
+    };
     let previews = load_parent_previews(cfg, &parents);
     let call_started_at = chrono::Utc::now();
     let call_started = Instant::now();
@@ -389,6 +413,7 @@ pub fn process_lease(
             parents: &parents,
             previews: &previews,
             lessons: &lessons,
+            repo: &repo_files,
         },
     );
     let call_duration_ms = call_started.elapsed().as_millis() as i64;
@@ -776,6 +801,7 @@ struct LlmPromptInput<'a> {
     parents: &'a [swarm_core::ParentArtifactRef],
     previews: &'a [Option<String>],
     lessons: &'a [swarm_core::MemoryLesson],
+    repo: &'a [crate::repo_context::RepoFile],
 }
 
 fn call_llm_with_retries(
@@ -784,13 +810,14 @@ fn call_llm_with_retries(
     input: LlmPromptInput<'_>,
 ) -> Result<swarm_llm::LlmResponse> {
     let sys = prompt::system_prompt();
-    let user = prompt::user_prompt_with_memory(
+    let user = prompt::user_prompt_with_repo(
         input.contract,
         input.rework,
         input.last_review,
         input.parents,
         input.previews,
         input.lessons,
+        input.repo,
     );
     let selected_model = select_model(cfg, input.contract);
 
