@@ -74,6 +74,7 @@ docker compose ps --format '{{.Service}}' >/dev/null 2>&1 || fail "docker compos
 # ---------------------------------------------------------------------------
 case "$ROUND" in
   1)
+    MODE="new"
     CRATE="swarm-worker"
     TARGET="crates/swarm-worker/tests/self_improve_round1.rs"
     SUBJECT="порядок секций промпта воркера и неприкосновенность кода"
@@ -87,6 +88,7 @@ case "$ROUND" in
     READ_FILES="crates/swarm-worker/src/prompt.rs crates/swarm-worker/src/lib.rs"
     ;;
   2)
+    MODE="new"
     CRATE="swarm-core"
     TARGET="crates/swarm-core/tests/self_improve_round2.rs"
     SUBJECT="валидация контракта задачи и разбор вердикта ревьюера"
@@ -97,10 +99,65 @@ case "$ROUND" in
 пишутся в БД и читаются контуром памяти."
     READ_FILES="crates/swarm-core/src/types.rs crates/swarm-core/src/lib.rs"
     ;;
+  3)
+    MODE="edit"
+    CRATE="swarm-reviewer"
+    TARGET="crates/swarm-reviewer/src/main.rs"
+    SUBJECT="валидация unified diff в артефакте до вынесения вердикта"
+    BEHAVIOUR="В \`verify_with_trail\` добавить реальную проверку структуры unified diff. \
+Сейчас проверяются только длина текста и Decision Trail: битый патч (заголовок \
+\`@@ set -euo pipefail @@\`, неверный счёт строк в ханке) получает \`Approved\`, а \
+\`git apply\` падает позже. Добавить функцию \
+\`fn validate_unified_diff(body: &str) -> Result<usize, String>\`, которая: \
+1) находит блоки, начинающиеся с \`\`\`diff; 2) для каждого требует строку \
+\`+++ b/<path>\` и \`--- a/<path>\` либо \`--- /dev/null\`; 3) требует заголовок ханка \
+строго вида \`@@ -l,s +l,s @@\` с числами; 4) считает фактические строки тела ханка: \
+old = строки, начинающиеся с пробела или '-', new = пробела или '+', и сравнивает \
+с объявленными в заголовке; 5) при расхождении возвращает Err с точным описанием: \
+номер строки заголовка, объявлено/фактически для old и new; 6) Ok(n) — число \
+проверенных блоков. Вызвать её в \`verify_with_trail\` после проверки маркеров \
+незавершённой работы и до проверки длины: при Err вернуть \`ChangesRequested\` с \
+текстом \`[RUBRIC:DIFF] ...\`. Если diff-блоков нет — проверка не применяется."
+    READ_FILES="crates/swarm-reviewer/src/main.rs"
+    ;;
+  4)
+    MODE="edit"
+    CRATE="swarm-worker"
+    TARGET="crates/swarm-worker/src/model_selector.rs"
+    SUBJECT="повышение класса модели при реворке"
+    BEHAVIOUR="Сейчас при повторной попытке (\`rework > 0\`) воркер берёт ту же модель, \
+на которой уже ошибся. 1) В \`model_selector.rs\` добавить \
+\`pub fn choose_with_rework(&self, contract: &serde_json::Value, rework: i32) -> Option<Selection>\`: \
+эффективный уровень = \`(task_tier + rework).min(3)\` при \`rework > 0\`, иначе \`task_tier\`; \
+выбор идёт по этому уровню. Существующий \`choose\` оставить делегатом \
+\`choose_with_rework(contract, 0)\` — публичный API не ломать. 2) В \`worker.rs\` \
+прокинуть \`rework\` в \`fn select_model\` и вызывать \`choose_with_rework\`; \
+\`call_llm_with_retries\` уже получает \`input.rework\`. В \`reason\` показать подъём: \
+\`rework=N tier=T->E\`."
+    READ_FILES="crates/swarm-worker/src/model_selector.rs crates/swarm-worker/src/worker.rs"
+    ;;
+  5)
+    MODE="edit"
+    CRATE="swarm-worker"
+    TARGET="crates/swarm-worker/src/prompt.rs"
+    SUBJECT="дедупликация вспоминаемых уроков памяти"
+    BEHAVIOUR="Сейчас \`memory_section\` печатает все переданные уроки подряд. Если пять \
+задач упали с одной причиной, воркер получает пять копий одного урока и теряет \
+остальные. В \`prompt.rs\` дедуплицировать уроки по СМЫСЛУ перед печатью: нормализовать \
+текст (нижний регистр, схлопнуть пробелы, отрезать хвост после 'Причина:' и оставить \
+первые 80 символов нормализованной причины) и оставить первый (самый свежий) урок \
+из каждой группы; порядок остальных сохранить. Реализовать приватной функцией \
+\`fn dedup_lessons(lessons: &[swarm_core::MemoryLesson]) -> Vec<&swarm_core::MemoryLesson>\` \
+и вызвать в начале \`memory_section\`. При пустом результате секция не печатается."
+    READ_FILES="crates/swarm-worker/src/prompt.rs"
+    ;;
   *)
     fail "виток $ROUND не описан в скрипте: добавь тему, иначе рой получит бессмысленную задачу"
     ;;
 esac
+
+MODE="${MODE:-new}"
+TARGET_FILES="${TARGET_FILES:-$TARGET}"
 
 BRANCH="self-improve/round-${ROUND}"
 PATCH_DIR="$REPO_ROOT/.self-improve"
@@ -141,18 +198,39 @@ CEIL_RAM="${WORKER_CEILING##* / }"
 
 mkdir -p "$PATCH_DIR"
 
+if [[ "$MODE" == "edit" ]]; then
+  WORK_HEADER="Задача — ИЗМЕНИТЬ СУЩЕСТВУЮЩИЙ БОЕВОЙ файл: добавить в него реальную
+функциональность. Это не тест и не документация: меняется поведение движка.
+Правку вноси ТОЛЬКО в перечисленные файлы, остальное не трогай."
+  FILE_FORM_RULES="- Diff правит СУЩЕСТВУЮЩИЙ файл ${TARGET}: строки \`--- a/${TARGET}\` и \`+++ b/${TARGET}\`.
+- Других файлов в диффе нет. Никаких новых файлов, никаких тестов.
+- Контекстные строки копируй БАЙТ В БАЙТ из прочитанного файла: \`git apply\`
+  сверяет их точно. Если не уверен в строке — не включай её в контекст.
+- Заголовок ханка: \`@@ -<старая_стр>,<old_n> +<новая_стр>,<new_n> @@\`, где
+  old_n = контекст + удаления, new_n = контекст + добавления. Пересчитай перед отправкой.
+- Правка КОМПАКТНАЯ: не более 60 добавленных строк. Одна функция или один блок."
+else
+  WORK_HEADER="Задача — добавить РОВНО ОДИН новый файл интеграционного теста, который
+закрепляет поведение, уже реализованное в коде. Ничего не переписывай и не рефактори."
+  FILE_FORM_RULES="- Diff создаёт РОВНО ОДИН новый файл: ${TARGET}. Других файлов в диффе нет.
+- Заголовки ровно: \`--- /dev/null\` и \`+++ b/${TARGET}\`.
+- Файл КОМПАКТНЫЙ: не более 90 строк. Без вспомогательных функций, без таблиц
+  в комментариях, без длинных doc-блоков. Три теста — три функции.
+- Заголовок hunk'а (\`@@ -0,0 +1,N @@\`) обязан совпадать с числом строк в блоке:
+  пересчитай N перед отправкой. Обрезанный блок не применится и будет отклонён."
+fi
+
 TASK_TEXT="$(cat <<EOF
 Самосовершенствование роя swarm-dispatcher, виток ${ROUND}.
 
-Ты — часть роя, который улучшает собственный исходный код. Задача — добавить
-РОВНО ОДИН новый файл интеграционного теста, который закрепляет поведение,
-уже реализованное в коде. Ничего не переписывай и не рефактори.
+Ты — часть роя, который улучшает собственный БОЕВОЙ исходный код.
+${WORK_HEADER}
 
-НОВЫЙ ФАЙЛ (путь ровно такой): ${TARGET}
+ЦЕЛЕВОЙ ФАЙЛ: ${TARGET}
 КРЕЙТ: ${CRATE}
 ПРЕДМЕТ: ${SUBJECT}
 
-ЧТО ИМЕННО ДОЛЖЕН ПРОВЕРЯТЬ ТЕСТ:
+ЧТО ИМЕННО ДОЛЖНО ИЗМЕНИТЬСЯ В КОДЕ:
 ${BEHAVIOUR}
 
 ФАЙЛЫ, КОТОРЫЕ НУЖНО ПРОЧИТАТЬ ПЕРЕД ОТВЕТОМ (доступны только на чтение):
@@ -176,22 +254,16 @@ ${BLOCKED}
 
 ТРЕБОВАНИЯ К ОТВЕТУ (нарушение любого = отказ ревьюера):
 - Ответ — ОДИН unified diff в блоке \`\`\`diff ... \`\`\`.
-- Diff создаёт РОВНО ОДИН новый файл: ${TARGET}. Других файлов в диффе нет.
-- Заголовки ровно: \`--- /dev/null\` и \`+++ b/${TARGET}\`.
-- Файл КОМПАКТНЫЙ: не более 90 строк. Без вспомогательных функций, без таблиц
-  в комментариях, без длинных doc-блоков. Три теста — три функции.
-- Заголовок hunk'а (\`@@ -0,0 +1,N @@\`) обязан совпадать с числом строк в блоке:
-  пересчитай N перед отправкой. Обрезанный блок не применится и будет отклонён.
+${FILE_FORM_RULES}
 - Никаких заглушек и маркеров незавершённой работы в тексте.
-- Тест обязан компилироваться и проходить под \`cargo test -p ${CRATE} --locked\`.
-- Используй ТОЛЬКО публичный API крейта; не тяни новые зависимости.
-- Не создавай отдельную подзадачу-верификатор: прогон \`cargo test\` выполняет
-  внешний контур, у тебя нет shell. Одна задача — один файл теста.
+- Код обязан компилироваться под \`cargo build -p ${CRATE} --locked\`.
+- Используй ТОЛЬКО существующие зависимости; новых не добавляй.
+- Не создавай подзадачу-верификатор: сборку выполняет внешний контур.
 - После блока diff добавь секцию \`## Decision Trail\` — markdown-таблицу
   со столбцами \`phase | decision | why | evidence | result\`. В КАЖДОЙ строке
   \`evidence\` — проверяемый указатель: путь с файлом (${READ_FILES%% *}),
-  \`cargo test -p ${CRATE}\` или \`rc=0\`. Описательный текст ревьюер отклонит.
-- Последняя секция — \`## Handoff\`: одной строкой, что именно закрепляет тест.
+  \`cargo build -p ${CRATE}\` или \`rc=0\`. Описательный текст ревьюер отклонит.
+- Последняя секция — \`## Handoff\`: одной строкой, что именно изменилось.
 EOF
 )"
 
@@ -300,7 +372,7 @@ extract_patch() {
   # занимает stdin под саму программу, поэтому pipe с артефактом молча давал
   # пустое тело. Живой виток 2 записал из-за этого ложный урок «ни один
   # артефакт не содержит применимого diff», хотя diff в артефакте был.
-  python3 - "$TARGET" "$1" <<'PY'
+  python3 - "$TARGET" "$1" "${TARGET_FILES:-$TARGET}" <<'PY'
 import re
 import sys
 
@@ -326,17 +398,54 @@ def normalize_new_file(block):
     return "\n".join(head + payload) + "\n"
 
 
-target, path = sys.argv[1], sys.argv[2]
+def normalize_hunk_counts(block):
+    """Пересчитать счётчики единственного ханка по его телу.
+
+    Для ПРАВКИ существующего файла модель тоже ошибается в счёте строк, и
+    `git apply` отвергает весь патч (`corrupt patch`). Числа в заголовке
+    `@@ -a,b +c,d @@` однозначно выводятся из тела: `b` — строки контекста и
+    удаления, `d` — контекст и добавления. Меняем ТОЛЬКО числа, содержимое
+    не трогаем ни на байт. Работаем лишь при одном ханке: при нескольких
+    непонятно, к какому заголовку относится тело.
+    """
+    lines = block.rstrip("\n").split("\n")
+    heads = [i for i, l in enumerate(lines) if l.startswith("@@")]
+    if len(heads) != 1:
+        return block if block.endswith("\n") else block + "\n"
+    hi = heads[0]
+    m = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", lines[hi])
+    if not m:
+        return block if block.endswith("\n") else block + "\n"
+    old_start, new_start = m.group(1), m.group(3)
+    payload = lines[hi + 1:]
+    old_n = sum(1 for l in payload if l[:1] in (" ", "-") and not l.startswith("\\"))
+    new_n = sum(1 for l in payload if l[:1] in (" ", "+") and not l.startswith("\\"))
+    if (old_n, new_n) == (0, 0):
+        return block if block.endswith("\n") else block + "\n"
+    lines[hi] = "@@ -%s,%d +%s,%d @@" % (old_start, old_n, new_start, new_n)
+    return "\n".join(lines) + "\n"
+
+
+target, path, allowed = sys.argv[1], sys.argv[2], sys.argv[3]
+allowed_set = {p for p in allowed.split() if p}
 body = open(path, encoding="utf-8", errors="replace").read()
 blocks = re.findall(r"```(?:diff|patch)?\n(.*?)```", body, re.S)
 cands = [b for b in blocks if "+++ b/" in b or b.lstrip().startswith("diff --git")]
 if not cands:
     sys.exit(1)
-# Предпочитаем блок, который создаёт ровно целевой файл.
+# Блок годится, если он трогает целевой файл и НЕ трогает ничего вне
+# разрешённого набора: патч, задевший чужой файл, не должен применяться молча.
 for b in cands:
-    if ("+++ b/%s" % target) in b and b.count("+++ b/") == 1:
-        print(normalize_new_file(b), end="")
-        sys.exit(0)
+    touched = re.findall(r"^\+\+\+ b/(.+)$", b, re.M)
+    if target not in touched:
+        continue
+    if not set(touched) <= allowed_set:
+        continue
+    fixed = normalize_new_file(b)
+    if fixed == b or not b.lstrip().startswith("--- /dev/null"):
+        fixed = normalize_hunk_counts(fixed)
+    print(fixed, end="")
+    sys.exit(0)
 sys.exit(2)
 PY
 }
