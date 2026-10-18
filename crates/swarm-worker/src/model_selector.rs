@@ -251,14 +251,40 @@ impl ModelSelector {
 
     /// Выбрать модель под контракт. `None` → брать модель из конфига.
     pub fn choose(&self, contract: &serde_json::Value) -> Option<Selection> {
-        select_model(
+        self.choose_with_rework(contract, 0)
+    }
+
+    /// Выбрать модель под контракт с учётом номера реворка.
+    ///
+    /// При `rework > 0` эффективный уровень задачи поднимается на номер
+    /// попытки с потолком 3: модель, на которой задача уже провалилась,
+    /// повторно вслепую не берётся. `reason` показывает подъём `tier=T->E`.
+    pub fn choose_with_rework(
+        &self,
+        contract: &serde_json::Value,
+        rework: i32,
+    ) -> Option<Selection> {
+        let task_tier = self.task_tier(contract);
+        let effective: u8 = if rework > 0 {
+            (task_tier + rework.min(3) as u8).min(3)
+        } else {
+            task_tier
+        };
+        let mut sel = select_model(
             &self.catalog,
-            self.task_tier(contract),
+            effective,
             &self.stats,
             self.min_samples,
             self.min_success_rate,
             self.expected_output_ratio,
-        )
+        )?;
+        if rework > 0 {
+            sel.reason = format!(
+                "rework={} tier={}->{} {}",
+                rework, task_tier, effective, sel.reason
+            );
+        }
+        Some(sel)
     }
 }
 
