@@ -276,3 +276,9 @@ CODE_OF_CONDUCT.md
 .github/*
 tests/test_agent_memory_017.py
 scripts/self_improve_loop.sh
+
+# RSI v2 (2026-10-19): классификация сбоя контура (HarnessFault vs AgentFault)
+# и проводка TARGET_FILES. Урок в `agent_memory` пишется только при AGENT_FAULT;
+# патч обязан затронуть каждый заявленный файл, иначе механизм остаётся
+# неподключённым («мёртвый остров» витка 4). Страж — статический тест.
+tests/test_harness_fault_classification.py

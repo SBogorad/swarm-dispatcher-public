@@ -62,6 +62,58 @@ done
 log()  { printf '[self-improve %s] %s\n' "$ROUND" "$*"; }
 fail() { printf '[self-improve %s] ERROR: %s\n' "$ROUND" "$*" >&2; exit "${2:-4}"; }
 
+# ---------------------------------------------------------------------------
+# Классификация сбоя: HarnessFault vs AgentFault (Reflexion / ExpeL).
+#
+# Урок в `agent_memory` — это знание роя о СВОИХ ошибках. Если контур пишет
+# туда сбой обвязки (не поднялась БД, съеденный stdin, 503 провайдера), рой
+# получает суеверный урок о том, чего не делал. Живой случай: баг `exec -T`
+# записал «ни один артефакт не содержит diff», хотя патч был, и следующий
+# виток учился на галлюцинации контура.
+#
+# Правило: урок пишется ТОЛЬКО при AGENT_FAULT — патч роя не собрался, уронил
+# тест, не затронул все `TARGET_FILES` или отвергнут ревьюером. Всё, что
+# сломалось до/вне кода роя, — HARNESS_FAULT: виток останавливается, память
+# не трогается.
+# ---------------------------------------------------------------------------
+FAULT_CLASS=""
+agent_fault()   { FAULT_CLASS="AGENT_FAULT"; }
+harness_fault() { FAULT_CLASS="HARNESS_FAULT"; }
+
+# Последние строки лога при ошибке: полный лог остаётся в файле, в консоль
+# уходит только хвост — иначе длинный прогон взрывает контекст координатора
+# (живой `503 system memory overloaded` на 153k токенов).
+tail_log() {
+  local file="$1" n="${2:-25}"
+  [[ -s "$file" ]] || return 0
+  printf '[self-improve %s] --- последние %s строк %s ---\n' "$ROUND" "$n" "$file"
+  tail -n "$n" "$file" | sed 's/^/  /'
+}
+
+# Проводка (Darwin Gödel Machine, Wiring Check): патч обязан затронуть КАЖДЫЙ
+# заявленный файл. Живой случай — «мёртвый остров»: рой добавил
+# `choose_with_rework` в `model_selector.rs` и тест к нему, все гейты зелёные,
+# а боевой `worker.rs` продолжал звать `choose(contract)` с `rework = 0`.
+# Механизм существовал и не был подключён. Три артефакта из трёх не трогали
+# второй файл, и ничто это не ловило: `git apply --check` проходил.
+missing_targets() {
+  local patch="$1" f touched
+  touched="$(sed -n 's|^+++ b/||p' "$patch" | sort -u)"
+  for f in $TARGET_FILES; do
+    printf '%s\n' "$touched" | grep -qxF "$f" || printf '%s\n' "$f"
+  done
+}
+
+# Счётчики тестов из лога `cargo test` — компактная сводка вместо простыни.
+test_counts() {
+  local file="$1"
+  [[ -s "$file" ]] || { printf 'нет лога'; return 0; }
+  local passed failed
+  passed="$(grep -oE '[0-9]+ passed' "$file" | awk '{s+=$1} END {print s+0}')"
+  failed="$(grep -oE '[0-9]+ failed' "$file" | awk '{s+=$1} END {print s+0}')"
+  printf '%s passed, %s failed' "$passed" "$failed"
+}
+
 cd "$REPO_ROOT"
 
 command -v docker >/dev/null || fail "docker недоступен"
@@ -152,6 +204,33 @@ old = строки, начинающиеся с пробела или '-', new =
 и вызвать в начале \`memory_section\`. При пустом результате секция не печатается."
     READ_FILES="crates/swarm-worker/src/prompt.rs"
     ;;
+  6)
+    MODE="sql"
+    # SQL-виток: `cargo test -p` здесь нечего проверять, миграцию ловит
+    # acceptance_harness (SQL-арбитры на одноразовой БД). Пустой CRATE
+    # отключает шаг cargo test — иначе он гонял бы посторонний крейт.
+    CRATE=""
+    TARGET="schema/migrations/018_recall_memory_dedup.sql"
+    SUBJECT="дедупликация уроков памяти до LIMIT 5"
+    BEHAVIOUR="Функция \`public.task_recall_memory\` (см. schema/migrations/015_agent_memory.sql) \
+делает \`order by m.created_at desc, m.id desc limit 5\` и отдаёт воркеру пять САМЫХ СВЕЖИХ \
+строк. Если в таблице подряд лежат пять копий одного урока, воркер получает пять копий \
+и теряет все остальные уроки: Rust-дедупликация в \`prompt.rs\` схлопывает их уже ПОСЛЕ \
+LIMIT. Нужна новая миграция, которая пересоздаёт функцию так, чтобы дедупликация \
+происходила ДО ограничения: 1) вычислить смысловой отпечаток урока — \
+\`lower(regexp_replace(lesson, '\\s+', ' ', 'g'))\` и обрезать хвост после 'причина:' до 80 \
+символов; 2) из каждой группы одинаковых отпечатков оставить САМУЮ СВЕЖУЮ строку \
+(\`distinct on (отпечаток) ... order by отпечаток, created_at desc, id desc\`); \
+3) отсортировать выжившие по \`created_at desc, id desc\` и вернуть до 5; 4) сохранить \
+сигнатуру \`(p_task uuid, p_worker text, p_epoch bigint)\`, \`security definer\`, \
+\`set search_path = public, pg_temp\`, проверки \`assert_worker_identity\` и \`assert_lease\`, \
+исключение своей задачи (\`m.source_task_id <> p_task\`) и фильтр \`m.kind in (v_kind, '*')\`; \
+5) вернуть \`alter function ... owner to swarm_owner\`, \`revoke all ... from public\` и \
+\`grant execute ... to swarm_worker\` — без них функция перестанет быть вызываемой \
+воркером. Функция должна возвращать 5 РАЗНЫХ по смыслу уроков, даже если в таблице \
+десять копий одного."
+    READ_FILES="schema/migrations/015_agent_memory.sql schema/migrations/016_agent_memory_feedback.sql schema/migrations/017_block_reason_limit.sql"
+    ;;
   *)
     fail "виток $ROUND не описан в скрипте: добавь тему, иначе рой получит бессмысленную задачу"
     ;;
@@ -197,6 +276,34 @@ CEIL_RAM="${WORKER_CEILING##* / }"
 [[ -n "$CEIL_CLASS" && "$CEIL_CLASS" != "0" ]] || CEIL_CLASS=2
 [[ -n "$CEIL_RAM" && "$CEIL_RAM" != "0" ]] || CEIL_RAM=16
 
+# ---------------------------------------------------------------------------
+# Pre-flight (Darwin Gödel Machine): виток не стартует на грязном дереве и не
+# просит рой править файлы, которых нет. Оба условия — HARNESS_FAULT: это
+# состояние контура, а не ошибка роя, и урок в память не пишется.
+# ---------------------------------------------------------------------------
+preflight() {
+  local dirty missing=()
+  # `--dry-run` только печатает постановку и ничего не меняет: требовать от
+  # него чистого дерева значит запретить отладку самого контура.
+  (( DRY_RUN )) && { log "pre-flight: пропущен (--dry-run)"; return 0; }
+  dirty="$(git status --porcelain)"
+  if [[ -n "$dirty" ]]; then
+    harness_fault
+    tail_log <(printf '%s\n' "$dirty") 8
+    fail "pre-flight: рабочее дерево грязное — виток не стартует (см. git status)" 4
+  fi
+  for f in $TARGET_FILES; do
+    [[ -f "$f" ]] || missing+=("$f")
+  done
+  if (( ${#missing[@]} > 0 )); then
+    harness_fault
+    fail "pre-flight: целевых файлов нет в дереве: ${missing[*]}" 4
+  fi
+  log "pre-flight: дерево чистое, все целевые файлы на месте ($(echo $TARGET_FILES | wc -w))"
+}
+
+preflight
+
 attempt=1
 # Уникальный идентификатор запуска: планировщик идемпотентен по хэшу постановки,
 # и без него повтор после падения (например, transport-ошибка LLM) возвращал бы
@@ -204,7 +311,20 @@ attempt=1
 RUN_ID="$(date +%Y%m%dT%H%M%S)-$$"
 mkdir -p "$PATCH_DIR"
 
-if [[ "$MODE" == "edit" ]]; then
+if [[ "$MODE" == "sql" ]]; then
+  WORK_HEADER="Задача — добавить РОВНО ОДИН новый файл SQL-миграции, который меняет
+поведение существующей функции БД. Это не тест и не документация: миграция
+пересоздаёт функцию, и её поведение меняется для всех вызовов.
+Новых таблиц и колонок не добавляй: миграция обязана применяться на живой схеме."
+  FILE_FORM_RULES="- Diff создаёт РОВНО ОДИН новый файл: ${TARGET}. Других файлов в диффе нет.
+- Заголовки ровно: \`--- /dev/null\` и \`+++ b/${TARGET}\`.
+- Файл КОМПАКТНЫЙ: не более 120 строк, только \`create or replace function\` и
+  сопутствующие \`alter\`/\`revoke\`/\`grant\`/\`comment\`.
+- Функция должна остаться вызываемой воркером: без \`grant execute\` она
+  перестанет работать, и это не поймает ни один локальный тест.
+- Заголовок hunk'а (\`@@ -0,0 +1,N @@\`) обязан совпадать с числом строк в блоке:
+  пересчитай N перед отправкой. Обрезанный блок не применится и будет отклонён."
+elif [[ "$MODE" == "edit" ]]; then
   WORK_HEADER="Задача — ИЗМЕНИТЬ СУЩЕСТВУЮЩИЙ БОЕВОЙ файл: добавить в него реальную
 функциональность. Это не тест и не документация: меняется поведение движка.
 Правку вноси ТОЛЬКО в перечисленные файлы, остальное не трогай."
@@ -241,8 +361,7 @@ ${WORK_HEADER}
 
 ЦЕЛЕВЫЕ ФАЙЛЫ (все обязательны):
 $(for f in $TARGET_FILES; do printf '  - %s\n' "$f"; done)
-КРЕЙТ: ${CRATE}
-ПРЕДМЕТ: ${SUBJECT}
+$( [[ -n "$CRATE" ]] && printf 'КРЕЙТ: %s\n' "$CRATE" )ПРЕДМЕТ: ${SUBJECT}
 
 ЧТО ИМЕННО ДОЛЖНО ИЗМЕНИТЬСЯ В КОДЕ:
 ${BEHAVIOUR}
@@ -270,13 +389,13 @@ ${BLOCKED}
 - Ответ — ОДИН unified diff в блоке \`\`\`diff ... \`\`\`.
 ${FILE_FORM_RULES}
 - Никаких заглушек и маркеров незавершённой работы в тексте.
-- Код обязан компилироваться под \`cargo build -p ${CRATE} --locked\`.
+$( if [[ -n "$CRATE" ]]; then printf -- '- Код обязан компилироваться под `cargo build -p %s --locked`.\n' "$CRATE"; else printf -- '- Миграция обязана применяться на существующей схеме без ошибок.\n'; fi )
 - Используй ТОЛЬКО существующие зависимости; новых не добавляй.
 - Не создавай подзадачу-верификатор: сборку выполняет внешний контур.
 - После блока diff добавь секцию \`## Decision Trail\` — markdown-таблицу
   со столбцами \`phase | decision | why | evidence | result\`. В КАЖДОЙ строке
   \`evidence\` — проверяемый указатель: путь с файлом (${READ_FILES%% *}),
-  \`cargo build -p ${CRATE}\` или \`rc=0\`. Описательный текст ревьюер отклонит.
+  $( if [[ -n "$CRATE" ]]; then printf '`cargo build -p %s`' "$CRATE"; else printf '`psql -f <миграция>`'; fi ) или \`rc=0\`. Описательный текст ревьюер отклонит.
 - Последняя секция — \`## Handoff\`: одной строкой, что именно изменилось.
 EOF
 )"
@@ -512,6 +631,13 @@ PY
 
 write_lesson() {
   local task="$1" kind="$2" outcome="$3" text="$4"
+  # Reflexion/ExpeL: память роя — знание о СВОИХ ошибках. Сбой обвязки,
+  # записанный как урок, — суеверие: следующий виток учится на галлюцинации
+  # контура (живой случай — ложный урок «нет diff» из-за съеденного stdin).
+  if [[ "${FAULT_CLASS:-}" != "AGENT_FAULT" ]]; then
+    log "урок НЕ записан ($outcome $kind): сбой классифицирован как ${FAULT_CLASS:-НЕ КЛАССИФИЦИРОВАН}, память роя не отравляем"
+    return 0
+  fi
   # Прямая вставка: консолидатор пишет уроки сам, но здесь источник — гейт,
   # а не переход состояния задачи. `on conflict` держит инвариант «один урок
   # на (задача, вид)» из 016.
@@ -621,6 +747,17 @@ while (( attempt <= MAX_ATTEMPTS )); do
     if [[ -n "${UNCLAIMABLE//[[:space:]]/}" ]]; then
       REASON="задача не берётся парком: ${UNCLAIMABLE}; потолок coder_class=$CEIL_CLASS"
     fi
+    # Таймаут сам по себе — состояние обвязки. Но если задачи графа УСПЕЛИ
+    # заблокироваться с причиной (`max_rework`, отказ ревьюера), виноват рой:
+    # это AGENT_FAULT, и урок уместен. Различаем по наличию blocked-причин.
+    BLOCKED_N="$(db "select count(*) from public.tasks
+                      where root_id = '$ROOT_ID' and state = 'blocked'
+                        and coalesce(block_reason, '') <> '';" 2>/dev/null || echo 0)"
+    if [[ "${BLOCKED_N:-0}" != "0" ]]; then
+      agent_fault
+    else
+      harness_fault
+    fi
     write_lesson "$ROOT_ID" "$CRATE" blocked \
       "Виток $ROUND: граф не завершился за ${GRAPH_TIMEOUT_SEC}s. Причина: ${REASON:-не указана}."
     fail "граф не завершился: ${REASON:-не указана}" 2
@@ -630,6 +767,8 @@ while (( attempt <= MAX_ATTEMPTS )); do
   if [[ -z "${REFS//[[:space:]]/}" ]]; then
     REASON="$(db "select coalesce(string_agg(coalesce(block_reason,'нет'), '; '), 'нет')
                     from public.tasks where root_id = '$ROOT_ID' and state = 'blocked';")"
+    # Ни одна задача не одобрена: ревьюер отверг то, что произвёл рой.
+    agent_fault
     write_lesson "$ROOT_ID" "$CRATE" blocked \
       "Виток $ROUND: ни одна задача графа не одобрена. Причина: ${REASON:-не указана}."
     attempt=$((attempt + 1))
@@ -648,6 +787,10 @@ while (( attempt <= MAX_ATTEMPTS )); do
   done <<< "$REFS"
 
   if [[ -z "$REF" ]]; then
+    # Артефакт одобрен, но diff из него не извлекается — это форма ответа роя.
+    # (Исторический ложный случай — съеденный stdin — уже устранён `</dev/null`;
+    # если урок снова появится, причина будет именно в артефакте.)
+    agent_fault
     write_lesson "$ROOT_ID" "$CRATE" blocked \
       "Виток $ROUND: ни один одобренный артефакт графа не содержит применимого unified diff для $TARGET."
     attempt=$((attempt + 1))
@@ -667,6 +810,7 @@ while (( attempt <= MAX_ATTEMPTS )); do
     # Точная причина важна: «патч не применился» не говорит следующему витку
     # ничего. Обрезанный hunk — самый частый случай (модель теряет строки на
     # длинном файле), и лечится он требованием компактного ответа.
+    agent_fault
     if grep -q 'corrupt patch' /tmp/self-improve-apply.err; then
       DECLARED="$(grep -m1 '^@@' "$PATCH_FILE" | sed -n 's/.*+\([0-9]*\).*/\1/p')"
       ACTUAL="$(grep -c '^+' "$PATCH_FILE")"
@@ -681,6 +825,20 @@ while (( attempt <= MAX_ATTEMPTS )); do
     attempt=$((attempt + 1))
     continue
   fi
+  # Проводка проверяется ДО применения: патч, не затронувший заявленный файл,
+  # оставил бы механизм неподключённым — ровно тот дефект, что дал виток 4.
+  MISSING="$(missing_targets "$PATCH_FILE")"
+  if [[ -n "${MISSING//[[:space:]]/}" ]]; then
+    agent_fault
+    write_lesson "$ROOT_ID" "$CRATE" blocked \
+      "Виток $ROUND: патч роя не затронул заявленные файлы: $(printf '%s ' $MISSING)." \
+      "Следующий виток: правка каждого файла из TARGET_FILES обязательна — без неё механизм остаётся неподключённым."
+    log "проводка неполная: не затронуты $(printf '%s ' $MISSING)"
+    git checkout -q main
+    attempt=$((attempt + 1))
+    continue
+  fi
+
   git apply --recount "$PATCH_FILE"
   log "патч применён к $BRANCH (base $BASE_SHA)"
 
@@ -692,15 +850,31 @@ while (( attempt <= MAX_ATTEMPTS )); do
 
   # Интеграционным тестам крейта нужна живая БД; без неё шаг краснеет
   # независимо от патча роя (проверено на чистом main).
-  provision_test_db || log "WARN: тестовая БД не поднялась — интеграционные тесты упадут"
+  # Без живой БД шаг тестов краснеет независимо от патча: интеграционные тесты
+  # требуют Postgres и падают с `Connection refused`. Это HARNESS_FAULT —
+  # виток останавливается, урок в память роя не пишется (иначе рой «выучит»
+  # урок про отсутствующий контейнер).
+  if ! provision_test_db > /tmp/self-improve-testdb.log 2>&1; then
+    harness_fault
+    tail_log /tmp/self-improve-testdb.log 15
+    git checkout -q -- . && git clean -qfd
+    git checkout -q main
+    fail "тестовая БД не поднялась — виток остановлен, память роя не тронута" 4
+  fi
 
   # `--test-threads=1`: интеграционные тесты крейта работают с ОДНОЙ базой и
   # в `clear()` транкают таблицы. Параллельный прогон валит их друг другу:
   # `f5_lease_revoked_mid_flight_fails_fast` падал с `left: "review"`,
   # потому что соседний тест успевал завершить его задачу. Гейт гоняет те же
   # тесты с `--test-threads=1` — здесь тот же режим.
-  if ! cargo test -p "$CRATE" --locked -- --test-threads=1 > /tmp/self-improve-test.log 2>&1; then
+  if [[ -z "$CRATE" ]]; then
+    log "шаг cargo test пропущен: виток правит SQL, проверку делает STRICT-гейт"
+  elif ! cargo test -p "$CRATE" --locked -- --test-threads=1 > /tmp/self-improve-test.log 2>&1; then
+    # Патч роя уронил тест — это ошибка агента, урок уместен.
+    agent_fault
     TAIL="$(grep -E '^(error|test result: FAILED)' /tmp/self-improve-test.log | head -3 | tr '\n' ' ')"
+    log "тесты красные: $(test_counts /tmp/self-improve-test.log)"
+    tail_log /tmp/self-improve-test.log 25
     write_lesson "$ROOT_ID" "$CRATE" blocked \
       "Виток $ROUND: тест роя не проходит после применения: ${TAIL:-см. лог}."
     git checkout -q -- . && git clean -qfd
@@ -712,7 +886,10 @@ while (( attempt <= MAX_ATTEMPTS )); do
   if ! ./scripts/acceptance_harness.sh --base "$BASE_SHA" --branch HEAD \
         --full-workspace-test --allowlist-file scripts/acceptance_allowlist.txt \
         > /tmp/self-improve-gate.log 2>&1; then
+    agent_fault
     FAILED="$(grep -E '^FAIL ' /tmp/self-improve-gate.log | head -3 | tr '\n' ' ')"
+    log "STRICT-гейт красный: ${FAILED:-см. лог}"
+    tail_log /tmp/self-improve-gate.log 25
     write_lesson "$ROOT_ID" "$CRATE" blocked \
       "Виток $ROUND: STRICT-гейт красный после патча роя: ${FAILED:-см. лог}."
     git checkout -q -- . && git clean -qfd
@@ -753,6 +930,9 @@ MSG
     if ! gh pr checks "$PR_URL" 2>/dev/null | grep -q pending; then break; fi
   done
   if gh pr checks "$PR_URL" 2>/dev/null | grep -qE 'fail'; then
+    # Локальный гейт зелёный, CI красный — расхождение среды, но источник всё
+    # равно патч роя: урок уместен.
+    agent_fault
     write_lesson "$ROOT_ID" "$CRATE" blocked "Виток $ROUND: CI красный на PR $PR_URL."
     fail "CI красный: $PR_URL" 3
   fi
