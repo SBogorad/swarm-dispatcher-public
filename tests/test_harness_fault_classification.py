@@ -120,3 +120,15 @@ def test_compact_output_helpers_used(script: str) -> None:
     assert script.count("tail_log /tmp/self-improve-") >= 2, (
         "tail_log не подключён к шагам тестов и гейта"
     )
+
+def test_preflight_branches_by_mode(script: str) -> None:
+    """Правка требует существующий файл, создание — свободное имя.
+
+    Первая версия pre-flight проверяла существование для всех режимов и
+    останавливала виток 6: миграции `018_*.sql` ещё нет, её создаёт рой.
+    """
+    body = re.search(r"^preflight\(\)\s*\{(.*?)^\}", script, re.M | re.S)
+    assert body, "нет функции preflight"
+    inner = body.group(1)
+    assert '"$MODE" == "edit"' in inner, "pre-flight не различает режимы"
+    assert '[[ -e "$TARGET" ]]' in inner, "нет проверки занятого имени для new/sql"
