@@ -46,13 +46,18 @@ MIG_014="schema/migrations/014_identity_in_override_migrations.sql"
 # иначе снятая аренда останется в рабочем дереве, и шлюз памяти будет открыт
 # любому воркеру, знающему task_id.
 MIG_015="schema/migrations/015_agent_memory.sql"
+# S16 (обратная связь памяти): мутация снимает ветку `blocked` в
+# `consolidate_task_memory` (миграция 016). Файл обязан быть под
+# backup/restore и git-clean fail-fast: иначе урок провала перестанет
+# писаться, и это останется в рабочем дереве тихо.
+MIG_016="schema/migrations/016_agent_memory_feedback.sql"
 : "${TEST_DATABASE_URL:?set TEST_DATABASE_URL (disposable DB, prefix test_/v0/c2_)}"
 
 # Fail-fast: схема и целевая миграция должны быть в git-чистом состоянии. Если
 # предыдущий прогон был прерван (SIGKILL/OOM) и не успел восстановить файл,
 # trap — best-effort; не запускаем мутации на уже-мутированном файле.
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014" "$MIG_015"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014" "$MIG_015" "$MIG_016"; do
     if ! git diff --quiet -- "$f"; then
       echo "BLOCKED: $f has uncommitted changes (leftover mutation?); restore it first" >&2
       echo "  hint: git checkout -- $f" >&2
@@ -91,12 +96,14 @@ BACKUP_2B="${TMPDIR:-/tmp}/swarm_roles2b_backup_$$.sql"
 BACKUP_013="${TMPDIR:-/tmp}/swarm_mig013_backup_$$.sql"
 BACKUP_014="${TMPDIR:-/tmp}/swarm_mig014_backup_$$.sql"
 BACKUP_015="${TMPDIR:-/tmp}/swarm_mig015_backup_$$.sql"
+BACKUP_016="${TMPDIR:-/tmp}/swarm_mig016_backup_$$.sql"
 cp "$SCHEMA" "$BACKUP"
 [ -f "$MIG_F8" ] && cp "$MIG_F8" "$BACKUP_MIG"
 [ -f "$ROLES_2B" ] && cp "$ROLES_2B" "$BACKUP_2B"
 [ -f "$MIG_013" ] && cp "$MIG_013" "$BACKUP_013"
 [ -f "$MIG_014" ] && cp "$MIG_014" "$BACKUP_014"
 [ -f "$MIG_015" ] && cp "$MIG_015" "$BACKUP_015"
+[ -f "$MIG_016" ] && cp "$MIG_016" "$BACKUP_016"
 restore() {
   cp -f "$BACKUP" "$SCHEMA"
   [ -f "$BACKUP_MIG" ] && cp -f "$BACKUP_MIG" "$MIG_F8"
@@ -104,8 +111,9 @@ restore() {
   [ -f "$BACKUP_013" ] && cp -f "$BACKUP_013" "$MIG_013"
   [ -f "$BACKUP_014" ] && cp -f "$BACKUP_014" "$MIG_014"
   [ -f "$BACKUP_015" ] && cp -f "$BACKUP_015" "$MIG_015"
+  [ -f "$BACKUP_016" ] && cp -f "$BACKUP_016" "$MIG_016"
 }
-cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013" "$BACKUP_014" "$BACKUP_015"; }
+cleanup() { restore; rm -f "$BACKUP" "$BACKUP_MIG" "$BACKUP_2B" "$BACKUP_013" "$BACKUP_014" "$BACKUP_015" "$BACKUP_016"; }
 trap cleanup EXIT INT TERM
 
 caught=0; survived=0
@@ -135,12 +143,18 @@ run_arbiters() {
   # task_parent_artifacts. Без явного добавления сюда мутация S10 выживала
   # (проверено прогоном 38840603168): список арбитров ручной, и тест просто не
   # исполнялся. Тот же класс, что «проверка, которой нет».
+  #
+  # S16 (обратная связь памяти): test_agent_memory_016.py — единственный
+  # потребитель ветки `blocked` в `consolidate_task_memory`. Ровно тот же урок
+  # повторился 2026-10-18: мутант S16 выжил (15/16), потому что тест не был
+  # подключён сюда, хотя файл существовал и был зелёным.
   "$PY" -m pytest -q tests/test_v0.py tests/test_review_gate_f2.py \
         tests/test_fail_unblock_f4.py tests/test_f8_orphan_llm_spend.py \
         tests/test_worker_identity_f3.py \
         tests/test_no_duplicate_function_bodies.py \
         tests/test_dag_handoff_iteration3.py \
         tests/test_agent_memory_015.py \
+        tests/test_agent_memory_016.py \
         tests/test_migration_identity_preserved.py >/dev/null 2>&1
 }
 
@@ -371,8 +385,27 @@ run_mutation S15 "task_recall_memory: снять проверку живой а�
   select coalesce(nullif(btrim(t.contract->>'kind'), ''), '*')" \
   "$MIG_015"
 
+# S16 — consolidate_task_memory (миграция 016, обратная связь памяти): снять
+# ветку `blocked`. Ожидание: краснеет test_agent_memory_016.py::
+# test_blocked_task_writes_lesson. Без неё урок провала не пишется вовсе —
+# именно так живой прогон 2026-10-17 оставил agent_memory пустой.
+run_mutation S16 "consolidate_task_memory: не писать урок при blocked (потеря уроков провала)" \
+  "  if new.state = 'done' and new.rework > 0 then
+    v_outcome := 'corrected';
+  elsif new.state = 'blocked' then
+    v_outcome := 'blocked';
+  else
+    return new;
+  end if;" \
+  "  if new.state = 'done' and new.rework > 0 then
+    v_outcome := 'corrected';
+  else
+    return new;
+  end if;" \
+  "$MIG_016"
+
 echo
-echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S15 ==================="
+echo "==================== РЕЗУЛЬТАТЫ SQL-МУТАЦИЙ S1–S16 ==================="
 for r in "${RESULTS[@]}"; do echo "$r"; done
 echo "----------------------------------------------------------------"
 echo "поймано: $caught / $((caught + survived))   выжило: $survived"
@@ -384,7 +417,7 @@ echo
 # S10/S11 мутировали 013, а restore() его не покрывал).
 if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
   dirty=0
-  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014" "$MIG_015"; do
+  for f in "$SCHEMA" "$MIG_F8" "$ROLES_2B" "$MIG_013" "$MIG_014" "$MIG_015" "$MIG_016"; do
     if ! git diff --quiet -- "$f"; then
       echo "FAIL: $f остался изменённым после прогона — restore() не покрывает файл" >&2
       dirty=1
