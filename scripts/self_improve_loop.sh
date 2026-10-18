@@ -123,6 +123,21 @@ if [[ -z "${LESSONS//[[:space:]]/}" ]]; then
   LESSONS="(память пуста — это первый виток, опирайся на принципы и на код)"
 fi
 
+# Возможности парка: планировщик вправе запросить `needs.coder_class`,
+# которого нет ни у одного воркера, и тогда задача навсегда останется в
+# `ready` — `claim_task` фильтрует по `capabilities.models.coder_class`.
+# Живой случай (виток 1, граф `15e21856`): LLM запросил `coder_class: 3.0`
+# при потолке `2.0` у w1/w2, и граф встал без ошибки в логе. Потолок
+# передаётся в постановку числами ИЗ БД, а не догадкой.
+WORKER_CEILING="$(db "select coalesce(min((capabilities->'models'->>'coder_class')::numeric), 0)::text
+                         || ' / ' ||
+                         coalesce(min((capabilities->>'ram_gb')::numeric), 0)::text
+                        from public.workers;" 2>/dev/null || true)"
+CEIL_CLASS="${WORKER_CEILING%% / *}"
+CEIL_RAM="${WORKER_CEILING##* / }"
+[[ -n "$CEIL_CLASS" && "$CEIL_CLASS" != "0" ]] || CEIL_CLASS=2
+[[ -n "$CEIL_RAM" && "$CEIL_RAM" != "0" ]] || CEIL_RAM=16
+
 mkdir -p "$PATCH_DIR"
 
 TASK_TEXT="$(cat <<EOF
@@ -150,6 +165,13 @@ ${REWORK_STATS}
 
 ЗАБЛОКИРОВАННЫЕ ЗАДАЧИ (kind | штук | последняя причина):
 ${BLOCKED}
+
+ВОЗМОЖНОСТИ ПАРКА (жёсткий потолок, выше — задача никогда не будет взята):
+- \`needs.coder_class\` НЕ БОЛЬШЕ ${CEIL_CLASS}
+- \`needs.min_ram_gb\` НЕ БОЛЬШЕ ${CEIL_RAM}
+Ставь эти значения или ниже. Задача с завышенным \`coder_class\` остаётся в
+\`ready\` навсегда: \`claim_task\` фильтрует по возможностям воркера, и никто
+её не возьмёт.
 
 ТРЕБОВАНИЯ К ОТВЕТУ (нарушение любого = отказ ревьюера):
 - Ответ — ОДИН unified diff в блоке \`\`\`diff ... \`\`\`.
@@ -188,13 +210,28 @@ planner_run() {
 }
 
 wait_graph() {
-  local root="$1" waited=0 state
+  local root="$1" waited=0 state unclaimable
   while (( waited < GRAPH_TIMEOUT_SEC )); do
     state="$(db "select count(*) from public.tasks
                   where root_id = '$root'
                     and state in ('pending','ready','leased','review');")"
     if [[ "$state" == "0" ]]; then
       return 0
+    fi
+    # Задача в `ready`, которую не может взять НИ ОДИН воркер, не сдвинется
+    # никогда: ждать её — значит сжечь таймаут и записать урок не о том.
+    unclaimable="$(db "select count(*) from public.tasks t
+                        where t.root_id = '$root' and t.state = 'ready'
+                          and t.attempts < 3
+                          and not exists (
+                            select 1 from public.workers w
+                             where (w.capabilities->'models'->>'coder_class')::numeric
+                                     >= (t.contract #>> '{needs,coder_class}')::numeric
+                               and (w.capabilities->>'ram_gb')::numeric
+                                     >= (t.contract #>> '{needs,min_ram_gb}')::numeric);")"
+    if [[ -n "$unclaimable" && "$unclaimable" != "0" ]]; then
+      log "граф встал: $unclaimable ready-задач(и) требуют возможностей выше парка (coder_class<=$CEIL_CLASS)"
+      return 1
     fi
     sleep 10
     waited=$((waited + 10))
@@ -277,8 +314,18 @@ while (( attempt <= MAX_ATTEMPTS )); do
   log "граф: $ROOT_ID"
 
   if ! wait_graph "$ROOT_ID"; then
-    write_lesson "$ROOT_ID" "$CRATE" blocked "Виток $ROUND: граф не завершился за ${GRAPH_TIMEOUT_SEC}s."
-    fail "граф не завершился" 2
+    REASON="$(db "select coalesce(string_agg(coalesce(block_reason,'нет'), '; '), 'нет')
+                    from public.tasks where root_id = '$ROOT_ID' and state = 'blocked';")"
+    UNCLAIMABLE="$(db "select coalesce(string_agg(t.contract->>'kind' || ' (coder_class='
+                                             || coalesce(t.contract #>> '{needs,coder_class}', '?') || ')', ', '), '')
+                        from public.tasks t
+                       where t.root_id = '$ROOT_ID' and t.state = 'ready'")"
+    if [[ -n "${UNCLAIMABLE//[[:space:]]/}" ]]; then
+      REASON="задача не берётся парком: ${UNCLAIMABLE}; потолок coder_class=$CEIL_CLASS"
+    fi
+    write_lesson "$ROOT_ID" "$CRATE" blocked \
+      "Виток $ROUND: граф не завершился за ${GRAPH_TIMEOUT_SEC}s. Причина: ${REASON:-не указана}."
+    fail "граф не завершился: ${REASON:-не указана}" 2
   fi
 
   REFS="$(artifact_refs_for_root "$ROOT_ID")"
