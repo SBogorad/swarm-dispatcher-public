@@ -787,7 +787,8 @@ review_gate_acceptance() {
         tests/test_contract_form_f15.py tests/test_fail_unblock_f4.py \
         tests/test_find04_record_tool_call_identity.py tests/test_worker_identity_f3.py \
         tests/test_review_gate_f2.py tests/test_review_gate_wave4.py \
-        tests/test_dag_handoff_iteration3.py tests/test_agent_memory_015.py
+        tests/test_dag_handoff_iteration3.py tests/test_agent_memory_015.py \
+        tests/test_agent_memory_017.py
   fi
   unset ROLES_DB ROLES_HOST ROLES_PORT ADMIN_PW PGDSN W4_ADMIN_DSN W4_W1_PW W4_W2_PW
   unset SWARM_PW_W1 SWARM_PW_W2 SWARM_PW_W_1 SWARM_PW_GPU_1 SWARM_PW_WORKER SWARM_PW_WATCHDOG

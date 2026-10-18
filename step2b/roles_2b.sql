@@ -219,10 +219,10 @@ begin
   update tasks
      set state = 'blocked', result_ref = coalesce(p_result_ref, result_ref),
          lease_owner = null, lease_until = null,
-         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 500), updated_at = now()
+         block_reason = left('llm_error: ' || coalesce(p_reason, ''), 2000), updated_at = now()
    where id = p_task;
   perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
-                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 500)));
+                       jsonb_build_object('failed', true, 'reason', left(coalesce(p_reason, ''), 2000)));
   return 'blocked';
 end $$;
 
@@ -243,11 +243,11 @@ begin
   update tasks
      set state = p_state, result_ref = coalesce(p_result_ref, result_ref),
          lease_owner = null, lease_until = null,
-         block_reason = left(coalesce(p_reason, ''), 500), updated_at = now()
+         block_reason = left(coalesce(p_reason, ''), 2000), updated_at = now()
    where id = p_task;
   perform append_event(p_task, 'fail:' || p_epoch, 'completed', p_worker,
                        jsonb_build_object('failed', true, 'state', p_state,
-                                          'reason', left(coalesce(p_reason, ''), 500)));
+                                          'reason', left(coalesce(p_reason, ''), 2000)));
   return p_state;
 end $$;
 

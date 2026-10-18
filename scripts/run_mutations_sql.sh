@@ -155,6 +155,7 @@ run_arbiters() {
         tests/test_dag_handoff_iteration3.py \
         tests/test_agent_memory_015.py \
         tests/test_agent_memory_016.py \
+        tests/test_agent_memory_017.py \
         tests/test_migration_identity_preserved.py >/dev/null 2>&1
 }
 
