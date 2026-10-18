@@ -292,14 +292,24 @@ preflight() {
     tail_log <(printf '%s\n' "$dirty") 8
     fail "pre-flight: рабочее дерево грязное — виток не стартует (см. git status)" 4
   fi
-  for f in $TARGET_FILES; do
-    [[ -f "$f" ]] || missing+=("$f")
-  done
-  if (( ${#missing[@]} > 0 )); then
-    harness_fault
-    fail "pre-flight: целевых файлов нет в дереве: ${missing[*]}" 4
+  if [[ "$MODE" == "edit" ]]; then
+    # Правка: файл обязан быть, иначе патч с контекстом некуда прикладывать.
+    for f in $TARGET_FILES; do
+      [[ -f "$f" ]] || missing+=("$f")
+    done
+    if (( ${#missing[@]} > 0 )); then
+      harness_fault
+      fail "pre-flight: целевых файлов для правки нет в дереве: ${missing[*]}" 4
+    fi
+    log "pre-flight: дерево чистое, целевые файлы на месте ($(echo $TARGET_FILES | wc -w))"
+  else
+    # Создание: файла ещё нет — иначе diff `--- /dev/null` не применится.
+    if [[ -e "$TARGET" ]]; then
+      harness_fault
+      fail "pre-flight: $TARGET уже существует — режим $MODE создаёт новый файл" 4
+    fi
+    log "pre-flight: дерево чистое, $TARGET свободен для создания"
   fi
-  log "pre-flight: дерево чистое, все целевые файлы на месте ($(echo $TARGET_FILES | wc -w))"
 }
 
 preflight
