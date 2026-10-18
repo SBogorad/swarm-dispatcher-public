@@ -71,7 +71,20 @@ pub fn root_contract(description: &str, limits: &Limits) -> TaskContract {
         // выглядел для модели пустой обёрткой, и корневая задача уходила в
         // `missing_input` (описание лежало только в <untrusted>).
         goal: opt_description(description),
-        checks: vec![json!({"type": "cmd", "run": "true"})],
+        // Раньше здесь стояла заглушка `{"type":"cmd","run":"true"}`: команда,
+        // которая всегда завершается успешно и потому ничего не измеряет.
+        // Ревьюер зеркалил её в `reviews.checks` как `cmd|true: fail`, и воркер
+        // на реворке получал «твоя команда `true` упала» — сигнал без смысла
+        // (живые графы `4a5307d9`, `bfd8d5dd`).
+        //
+        // Теперь требование названо честно: это ручная проверка рубрики.
+        // Тип `manual` входит в реестр `ALLOWED_CHECK_TYPES` и в SQL-реестр
+        // `validate_contract`, поэтому контракт проходит CT001; тип `rubric`
+        // туда НЕ входит и уронил бы вставку задачи.
+        checks: vec![json!({
+            "type": "manual",
+            "run": "review_rubric: decision_trail_and_handoff"
+        })],
         needs: Needs::default(),
         budget: Budget {
             attempts: 3,
@@ -332,6 +345,14 @@ mod tests {
         assert_eq!(c.budget.max_depth, Some(3));
         assert_eq!(c.budget.max_children, Some(4));
         assert!(!c.checks.is_empty());
+        // Заглушка `run: "true"` не должна вернуться: она ничего не проверяет,
+        // а в отчёте ревьюера выглядела как проваленная команда.
+        let run = c.checks[0]
+            .get("run")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        assert_ne!(run, "true", "вернулась заглушка проверки: {:?}", c.checks);
+        assert_eq!(c.checks[0]["type"], "manual");
     }
 
     // §6.1 (v0.3.1): корень получает description = текст задачи.

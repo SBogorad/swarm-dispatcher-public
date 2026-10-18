@@ -144,7 +144,12 @@ fn review_once(d: &mut SwarmDispatcher, cfg: &ReviewerConfig) -> Result<usize, D
             cfg.min_bytes,
             cfg.require_decision_trail,
         );
-        let checks = checks_for(&cand.contract, &ref_, verdict == Verdict::Approved);
+        let checks = checks_for(
+            &cand.contract,
+            &ref_,
+            verdict == Verdict::Approved,
+            &reasons,
+        );
         match d.submit_review(cand.id, &ref_, &cfg.reviewer_id, verdict, &checks) {
             Ok(state) => {
                 let note = if verdict == Verdict::Approved {
@@ -340,14 +345,14 @@ fn unfinished_stub_marker(body: &str) -> Option<&'static str> {
 /// Ключ проверки = `coalesce(id, type || '|' || run)` — ровно так его считает
 /// строгий review-gate в `submit_review` (RV003). Один элемент отчёта на
 /// каждое требование контракта, иначе гейт отклонит «зелёный» набор.
-fn checks_for(contract: &Value, artifact_ref: &str, ok: bool) -> Value {
+fn checks_for(contract: &Value, artifact_ref: &str, ok: bool, reasons: &[String]) -> Value {
     let reqs = contract
         .get("checks")
         .and_then(|c| c.as_array())
         .cloned()
         .unwrap_or_default();
     let status = if ok { "pass" } else { "fail" };
-    let mut checks = Vec::with_capacity(reqs.len());
+    let mut checks = Vec::with_capacity(reqs.len() + 1);
     for c in reqs {
         let ctype = c.get("type").and_then(|v| v.as_str()).unwrap_or("check");
         let run = c.get("run").and_then(|v| v.as_str()).unwrap_or("");
@@ -361,6 +366,23 @@ fn checks_for(contract: &Value, artifact_ref: &str, ok: bool) -> Value {
             "type": ctype,
             "run": run,
             "status": status,
+            "artifact_ref": artifact_ref,
+        }));
+    }
+    // Отказ ревьюера раньше жил только в stdout-логе: воркер на реворке
+    // получал через `task_rework_feedback` голый `{"id":"cmd|true","status":"fail"}`
+    // и не понимал, что именно исправить. Теперь причина отказа едет в БД
+    // отдельной записью рубрики и доходит и до воркера, и до `agent_memory`.
+    //
+    // Строгий гейт `submit_review` (RV003) сверяет только ключи требований
+    // контракта, поэтому лишняя запись `rubric` его не ослабляет.
+    if !reasons.is_empty() {
+        checks.push(json!({
+            "id": "rubric",
+            "type": "rubric",
+            "run": "review_rubric",
+            "status": status,
+            "detail": reasons.join("; "),
             "artifact_ref": artifact_ref,
         }));
     }
@@ -614,7 +636,7 @@ mod tests {
             {"type": "cmd", "run": "cargo test"},
             {"id": "lint", "type": "cmd", "run": "cargo clippy"}
         ]));
-        let checks = checks_for(&c, "sha256:abc", true);
+        let checks = checks_for(&c, "sha256:abc", true, &[]);
         let arr = checks.as_array().unwrap();
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["id"], "cmd|cargo test");
@@ -622,12 +644,35 @@ mod tests {
         assert_eq!(arr[1]["id"], "lint");
         assert_eq!(arr[1]["artifact_ref"], "sha256:abc");
         // Провал: тот же набор ключей, но status=fail — гейт не пропустит approved.
-        let bad = checks_for(&c, "sha256:abc", false);
+        let bad = checks_for(&c, "sha256:abc", false, &[]);
         assert!(bad
             .as_array()
             .unwrap()
             .iter()
             .all(|c| c["status"] == "fail"));
+    }
+
+    /// Отказ ревьюера обязан доехать до БД: без `detail` воркер на реворке
+    /// видит только `cmd|true: fail` и бьётся вслепую (живой случай `bfd8d5dd`).
+    #[test]
+    fn checks_carry_review_detail() {
+        let c = contract_with(json!([{"type": "cmd", "run": "true"}]));
+        let reasons =
+            vec!["[RUBRIC:TRAIL] строка `scope`: evidence `ok` не является указателем".to_string()];
+        let checks = checks_for(&c, "sha256:abc", false, &reasons);
+        let arr = checks.as_array().unwrap();
+        // Требование контракта + запись рубрики с причиной.
+        assert_eq!(arr.len(), 2);
+        let rubric = arr
+            .iter()
+            .find(|c| c["id"] == "rubric")
+            .expect("нет записи rubric");
+        assert_eq!(rubric["type"], "rubric");
+        assert_eq!(rubric["status"], "fail");
+        assert_eq!(rubric["detail"], reasons[0]);
+        // Причины не добавляются на успешном ревью: лишних записей нет.
+        let ok = checks_for(&c, "sha256:abc", true, &[]);
+        assert_eq!(ok.as_array().unwrap().len(), 1);
     }
 
     #[test]
