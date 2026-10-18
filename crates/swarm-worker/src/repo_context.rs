@@ -108,7 +108,17 @@ impl RepoContext {
         if !path.is_dir() {
             return None;
         }
-        Some(Self::new(path, DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILES))
+        // Потолок на файл настраивается: боевые исходники бывают крупнее
+        // дефолтных 24 КБ (`swarm-reviewer/src/main.rs` — 34 КБ,
+        // `swarm-worker/src/prompt.rs` — 51 КБ). Без этого воркер видел
+        // только начало файла и не мог править хвост: любой его diff по
+        // таким файлам был фантазией о невидимом коде.
+        let max_bytes = std::env::var("SWARM_REPO_MAX_FILE_BYTES")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .filter(|n| *n >= 1024)
+            .unwrap_or(DEFAULT_MAX_FILE_BYTES);
+        Some(Self::new(path, max_bytes, DEFAULT_MAX_FILES))
     }
 
     pub fn root(&self) -> &Path {
