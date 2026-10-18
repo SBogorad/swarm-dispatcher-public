@@ -591,6 +591,12 @@ while (( attempt <= MAX_ATTEMPTS )); do
   git apply --recount "$PATCH_FILE"
   log "патч применён к $BRANCH (base $BASE_SHA)"
 
+  # `cargo fmt --all` перед гейтом. Рой пишет рабочий код, но не расставляет
+  # переносы: виток 3 дважды прошёл `git apply` и компиляцию и дважды покраснел
+  # ровно на шаге rustfmt. Форматирование детерминировано и семантику не
+  # меняет, поэтому это работа контура, а не повод для ещё одного витка.
+  cargo fmt --all
+
   if ! cargo test -p "$CRATE" --locked > /tmp/self-improve-test.log 2>&1; then
     TAIL="$(grep -E '^(error|test result: FAILED)' /tmp/self-improve-test.log | head -3 | tr '\n' ' ')"
     write_lesson "$ROOT_ID" "$CRATE" blocked \
