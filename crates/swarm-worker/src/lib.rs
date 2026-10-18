@@ -11,6 +11,7 @@ pub mod allowlist;
 pub mod artifacts;
 pub mod audit;
 pub mod budget;
+pub mod diff_repair;
 pub mod error;
 pub mod llm_cost;
 pub mod model_selector;

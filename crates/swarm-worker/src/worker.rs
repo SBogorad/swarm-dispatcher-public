@@ -517,8 +517,13 @@ pub fn process_lease(
                 return Ok(blocked_or_review(st, ref_, &reason));
             }
 
+            // Счётчики хунков модель считает «на глаз»: объявленное в
+            // `@@ -l,s +l,s @@` расходится с телом, и ревьюер отклоняет
+            // верный патч. Пересчитываем до записи — артефакт уходит на
+            // ревью уже согласованным.
+            let artifact_text = crate::diff_repair::recount_hunks(&resp.text);
             let (ref_, path, size) =
-                artifacts::write_artifact(&cfg.artifacts_dir, resp.text.as_bytes())?;
+                artifacts::write_artifact(&cfg.artifacts_dir, artifact_text.as_bytes())?;
             let storage_path = match ArtifactStore::from_env()? {
                 Some(store) => store.put_verified(&ref_, &path, "text/plain")?,
                 None => local_storage_uri(&path),
