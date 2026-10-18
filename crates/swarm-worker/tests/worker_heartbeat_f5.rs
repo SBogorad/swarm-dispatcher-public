@@ -77,6 +77,7 @@ fn cfg(dir: &Path, lease_sec: i32) -> WorkerConfig {
         run_limits: RunLimits::default(),
         llm_calls: None,
         model_selector: None,
+        repo: None,
     }
 }
 

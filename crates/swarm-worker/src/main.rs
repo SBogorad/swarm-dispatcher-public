@@ -179,6 +179,10 @@ fn main() {
         },
         llm_calls: Some(llm_calls.clone()),
         model_selector,
+        // Read-only исходники репозитория: без них задача «поправь файл X»
+        // уходит в `blocked (missing_input)` — живой урок `agent_memory#1`.
+        // `None` (переменная не задана) сохраняет прежнее поведение.
+        repo: swarm_worker::RepoContext::from_env(),
     };
 
     let llm: Box<dyn LlmClient> = match llm_from_env() {

@@ -23,6 +23,7 @@ PROD = REPO / "docker-compose.yml"
 SERVICE_RE = re.compile(r"^  ([A-Za-z0-9_-]+):\s*$")
 DSN_RE = re.compile(r"^\s*DATABASE_URL:\s*postgres://([^:@/]+):")
 WORKER_ID_RE = re.compile(r"^\s*WORKER_ID:\s*(\S+)\s*$")
+REPO_DIR_RE = re.compile(r"^\s*SWARM_REPO_DIR:\s*(\S+)\s*$")
 
 
 def normalize_worker_id(worker_id: str) -> str:
@@ -52,6 +53,10 @@ def _services(path: Path):
         m = WORKER_ID_RE.match(line)
         if m:
             services[current]["WORKER_ID"] = m.group(1)
+            continue
+        m = REPO_DIR_RE.match(line)
+        if m:
+            services[current]["SWARM_REPO_DIR"] = m.group(1)
     return services
 
 
@@ -80,6 +85,48 @@ def test_demo_workers_use_their_own_role():
         if user != expected:
             bad.append(f"{name}: WORKER_ID={wid} → ожидалась роль {expected}, а в DSN {user}")
     assert not bad, "демо-воркеры вне изоляции ролей:\n  " + "\n  ".join(bad)
+
+
+def _worker_block(path: Path, name: str) -> str:
+    """Текст секции сервиса `name` из compose (до следующего сервиса)."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        if SERVICE_RE.match(line):
+            if start is not None:
+                return "\n".join(lines[start:i])
+            if line.strip() == f"{name}:":
+                start = i
+    assert start is not None, f"{path}: нет сервиса {name}"
+    return "\n".join(lines[start:])
+
+
+def test_workers_mount_repo_read_only():
+    """Воркер обязан видеть репозиторий — и только на чтение.
+
+    Живой урок `agent_memory#1` (2026-10-18): задача «поправь
+    `scripts/acceptance_allowlist.txt`» уходила в `blocked (missing_input)`,
+    потому что контейнер воркера файла не видел. Лечится read-only монтированием
+    корня репозитория и `SWARM_REPO_DIR`.
+
+    Проверяем оба контура (прод и демо) и оба условия: монтирование есть,
+    режим `:ro` (исполнитель не должен писать в рабочую копию), переменная
+    указывает на ту же точку. Пропавший `:ro` — это уже не «нет контекста»,
+    а право менять исходники, поэтому тест падает, а не предупреждает.
+    """
+    bad = []
+    for path in (PROD, DEMO):
+        for name in sorted(_worker_services(path)):
+            block = _worker_block(path, name)
+            env = _services(path)[name]
+            if env.get("SWARM_REPO_DIR") != "/workspace":
+                bad.append(f"{path.name}/{name}: нет SWARM_REPO_DIR=/workspace")
+            mount = [ln.strip() for ln in block.splitlines() if ln.strip().startswith("- .:/workspace")]
+            if not mount:
+                bad.append(f"{path.name}/{name}: нет монтирования `.:/workspace`")
+            elif not mount[0].endswith(":ro"):
+                bad.append(f"{path.name}/{name}: монтирование без `:ro` ({mount[0]})")
+    assert not bad, "воркеры без read-only доступа к репозиторию:\n  " + "\n  ".join(bad)
 
 
 def test_prod_compose_still_uses_per_worker_roles():

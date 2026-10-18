@@ -91,6 +91,7 @@ fn cfg(dir: &Path) -> WorkerConfig {
         run_limits: RunLimits::default(),
         llm_calls: None,
         model_selector: None,
+        repo: None,
     }
 }
 
