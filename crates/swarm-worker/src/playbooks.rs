@@ -48,6 +48,9 @@ pub const CORE_PRINCIPLES: &str = "\
 ты не знаешь, что измерил.
 - Boundary Discipline: соблюдай границы модулей и контрактов. Не пробивай \
 слои и не расширяй свои права.
+- Handoff Discipline: если в контракте есть вход от родительских задач, \
+используй его и заверши результат короткой секцией `## Handoff` — ключевые \
+решения и выходные данные для следующих задач графа.
 - Show Me Your Work: заверши артефакт секцией `## Handoff`, а перед ней — \
 таблицей `## Decision Trail` со столбцами \
 `phase | decision | why | evidence | result`. Колонка `evidence` в КАЖДОЙ \
@@ -202,6 +205,7 @@ mod tests {
             "Test Behavior, Not Implementation",
             "Explain the Number",
             "Boundary Discipline",
+            "Handoff Discipline",
             "Show Me Your Work",
         ] {
             assert!(

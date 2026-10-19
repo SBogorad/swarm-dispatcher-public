@@ -42,6 +42,7 @@
 | `Dockerfile` | Rust builder + Debian runtime |
 | `docker-compose.yml` | Боевой контур: postgres + watchdog + 2 воркера + cli |
 | `docker-compose.demo.yml` | Демо-контур: postgres + демо-UI + воркеры под своими ролями БД |
+| `docker-compose.self-improve.yml` | Контур self-improve |
 | `.env.example` | Шаблон переменных окружения |
 | `sgconfig.yml` | Конфиг ast-grep (архитектурные проверки) |
 | `deploy.sh` | Скрипт развёртывания |
