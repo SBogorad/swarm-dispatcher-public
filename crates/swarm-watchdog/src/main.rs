@@ -67,8 +67,15 @@ fn main() {
 
 /// Одна итерация: reclaim + promote. Открывает новое соединение каждый раз —
 /// так падение не оставляет «залипшее» подключение.
+///
+/// Гард версии схемы проверяется ЗДЕСЬ, а не только на старте процесса: сторож
+/// живёт долго и переживает выкатку новых миграций. Проверка на каждом
+/// подключении ловит момент, когда схема уехала вперёд, а бинарь остался старым
+/// (или наоборот). Пустое `SWARM_EXPECTED_SCHEMA` отключает проверку (тесты).
 fn run_iteration(dsn: &str) -> Result<(i32, i32), DispatcherError> {
     let mut d = SwarmDispatcher::connect(dsn)?;
+    let expected = std::env::var("SWARM_EXPECTED_SCHEMA").unwrap_or_default();
+    d.ensure_schema_version(&expected)?;
     let reclaimed = d.reclaim_expired()?;
     let promoted = d.promote_ready()?;
     Ok((reclaimed, promoted))

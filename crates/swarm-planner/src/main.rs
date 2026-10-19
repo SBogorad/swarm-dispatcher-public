@@ -58,6 +58,15 @@ fn main() {
         }
     };
 
+    // Гард версии схемы: планировщик пишет контракты, которые исполняет воркер
+    // по телам функций из БД. Расхождение версий делает план неисполнимым
+    // молча — лучше отказаться на старте.
+    let expected_schema = std::env::var("SWARM_EXPECTED_SCHEMA").unwrap_or_default();
+    if let Err(e) = dispatcher.ensure_schema_version(&expected_schema) {
+        eprintln!("error: schema version: {e}");
+        std::process::exit(3);
+    }
+
     match planner.plan(&mut dispatcher, &task_text) {
         Ok(out) if out.already_existed => {
             println!(

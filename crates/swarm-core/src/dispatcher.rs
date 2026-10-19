@@ -17,6 +17,46 @@ impl SwarmDispatcher {
         Ok(Self { client })
     }
 
+    /// Версия схемы: имя последней применённой миграции.
+    ///
+    /// Реестр `public.schema_migrations` сервисным ролям не читается
+    /// (`revoke all ... from public` в `05-migrations.sh`), поэтому значение
+    /// отдаёт узкий SECURITY DEFINER RPC `schema_version()` (миграция 019).
+    ///
+    /// Зачем это нужно коду: без проверки версии код и схема расходятся молча.
+    /// Ровно так 015–018 отсутствовали на живом томе, а воркер работал — без
+    /// recall и без дедупликации уроков, не падая и ничего не логируя.
+    pub fn schema_version(&mut self) -> Result<String, DispatcherError> {
+        let row = self
+            .client
+            .query_one("SELECT public.schema_version()", &[])
+            .map_err(DispatcherError::from_pg)?;
+        Ok(row.get(0))
+    }
+
+    /// Проверить, что схема БД не старше ожидаемой сборкой.
+    ///
+    /// Сравнение — по последней применённой миграции. Ожидание берётся из
+    /// `SWARM_EXPECTED_SCHEMA` (например `019_`), а если переменная пуста —
+    /// проверка не выполняется: это позволяет тестам и ручным прогонам
+    /// работать на частично собранной БД, не отключая гард в бою.
+    ///
+    /// Отдельно про пустой реестр: `schema_version()` вернёт `""`. Это значит
+    /// «схема не инициализирована» и обязано быть ошибкой, если ожидание задано.
+    pub fn ensure_schema_version(&mut self, expected: &str) -> Result<(), DispatcherError> {
+        if expected.is_empty() {
+            return Ok(());
+        }
+        let actual = self.schema_version()?;
+        if actual.starts_with(expected) {
+            return Ok(());
+        }
+        Err(DispatcherError::SchemaVersionMismatch {
+            actual,
+            expected: expected.to_string(),
+        })
+    }
+
     // ---------- чтение ----------
 
     /// Список задач **напрямую из таблицы** — доступно только суперпользователю

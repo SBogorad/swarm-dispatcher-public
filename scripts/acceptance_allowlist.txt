@@ -232,7 +232,7 @@ tests/test_migration_identity_preserved.py
 scripts/apply_migrations.sh
 tests/test_migration_ledger_runner.py
 # Страж полноты ИТОГОВОЙ схемы (2026-10-20): полная цепочка с нуля, ожидаемый
-# каталог (36 функций / 10 таблиц), все миграции в реестре, RPC handoff и памяти
+# каталог (37 функций / 10 таблиц), все миграции в реестре, RPC handoff и памяти
 # на месте. Отдельный файл, потому что ловит другой класс: «миграция есть в
 # дереве, но до схемы не доехала» (так 015–018 не попали на живой том).
 tests/test_schema_chain_completeness.py
