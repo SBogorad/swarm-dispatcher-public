@@ -1,4 +1,18 @@
--- Swarm dispatcher v0: Postgres 16. Единый источник истины.
+-- Swarm dispatcher v0: Postgres 16. БАЗА схемы, а не её снимок.
+--
+-- Полная схема = этот файл + schema/migrations/*.sql (001–018), которые
+-- накатываются поверх него в лексикографическом порядке
+-- (scripts/05-migrations.sh в initdb-пути, scripts/apply_migrations.sh на
+-- живом томе). Файл НЕ является источником истины целиком: на 2026-10-20
+-- миграции добавляют к нему 11 функций и 3 таблицы (llm_calls,
+-- llm_cost_reconciliation, agent_memory). Поэтому «в этом файле нет
+-- task_parent_artifacts» не означает, что функции не будет на свежем томе.
+--
+-- Не вливайте содержимое миграций в этот файл: повторное применение
+-- (05-migrations.sh под set -eu + ON_ERROR_STOP=1) упадёт на
+-- `create table` без `if not exists`, и контейнер не поднимется.
+-- Страж полноты цепочки: tests/test_schema_chain_completeness.py.
+--
 -- Правила: любая запись воркера несёт lease_epoch (fencing); переход состояния и
 -- событие в журнале пишутся в одной транзакции; время только через now() БД.
 -- Коды ошибок: LS001 lease_lost, AR001 artifact_missing, CT001 contract_invalid,
