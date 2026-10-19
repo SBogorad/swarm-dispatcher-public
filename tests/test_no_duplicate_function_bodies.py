@@ -20,13 +20,22 @@ F3). Тела во всём остальном идентичны канонич
 Этот тест — детектор расхождений (drift guard), а не запрет перекрытия:
   * перекрываемая функция должна входить в разрешённый список;
   * её тело после вычищения комментариев/пробелов и единственной разрешённой
-    строки identity-проверки обязано совпадать с каноническим.
+    строки identity-проверки обязано совпадать с каноническим
+    **посимвольно** (пробелы не в счёт): смена константы или перестановка
+    токенов внутри места, где верстка совпала, тоже краснеет.
 
-Если кто-то поправит тело в schema_v0.sql и забудет про roles_2b.sql (или
-наоборот) — тест краснеет и указывает, что именно разошлось.
-
-Тест НЕ требует БД: это чистый текстовый анализ. Запуск:
-  .venv/bin/python -m pytest -q tests/test_no_duplicate_function_bodies.py
+Мутации, которыми проверка проверена (2026-10-19, вручную; схема/roles_2b
+восстанавливались из git):
+  * удалить `perform assert_worker_identity(...)` из roles_2b → **красный**
+    `test_override_adds_identity_check`;
+  * `'{budget,attempts}', 3)` → `5)` в roles_2b → **красный**
+    `test_override_body_matches_schema[claim_task]`;
+  * `t.created_at,` → `t.created_at desc,` в roles_2b → **красный**
+    (на этой мутации красна и старая версия теста: смена строки меняет
+    разбиение на слова; новая остаётся красной уже при сравнении по символам,
+    т.е. не зависит от верстки);
+  * та же правка только в schema_v0.sql → **красный** (дрейф в обратную сторону);
+  * чистая переверстка (перенос строки в условии) → **зелёный** (не шумит).
 """
 import re
 from pathlib import Path
@@ -78,24 +87,50 @@ _IDENTITY_CALL = re.compile(r"perform\s+assert_worker_identity\s*\([^)]*\)\s*;")
 
 
 def _normalize(body: str) -> str:
-    """Токенизированное представление: без комментариев, все пробелы → один.
+    """Канонизированное представление тела: без комментариев и без пробелов.
 
-    Схлопываем переносы строк, чтобы косметическая переупаковка параметров не
-    считалась расхождением — сравниваем семантику тела, а не верстку.
+    Пробелы ИГНОРИРУЮТСЯ полностью: текст склеивается в один токен (пробелы
+    удаляются), комментарии вырезаются до склейки. Так косметическая
+    переупаковка не шумит, а любое изменение символики (смена константы,
+    перестановка/удаление токена, оператора) остаётся видно.
+
+    Почему не `" ".join`: при сравнении строк, токенизированных через
+    пробел, расхождение только в пробелах (перенос строки внутри выражения)
+    давало ложный красный, а реальная правка внутри одной строки — ложно
+    зелёный, если совпадала верстка. Проверка проверки — мутации в сессии
+    2026-10-19: `t.created_at,` → `t.created_at desc,` в roles_2b роняет
+    `test_override_body_matches_schema[claim_task]`.
     """
     body = re.sub(r"--.*", "", body)
-    body = re.sub(r"\s+", " ", body)
-    return body.strip()
+    body = re.sub(r"\s+", "", body)
+    return body
+
+
+# Работает и по сырому тексту, и по «склеенному» (пробелы удалены).
+_CREATE_FUNC = re.compile(r"create\s*(?:or\s*replace\s*)?function", re.IGNORECASE)
 
 
 def _canonicalize_canon(body: str) -> str:
-    """Канон: `create function` → `create or replace function` (форма перекрытия)."""
-    return re.sub(r"create\s+function", "create or replace function", body, count=1)
+    """Канон: `create [or replace] function` → `create or replace function`.
+
+    Применяется к ЛЮБОМУ представлению тела, в том числе к склеенному
+    (`createfunction...`): шаблон допускает и вариант с пробелами, и без
+    (склейка идёт в той же форме).
+    Узкий шаблон с `\\s+` молча не срабатывал на склеенном тексте — мутация
+    2026-10-19 это поймала.
+    """
+    return _CREATE_FUNC.sub("create or replace function", body, count=1)
 
 
-def _without_identity(body: str) -> str:
-    """Убрать разрешённую identity-строку (её в каноне нет) и схлопнуть пробелы."""
-    return re.sub(r"\s+", " ", _IDENTITY_CALL.sub(" ", body)).strip()
+def _strip_identity(body: str) -> str:
+    """Убрать разрешённую identity-строку (её в каноне нет)."""
+    return _IDENTITY_CALL.sub(" ", body)
+
+
+def _tokens(body: str) -> list[str]:
+    """Человекочитаемые токены для diff в сообщении о падении."""
+    body = re.sub(r"--.*", "", body)
+    return body.split()
 
 
 @pytest.fixture(scope="module")
@@ -133,15 +168,16 @@ def test_override_body_matches_schema(bodies, name):
     assert name in schema, f"{name} отсутствует в schema_v0.sql (канон потерян)"
     assert name in roles, f"{name} не перекрыта в roles_2b.sql"
 
-    canon = _canonicalize_canon(_normalize(schema[name]))
-    override = _without_identity(_normalize(roles[name]))
+    canon = _normalize(_canonicalize_canon(schema[name]))
+    override = _normalize(_canonicalize_canon(_strip_identity(roles[name])))
 
     if canon != override:
         import difflib
 
         diff = "\n".join(
             difflib.unified_diff(
-                canon.split(" "), override.split(" "),
+                _tokens(_canonicalize_canon(schema[name])),
+                _tokens(_canonicalize_canon(_strip_identity(roles[name]))),
                 "schema_v0.sql", "roles_2b.sql", lineterm="",
             )
         )
