@@ -755,6 +755,12 @@ review_gate_acceptance() {
     # `agent_memory` пишется только при AGENT_FAULT — иначе сбой обвязки
     # становится «опытом» роя. Статический страж, БД не требует.
     "tests/test_harness_fault_classification.py|классификация сбоев контура: HARNESS_FAULT vs AGENT_FAULT (RSI v2)"
+    # Полнота ИТОГОВОЙ схемы (2026-10-20): полная цепочка с нуля применяется
+    # без ошибок, каталог совпадает с ожидаемым (36 функций / 10 таблиц), каждая
+    # миграция отмечена в реестре, RPC handoff и памяти на месте. Ловит класс
+    # «миграция есть в файлах, но до схемы не доехала» (так 015–018 не попали
+    # на живой том). Поведенческий: нужна живая disposable-БД (PGDSN).
+    "tests/test_schema_chain_completeness.py|полнота схемы: цепочка 001-018 -> 36 функций / 10 таблиц"
   )
   for suite in "${suites[@]}"; do
     [[ -f "$WORKTREE/${suite%%|*}" ]] || { status BLOCKED "missing test suite: ${suite%%|*}"; return 0; }

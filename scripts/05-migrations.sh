@@ -19,6 +19,11 @@ set -eu
 : "${POSTGRES_USER:?POSTGRES_USER required}"
 : "${POSTGRES_DB:?POSTGRES_DB required}"
 
+# Каталог миграций. В initdb-пути это смонтированный /sql/migrations; переопределение
+# нужно стражам, которые прогоняют ЭТОТ ЖЕ скрипт на живой disposable-БД, а не
+# повторяют его логику у себя (tests/test_schema_chain_completeness.py).
+MIGRATIONS_DIR="${MIGRATIONS_DIR:-/sql/migrations}"
+
 psql_q() { psql -X -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"; }
 
 psql_q <<'SQL'
@@ -38,7 +43,7 @@ end $$;
 revoke all on table public.schema_migrations from public;
 SQL
 
-for f in /sql/migrations/*.sql; do
+for f in "$MIGRATIONS_DIR"/*.sql; do
   [ -e "$f" ] || continue
   name="$(basename "$f")"
   sum="$(sha256sum "$f" | cut -d' ' -f1)"
