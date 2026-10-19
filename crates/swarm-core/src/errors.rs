@@ -72,6 +72,9 @@ pub enum DispatcherError {
     #[error("worker is not registered")]
     WorkerUnknown,
 
+    #[error("schema version mismatch: database has {actual:?}, build requires {expected:?}")]
+    SchemaVersionMismatch { actual: String, expected: String },
+
     #[error("database error")]
     Database(#[source] postgres::Error),
 

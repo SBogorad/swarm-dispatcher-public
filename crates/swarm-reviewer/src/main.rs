@@ -103,6 +103,14 @@ fn main() {
         }
     };
 
+    // Гард версии схемы: рубрика в коде и тело функций в БД должны быть одной
+    // версии. Пустое `SWARM_EXPECTED_SCHEMA` отключает проверку (тесты).
+    let expected_schema = std::env::var("SWARM_EXPECTED_SCHEMA").unwrap_or_default();
+    if let Err(e) = d.ensure_schema_version(&expected_schema) {
+        error!(error = %e, "schema version check failed; refusing to start");
+        std::process::exit(3);
+    }
+
     let poll = Duration::from_secs_f64(cfg.poll_sec.max(0.2));
     while !shutdown.load(Ordering::SeqCst) {
         match review_once(&mut d, &cfg) {

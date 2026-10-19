@@ -15,6 +15,36 @@
 Release-tag требует acceptance harness с `--full-workspace-test`, строгим
 `release_gate: STRICT`, нулевым `blocked_count` и валидным attestation.
 
+### Added (гард версии схемы: код и БД больше не расходятся молча — 2026-10-20)
+
+Дефект, который это закрывает: контур умел применять миграции, но не умел
+ОТВЕЧАТЬ, какая схема у него сейчас. Реестр `public.schema_migrations`
+принадлежит `swarm_owner`, а `revoke all ... from public` в `05-migrations.sh`
+и `apply_migrations.sh` закрывает чтение всем сервисным ролям — проверено на
+живом томе: `has_table_privilege('swarm_worker', 'public.schema_migrations',
+'select')` = false. Без чтения реестра сервис физически не может отличить
+«схема на 014» от «схема на 018», и код расходится со схемой без единой
+ошибки в логе. Ровно так 015–018 жили в дереве, но не в БД: воркер работал
+без recall и без дедупликации уроков, не падая.
+
+- `schema/migrations/019_schema_version.sql` — узкий SECURITY DEFINER RPC
+  `schema_version()`, отдающий ровно имя последней применённой миграции.
+  Least privilege: `grant select` на реестр не выдан, открыт только вызов
+  функции, и только пяти сервисным ролям.
+- `SwarmDispatcher::schema_version()` / `ensure_schema_version()` — чтение
+  версии и сверка с ожиданием из `SWARM_EXPECTED_SCHEMA` (например `019_`).
+  Пустая переменная отключает проверку: тесты и ручные прогоны на частично
+  собранной БД продолжают работать.
+- Гард на старте `swarm-worker`, `swarm-planner`, `swarm-reviewer` и в каждой
+  итерации `swarm-watchdog` (сторож живёт долго и переживает выкатку
+  миграций, поэтому проверка не только на старте). Расхождение — отказ
+  старта с кодом 3, а не тихая работа на чужой схеме.
+- `DispatcherError::SchemaVersionMismatch` — отдельный вариант, чтобы
+  вызывающий отличал рассинхрон версий от сетевой ошибки.
+- `tests/test_schema_chain_completeness.py` — поведенческая проверка RPC на
+  живой disposable-БД: значение совпадает с последней миграцией, сервисная
+  роль МОЖЕТ вызвать функцию и НЕ МОЖЕТ прочитать реестр.
+
 ### Added (память роя: reflect + correct + encode-lessons — 2026-10-17)
 
 У роя не было долгосрочной памяти: `task_rework_feedback` и

@@ -62,7 +62,7 @@ PGDSN = os.environ.get("PGDSN", "")
 # потому что эмулировал накат файлов у себя и реестр не создавал — то есть
 # проверял копию логики, а не прод. Теперь страж гоняет настоящий скрипт,
 # и реестр честно входит в каталог.
-EXPECTED_FUNCTIONS = 36
+EXPECTED_FUNCTIONS = 37
 EXPECTED_TABLES = 10
 
 # RPC, без которых контур деградирует молча: воркер работает, но без handoff
@@ -256,11 +256,12 @@ def test_full_chain_applies_without_errors(pg):
 
 
 def test_catalog_matches_expected_size(pg):
-    """Итоговый каталог = ожидаемые 36 функций и 10 таблиц.
+    """Итоговый каталог = ожидаемые 37 функций и 10 таблиц.
 
     Числа — снимок устройства на 2026-10-20. Если они разошлись, значит либо
     миграция не доехала, либо добавилась новая и снимок надо обновить осознанно.
     Десятая таблица — `schema_migrations`: её создаёт initdb-скрипт, не миграция.
+    37-я функция — `schema_version()` из миграции 019 (гард версии схемы).
     """
     dsn, _names = _apply_full_chain(pg, "catalog")
     functions = int(
@@ -326,6 +327,36 @@ def test_memory_table_exists(pg):
     """`agent_memory` — носитель памяти роя (у контейнера воркера нет диска)."""
     dsn, _names = _apply_full_chain(pg, "memory")
     assert pg.scalar(dsn, "select to_regclass('public.agent_memory') is not null") == "t"
+
+
+def test_schema_version_rpc_reports_last_migration(pg):
+    """`schema_version()` — единственный способ сервисам узнать версию схемы.
+
+    Реестр `schema_migrations` принадлежит `swarm_owner`, а `revoke all ... from
+    public` закрывает чтение всем сервисным ролям: проверено на живом томе,
+    `has_table_privilege('swarm_worker', 'public.schema_migrations', 'select')`
+    = false. Без этого RPC код физически не может отличить «схема на 014» от
+    «схема на 018» — именно поэтому 015–018 жили в дереве, но не в БД.
+
+    Проверяется три вещи сразу: значение совпадает с последней миграцией,
+    сервисная роль МОЖЕТ вызвать функцию, и НЕ МОЖЕТ прочитать сам реестр
+    (least privilege, а не «выдали select на таблицу»).
+    """
+    dsn, names = _apply_full_chain(pg, "schemaversion")
+    got = pg.scalar(dsn, "select public.schema_version()")
+    assert got == names[-1], (
+        f"schema_version() вернул {got!r}, ожидалась последняя миграция {names[-1]!r}"
+    )
+    assert pg.scalar(
+        dsn,
+        "select has_function_privilege('swarm_worker', "
+        "'public.schema_version()', 'execute')",
+    ) == "t", "swarm_worker не может вызвать schema_version() — гард в коде мёртв"
+    assert pg.scalar(
+        dsn,
+        "select has_table_privilege('swarm_worker', "
+        "'public.schema_migrations', 'select')",
+    ) == "f", "реестр открыт сервисной роли: RPC перестал быть least privilege"
 
 
 # ---------------------------------------------------------------------------

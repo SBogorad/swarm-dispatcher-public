@@ -203,6 +203,16 @@ fn main() {
 
     let mut d = SwarmDispatcher::connect(&dsn).expect("connect to Postgres");
 
+    // Гард версии схемы: код и схема не должны расходиться молча. Ровно так
+    // 015–018 отсутствовали на живом томе, а воркер работал без recall и без
+    // дедупликации уроков. Пустое `SWARM_EXPECTED_SCHEMA` отключает проверку
+    // (тесты и ручные прогоны на частично собранной БД).
+    let expected_schema = std::env::var("SWARM_EXPECTED_SCHEMA").unwrap_or_default();
+    if let Err(e) = d.ensure_schema_version(&expected_schema) {
+        error!(error = %e, "schema version check failed; refusing to start");
+        std::process::exit(3);
+    }
+
     loop {
         match d.register_worker(&worker_id, &capabilities, &tags) {
             Ok(()) => break,
