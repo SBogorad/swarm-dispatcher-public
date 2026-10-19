@@ -50,12 +50,19 @@
 -- корректно (проверено: `lower('ВИТОК Patch') = lower('виток patch')` → true).
 -- Отдельный `collate "C"` не нужен и навредил бы: он перестал бы складывать
 -- регистр не-ASCII, и отпечаток разошёлся бы с Rust-реализацией.
+--
+-- `security definer` + закреплённый `search_path` — не перестраховка, а
+-- инвариант каталога: `step2/test_roles.py::test_catalog_invariants` требует
+-- этого от КАЖДОЙ функции в `public`. Обычная (invoker) функция в этой схеме
+-- уронила бы гейт — проверено на первом прогоне. `immutable` сохраняется:
+-- от настроек сессии функция не зависит.
 -- ---------------------------------------------------------------------------
 create or replace function public.agent_memory_fingerprint(p_lesson text)
 returns text
 language sql
 immutable
-parallel safe
+security definer
+set search_path = public, pg_temp
 as $$
   select case
            when v.collapsed like '%причина:%' then
@@ -72,6 +79,9 @@ as $$
 $$;
 
 alter function public.agent_memory_fingerprint(text) owner to swarm_owner;
+-- Внутренний helper: вызывается только из `task_recall_memory`, которая
+-- исполняется как владелец. Прямой вызов снаружи не нужен и не даётся.
+revoke all on function public.agent_memory_fingerprint(text) from public;
 
 comment on function public.agent_memory_fingerprint(text) is
   'Смысловой отпечаток урока: регистр, пробелы и хвост причины после 80 символов не различают уроки';

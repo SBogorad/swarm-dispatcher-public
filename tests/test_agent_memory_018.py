@@ -132,6 +132,11 @@ def test_migration_file_exists():
     # Права не должны съехать.
     assert "grant execute on function public.task_recall_memory" in body
     assert "to swarm_worker" in body
+    # Инвариант каталога (step2/test_roles.py::test_catalog_invariants):
+    # КАЖДАЯ функция в public обязана быть SECURITY DEFINER с закреплённым
+    # search_path. Первый прогон гейта покраснел именно на этом.
+    assert "security definer" in body
+    assert "set search_path = public, pg_temp" in body
 
 
 def test_fingerprint_is_immutable(admin):
@@ -144,6 +149,26 @@ def test_fingerprint_is_immutable(admin):
     row = cur.fetchone()
     assert row, "нет функции agent_memory_fingerprint (миграция не применена?)"
     assert row[0] == "i", f"agent_memory_fingerprint не immutable: {row[0]}"
+
+
+def test_fingerprint_satisfies_catalog_invariant(admin):
+    """Функция в `public` обязана быть SECURITY DEFINER с закреплённым search_path.
+
+    Это требование `step2/test_roles.py::test_catalog_invariants`: обычная
+    invoker-функция в `public` роняет гейт (проверено на первом прогоне).
+    """
+    cur = admin.cursor()
+    cur.execute(
+        "select p.prosecdef, p.proconfig, r.rolsuper "
+        "  from pg_proc p join pg_roles r on r.oid = p.proowner "
+        " where p.proname = 'agent_memory_fingerprint'"
+    )
+    row = cur.fetchone()
+    assert row, "нет функции agent_memory_fingerprint"
+    secdef, cfg, is_super = row
+    assert secdef, "agent_memory_fingerprint обязана быть SECURITY DEFINER"
+    assert cfg and "search_path=public, pg_temp" in cfg, f"search_path не закреплён: {cfg}"
+    assert not is_super, "владелец функции — суперпользователь"
 
 
 # ---------- отпечаток ----------
