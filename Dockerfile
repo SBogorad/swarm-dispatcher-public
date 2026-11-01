@@ -4,7 +4,7 @@
 # digest 0.11 -> block-buffer 0.12) требует Cargo feature `edition2024`,
 # которая стабилизирована только с Rust 1.85. На 1.80 сборка падает с ошибкой
 # "feature `edition2024` is required". 1.98 соответствует локально проверенному toolchain.
-FROM rust:1.98-slim AS builder
+FROM rust:1.99-slim AS builder
 
 WORKDIR /build
 COPY Cargo.toml Cargo.lock* ./
